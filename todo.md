@@ -80,6 +80,8 @@
 - [x] Refine Bills and payment screens around a single amount, status, and next customer action.
 - [x] Refine Account, notifications, permissions, maps, authentication, and system pages around compact grouped actions and reduced persistent explanatory copy.
 - [ ] Validate and checkpoint each completed page-by-page minimalist refinement.
+- [x] Adapt the web shipment-card background treatment, visual depth, and clear status hierarchy into the mobile shipment-card component and active-delivery summary.
+- [ ] Validate and checkpoint the web-informed mobile shipment-card visual refinement.
 - [x] Replace the International Imports service-card visual with the newly supplied transparent parcel asset.
 - [x] Reposition the Local Delivery scooter further right within the wide service card without reducing text clarity.
 - [x] Hide the floating bottom navigation only on the Home tab and retain it on all other primary destinations.

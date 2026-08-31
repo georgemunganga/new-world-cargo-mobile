@@ -22,8 +22,11 @@ export function ServiceCard({ service, onPress, status = "available", image }: {
 export function ShipmentCard({ shipment, onPress }: { shipment: Shipment; onPress: () => void }) {
   const presentation = statusPresentation[shipment.status];
   const service = serviceInfo[shipment.service];
-  const serviceTone = shipment.service === "import" ? styles.importService : shipment.service === "intercity" ? styles.intercityService : styles.localService;
-  return <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Open shipment ${shipment.reference}`} accessibilityHint={`${service.label}. ${presentation.label}. ${shipment.eta}`} onPress={onPress} activeOpacity={0.78}><Card style={styles.shipmentCard}><View style={styles.shipmentHeader}><View style={[styles.serviceTag, serviceTone]}><AppIcon name={service.icon} size={13} color={shipment.service === "local" ? nwcColors.primaryInk : nwcColors.brandNavy} /><Text style={styles.serviceTagText}>{service.label}</Text></View><StatusBadge label={presentation.label} tone={presentation.tone} icon={presentation.icon as AppIconName} /></View><View><Text style={styles.shipmentReference}>{shipment.reference}</Text><Text style={styles.shipmentTitle}>{shipment.title}</Text></View><View style={styles.shipmentRoute}><View style={styles.endpoint}><Text style={styles.endpointLabel}>From</Text><Text style={styles.endpointText} numberOfLines={1}>{shipment.pickup.area}</Text></View><View style={styles.routeConnector}><View style={styles.routeStart} /><View style={styles.routeLine} /><View style={styles.routeEnd} /></View><View style={[styles.endpoint, styles.destinationEndpoint]}><Text style={styles.endpointLabel}>To</Text><Text style={styles.endpointText} numberOfLines={1}>{shipment.destination.area}</Text></View></View><View style={styles.shipmentFooter}><View style={styles.etaGroup}><Text style={styles.etaLabel}>Estimated arrival</Text><Text style={styles.etaText}>{shipment.eta}</Text></View><View style={styles.openControl}><Text style={styles.openLabel}>Open</Text><AppIcon name="arrow-top-right" size={17} color={nwcColors.brandNavy} /></View></View></Card></TouchableOpacity>;
+  const isImport = shipment.service === "import";
+  const isDark = !isImport;
+  const foreground = isDark ? nwcColors.white : nwcColors.primaryInk;
+  const muted = isDark ? "#B8C8D0" : "#4A4A45";
+  return <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Open shipment ${shipment.reference}`} accessibilityHint={`${service.label}. ${presentation.label}. ${shipment.eta}`} onPress={onPress} activeOpacity={0.82} style={styles.shipmentButton}><View style={[styles.shipmentCard, isImport ? styles.airCard : styles.seaCard]}><View pointerEvents="none" style={[styles.cardHalo, isImport ? styles.airHalo : styles.seaHalo]} /><View style={styles.shipmentHeader}><View style={[styles.serviceTag, isDark ? styles.serviceTagDark : styles.serviceTagLight]}><AppIcon name={service.icon} size={13} color={isDark ? nwcColors.primary : nwcColors.primaryInk} /><Text style={[styles.serviceTagText, { color: foreground }]}>{service.label}</Text></View><View style={[styles.statusChip, isDark ? styles.statusChipDark : styles.statusChipLight]}><AppIcon name={presentation.icon as AppIconName} size={13} color={isDark ? nwcColors.primaryInk : nwcColors.white} /><Text style={[styles.statusText, { color: isDark ? nwcColors.primaryInk : nwcColors.white }]}>{presentation.label}</Text></View></View><View style={styles.shipmentLead}><Text style={[styles.shipmentReference, { color: muted }]}>{shipment.reference}</Text><Text style={[styles.shipmentTitle, { color: foreground }]}>{shipment.title}</Text></View><View style={[styles.shipmentRoute, { borderTopColor: isDark ? "#2B4A60" : "#D6A72D" }]}><View style={styles.endpoint}><Text style={[styles.endpointLabel, { color: muted }]}>From</Text><Text style={[styles.endpointText, { color: foreground }]} numberOfLines={1}>{shipment.pickup.area}</Text></View><View style={styles.routeConnector}><View style={[styles.routeStart, { backgroundColor: isDark ? nwcColors.primary : nwcColors.primaryInk }]} /><View style={[styles.routeLine, { backgroundColor: isDark ? "#7891A0" : "#6E5926" }]} /><View style={[styles.routeEnd, isDark ? styles.routeEndDark : styles.routeEndLight]} /></View><View style={[styles.endpoint, styles.destinationEndpoint]}><Text style={[styles.endpointLabel, { color: muted }]}>To</Text><Text style={[styles.endpointText, { color: foreground }]} numberOfLines={1}>{shipment.destination.area}</Text></View></View><View style={[styles.shipmentFooter, { borderTopColor: isDark ? "#2B4A60" : "#D6A72D" }]}><View style={styles.etaGroup}><Text style={[styles.etaLabel, { color: muted }]}>Estimated arrival</Text><Text style={[styles.etaText, { color: foreground }]}>{shipment.eta}</Text></View><View style={[styles.openControl, isDark ? styles.openControlDark : styles.openControlLight]}><AppIcon name="arrow-top-right" size={18} color={isDark ? nwcColors.primaryInk : nwcColors.brandNavy} /></View></View></View><View pointerEvents="none" style={[styles.cardLayer, isDark ? styles.cardLayerDark : styles.cardLayerLight]} /><View pointerEvents="none" style={[styles.cardLayer, styles.cardLayerBack, isDark ? styles.cardLayerBackDark : styles.cardLayerBackLight]} /></TouchableOpacity>;
 }
 
 export function ActionRequiredCard({ title, detail, onPress }: { title: string; detail: string; onPress: () => void }) {
@@ -42,30 +45,49 @@ const styles = StyleSheet.create({
   localArtwork: { right: -23, bottom: -14, width: 154, height: 119 },
   serviceEnd: { position: "absolute", right: 13, top: 13, alignItems: "flex-end", justifyContent: "center" },
   nextLabel: { color: nwcColors.muted, fontSize: 10, lineHeight: 14, fontFamily: "Poppins_800ExtraBold" },
-  shipmentCard: { gap: 14, padding: 17 },
+  shipmentButton: { position: "relative", paddingBottom: 8 },
+  shipmentCard: { overflow: "hidden", gap: 16, padding: 18, borderRadius: 27 },
+  airCard: { backgroundColor: nwcColors.primary },
+  seaCard: { backgroundColor: nwcColors.brandNavy },
+  cardHalo: { position: "absolute", right: -40, bottom: -45, width: 146, height: 146, borderRadius: 73, borderWidth: 18 },
+  airHalo: { borderColor: "rgba(13,13,13,0.14)" },
+  seaHalo: { borderColor: "rgba(255,200,61,0.3)" },
+  cardLayer: { position: "absolute", height: 11, borderBottomLeftRadius: 17, borderBottomRightRadius: 17, left: 24, right: 24, bottom: 4, zIndex: -1 },
+  cardLayerBack: { left: 41, right: 41, bottom: 0 },
+  cardLayerLight: { backgroundColor: "#E8B72B" },
+  cardLayerBackLight: { backgroundColor: "#C99012" },
+  cardLayerDark: { backgroundColor: "#0A4165" },
+  cardLayerBackDark: { backgroundColor: "#FFC83D" },
   shipmentHeader: { flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "flex-start" },
   serviceTag: { minHeight: 27, alignSelf: "flex-start", borderRadius: 9, flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 8 },
-  localService: { backgroundColor: nwcColors.primary },
-  intercityService: { backgroundColor: "#EAF4F8" },
-  importService: { backgroundColor: "#EAF1F4" },
-  serviceTagText: { color: nwcColors.brandNavy, fontSize: 10, lineHeight: 14, fontFamily: "Poppins_800ExtraBold" },
-  shipmentReference: { color: nwcColors.muted, fontSize: 11, lineHeight: 15, fontFamily: "Poppins_800ExtraBold", letterSpacing: 0.65 },
-  shipmentTitle: { color: nwcColors.foreground, fontSize: 18, lineHeight: 24, fontFamily: "Poppins_800ExtraBold", marginTop: 2 },
-  shipmentRoute: { flexDirection: "row", alignItems: "flex-end", gap: 8, borderTopWidth: 1, borderTopColor: nwcColors.border, paddingTop: 13 },
+  serviceTagDark: { backgroundColor: "rgba(255,255,255,0.1)", borderWidth: 1, borderColor: "rgba(255,255,255,0.16)" },
+  serviceTagLight: { backgroundColor: "rgba(255,255,255,0.48)", borderWidth: 1, borderColor: "rgba(13,13,13,0.13)" },
+  serviceTagText: { fontSize: 10, lineHeight: 14, fontFamily: "Poppins_800ExtraBold" },
+  statusChip: { minHeight: 27, alignSelf: "flex-start", borderRadius: 9, paddingHorizontal: 8, gap: 5, flexDirection: "row", alignItems: "center" },
+  statusChipDark: { backgroundColor: nwcColors.primary },
+  statusChipLight: { backgroundColor: nwcColors.primaryInk },
+  statusText: { fontSize: 10, lineHeight: 14, fontFamily: "Poppins_800ExtraBold" },
+  shipmentLead: { gap: 2 },
+  shipmentReference: { fontSize: 11, lineHeight: 15, fontFamily: "Poppins_800ExtraBold", letterSpacing: 0.65 },
+  shipmentTitle: { fontSize: 19, lineHeight: 25, fontFamily: "Poppins_800ExtraBold" },
+  shipmentRoute: { flexDirection: "row", alignItems: "flex-end", gap: 8, borderTopWidth: 1, paddingTop: 14 },
   endpoint: { flex: 1, minWidth: 0, gap: 2 },
   destinationEndpoint: { alignItems: "flex-end" },
   endpointLabel: { color: nwcColors.muted, fontSize: 10, lineHeight: 14, fontFamily: "Poppins_800ExtraBold", letterSpacing: 0.6, textTransform: "uppercase" },
   endpointText: { color: nwcColors.foreground, fontSize: 13, lineHeight: 18, fontFamily: "Poppins_700Bold" },
   routeConnector: { width: 48, height: 23, paddingBottom: 3, flexDirection: "row", alignItems: "center" },
-  routeStart: { width: 7, height: 7, borderRadius: 4, backgroundColor: nwcColors.brandNavy },
-  routeLine: { flex: 1, height: 1.5, backgroundColor: nwcColors.border },
-  routeEnd: { width: 8, height: 8, borderRadius: 2, backgroundColor: nwcColors.primary, borderWidth: 1, borderColor: nwcColors.primaryInk },
-  shipmentFooter: { borderTopWidth: 1, borderTopColor: nwcColors.border, paddingTop: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },
+  routeStart: { width: 7, height: 7, borderRadius: 4 },
+  routeLine: { flex: 1, height: 1.5 },
+  routeEnd: { width: 8, height: 8, borderRadius: 2, borderWidth: 1.5 },
+  routeEndDark: { backgroundColor: nwcColors.brandNavy, borderColor: nwcColors.primary },
+  routeEndLight: { backgroundColor: nwcColors.primary, borderColor: nwcColors.primaryInk },
+  shipmentFooter: { borderTopWidth: 1, paddingTop: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },
   etaGroup: { flex: 1, gap: 1 },
   etaLabel: { color: nwcColors.muted, fontSize: 10, lineHeight: 14, fontFamily: "Poppins_800ExtraBold", letterSpacing: 0.6, textTransform: "uppercase" },
   etaText: { color: nwcColors.foreground, fontSize: 12, lineHeight: 17, fontFamily: "Poppins_700Bold" },
-  openControl: { minHeight: 32, flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 11, paddingHorizontal: 8, backgroundColor: "#EAF1F4" },
-  openLabel: { color: nwcColors.brandNavy, fontSize: 11, lineHeight: 15, fontFamily: "Poppins_800ExtraBold" },
+  openControl: { width: 34, height: 34, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  openControlDark: { backgroundColor: nwcColors.primary },
+  openControlLight: { backgroundColor: "rgba(255,255,255,0.56)" },
   actionCard: { backgroundColor: "#FBF0D8", borderRadius: 18, padding: 15, gap: 12, flexDirection: "row", alignItems: "center" },
   actionIcon: { width: 40, height: 40, borderRadius: 14, backgroundColor: nwcColors.surface, alignItems: "center", justifyContent: "center" },
   actionCopy: { flex: 1, gap: 2 },
