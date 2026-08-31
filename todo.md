@@ -22,11 +22,11 @@
 - [x] Validate and checkpoint the functional customer authentication update.
 - [x] Complete frontend startup states for session restoration, booking-draft restoration, offline-safe entry, maintenance, update availability, and service-outage messaging using deterministic mock states.
 - [ ] Add light and dark logo treatment, branded loading, empty, success, error, and offline illustrations, plus clear service and tracking iconography.
-- [ ] Add permission-education, permission-denied, and manual-alternative UI states for future location, camera, photo, contacts, notifications, and biometrics features without requesting permissions at startup.
-- [ ] Build mock notification preferences, operational-versus-marketing message controls, foreground/inbox states, and signed-out notification recovery screens.
-- [ ] Build mock map, address-search, route, service-area, branch/warehouse, location-warning, and text-alternative UI states without maps or geocoding integration.
+- [x] Add permission-education, permission-denied, and manual-alternative UI states for future location, camera, photo, contacts, notifications, and biometrics features without requesting permissions at startup.
+- [x] Build mock notification preferences, operational-versus-marketing message controls, foreground/inbox states, and signed-out notification recovery screens.
+- [x] Build mock map, address-search, route, service-area, branch/warehouse, location-warning, and text-alternative UI states without maps or geocoding integration.
 - [ ] Build frontend deep-link destinations and recovery states for shipment tracking, bills, support, expired links, unauthorized links, and signed-out return paths.
-- [ ] Build complete payment experience states—start, pending, successful, failed, cancelled, delayed confirmation, receipt, and refund—using mock data without provider integration.
+- [x] Build complete payment experience states—start, pending, successful, failed, cancelled, delayed confirmation, receipt, and refund—using mock data without provider integration.
 - [ ] Add visible non-production environment treatment and customer-safe mock-data labels where required.
 - [ ] Design account recovery, customer data controls, and support-case frontend states; defer identity, privacy, payment, notification, monitoring, and release integrations to a later production phase.
 - [ ] Prepare final frontend-only physical-device review states for small/large phones, gesture navigation, text enlargement, screen reader, weak network, and interrupted-flow mock scenarios.
@@ -34,4 +34,9 @@
 - [x] Build a customer-facing startup status screen with non-blocking restoration feedback and recovery action.
 - [x] Build reusable offline, maintenance, required-update, optional-update, and unexpected-service-outage screens using mock development states.
 - [x] Add a developer-only state gallery/control surface to switch startup and recovery scenarios without live services.
-- [ ] Add deterministic tests for startup-state routing and recovery actions, then validate and checkpoint the state-experience update.
+- [x] Add deterministic tests for startup-state routing and recovery actions, then validate and checkpoint the state-experience update.
+- [x] Build contextual mock permission education, denied recovery, and manual alternatives for location, camera, photo library, contacts, notifications, and biometrics.
+- [x] Build mock address search, saved-place selection, map route context, service-area messaging, location accuracy warning, and accessible text route alternatives.
+- [x] Build mock payment state flows for initiation, pending, confirmation, failure, cancellation, delayed payment, receipt, and refund status.
+- [x] Build notification preference controls separating operational shipment/bill updates from marketing messages, including signed-out recovery copy.
+- [ ] Add deterministic tests for permission, route, payment, and notification-preference state transitions; validate and checkpoint the experience expansion.

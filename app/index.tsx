@@ -1,5 +1,4 @@
 import { Redirect, type Href } from "expo-router";
-import { authEntryPath } from "@/lib/customer-session";
 import { startupDestination } from "@/lib/startup-flow";
 import { useAppStartup } from "@/stores/app-startup";
 import { useCustomerAuth } from "@/stores/customer-auth";
