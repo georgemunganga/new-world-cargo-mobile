@@ -1,8 +1,11 @@
 import { Redirect, type Href } from "expo-router";
 import { authEntryPath } from "@/lib/customer-session";
+import { startupDestination } from "@/lib/startup-flow";
+import { useAppStartup } from "@/stores/app-startup";
 import { useCustomerAuth } from "@/stores/customer-auth";
 
 export default function IndexRedirect() {
   const { customer } = useCustomerAuth();
-  return <Redirect href={authEntryPath(customer) as Href} />;
+  const { scenario } = useAppStartup();
+  return <Redirect href={startupDestination(scenario, Boolean(customer)) as Href} />;
 }

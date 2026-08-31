@@ -19,4 +19,19 @@
 - [x] Add a protected phone-first customer authentication flow with welcome, OTP verification, profile setup, session persistence, and sign-out.
 - [x] Replace preview customer sample identity with the authenticated customer’s local profile details.
 - [x] Add deterministic tests for session restore, OTP confirmation, protected entry, and sign-out.
-- [ ] Validate and checkpoint the functional customer authentication update.
+- [x] Validate and checkpoint the functional customer authentication update.
+- [x] Complete frontend startup states for session restoration, booking-draft restoration, offline-safe entry, maintenance, update availability, and service-outage messaging using deterministic mock states.
+- [ ] Add light and dark logo treatment, branded loading, empty, success, error, and offline illustrations, plus clear service and tracking iconography.
+- [ ] Add permission-education, permission-denied, and manual-alternative UI states for future location, camera, photo, contacts, notifications, and biometrics features without requesting permissions at startup.
+- [ ] Build mock notification preferences, operational-versus-marketing message controls, foreground/inbox states, and signed-out notification recovery screens.
+- [ ] Build mock map, address-search, route, service-area, branch/warehouse, location-warning, and text-alternative UI states without maps or geocoding integration.
+- [ ] Build frontend deep-link destinations and recovery states for shipment tracking, bills, support, expired links, unauthorized links, and signed-out return paths.
+- [ ] Build complete payment experience states—start, pending, successful, failed, cancelled, delayed confirmation, receipt, and refund—using mock data without provider integration.
+- [ ] Add visible non-production environment treatment and customer-safe mock-data labels where required.
+- [ ] Design account recovery, customer data controls, and support-case frontend states; defer identity, privacy, payment, notification, monitoring, and release integrations to a later production phase.
+- [ ] Prepare final frontend-only physical-device review states for small/large phones, gesture navigation, text enlargement, screen reader, weak network, and interrupted-flow mock scenarios.
+- [x] Implement deterministic startup orchestration for customer-session and booking-draft restoration with explicit signed-in and signed-out destinations.
+- [x] Build a customer-facing startup status screen with non-blocking restoration feedback and recovery action.
+- [x] Build reusable offline, maintenance, required-update, optional-update, and unexpected-service-outage screens using mock development states.
+- [x] Add a developer-only state gallery/control surface to switch startup and recovery scenarios without live services.
+- [ ] Add deterministic tests for startup-state routing and recovery actions, then validate and checkpoint the state-experience update.
