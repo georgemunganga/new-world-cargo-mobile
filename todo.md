@@ -42,3 +42,5 @@
 - [ ] Add deterministic tests for permission, route, payment, and notification-preference state transitions; validate and checkpoint the experience expansion.
 - [x] Replace the fixed tab bar with a rounded floating navy navigation dock that improves active states, visual depth, safe-area spacing, and the centered Send action.
 - [ ] Validate and checkpoint the floating navigation refinement.
+- [x] Compare the web Shipments page and selectively adapt its strongest customer-facing UI patterns to the mobile Shipments experience.
+- [ ] Validate and checkpoint the web-informed mobile Shipments interface refinement.
