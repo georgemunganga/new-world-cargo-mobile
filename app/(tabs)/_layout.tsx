@@ -8,7 +8,7 @@ import { useCustomerAuth } from "@/stores/customer-auth";
 export default function CustomerTabLayout() {
   const { customer, isRestoring } = useCustomerAuth();
   const insets = useSafeAreaInsets();
-  const bottomPadding = Platform.OS === "web" ? 10 : Math.max(insets.bottom, 8);
+  const bottomPadding = Platform.OS === "web" ? 12 : Math.max(insets.bottom, 10);
   if (!isRestoring && !customer) return <Redirect href="/auth/welcome" />;
   if (isRestoring) return null;
   return <Tabs screenOptions={{
@@ -16,7 +16,7 @@ export default function CustomerTabLayout() {
     tabBarActiveTintColor: nwcColors.primary,
     tabBarInactiveTintColor: "#C5D0D7",
     tabBarLabelStyle: styles.label,
-    tabBarStyle: [styles.tabBar, { height: 63 + bottomPadding, paddingBottom: bottomPadding }],
+    tabBarStyle: [styles.tabBar, { height: 62 + bottomPadding, paddingBottom: bottomPadding }],
     tabBarItemStyle: styles.tabItem,
   }}>
     <Tabs.Screen name="index" options={{ title: "Home", tabBarIcon: ({ color, focused }) => <CustomerTabIcon icon="home-variant-outline" color={color} focused={focused} /> }} />
@@ -28,7 +28,22 @@ export default function CustomerTabLayout() {
 }
 
 const styles = StyleSheet.create({
-  tabBar: { backgroundColor: nwcColors.brandNavy, borderTopColor: "transparent", paddingTop: 8, elevation: 0, shadowOpacity: 0 },
-  tabItem: { paddingTop: 1 },
-  label: { fontSize: 11, lineHeight: 14, fontWeight: "700", marginTop: 2 },
+  tabBar: {
+    position: "absolute",
+    left: 16,
+    right: 16,
+    bottom: 10,
+    backgroundColor: nwcColors.brandNavy,
+    borderTopWidth: 0,
+    borderRadius: 26,
+    paddingTop: 8,
+    paddingHorizontal: 5,
+    elevation: 14,
+    shadowColor: "#001624",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.23,
+    shadowRadius: 18,
+  },
+  tabItem: { paddingTop: 1, borderRadius: 18 },
+  label: { fontSize: 10, lineHeight: 13, fontFamily: "Poppins_700Bold", marginTop: 2 },
 });

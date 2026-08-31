@@ -40,3 +40,5 @@
 - [x] Build mock payment state flows for initiation, pending, confirmation, failure, cancellation, delayed payment, receipt, and refund status.
 - [x] Build notification preference controls separating operational shipment/bill updates from marketing messages, including signed-out recovery copy.
 - [ ] Add deterministic tests for permission, route, payment, and notification-preference state transitions; validate and checkpoint the experience expansion.
+- [x] Replace the fixed tab bar with a rounded floating navy navigation dock that improves active states, visual depth, safe-area spacing, and the centered Send action.
+- [ ] Validate and checkpoint the floating navigation refinement.
