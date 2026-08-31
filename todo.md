@@ -60,3 +60,6 @@
 - [x] Restyle recent shipment rows with origin/destination markers, bold routes, subdued order references, and clear status pills using deterministic mock data.
 - [x] Preserve the app’s floating navigation outside the Home content, despite the supplied static design brief excluding a bottom nav for its standalone mockup.
 - [ ] Validate and checkpoint the high-fidelity reference-informed Home implementation.
+- [x] Optimize the user-supplied New WorldCargo parcel, branded truck, and branded delivery scooter images for lightweight mobile service-card presentation.
+- [x] Replace Home’s International Imports, City-to-City, and Local Delivery generic icons with the supplied branded cargo visuals.
+- [ ] Validate and checkpoint the branded cargo-artwork service-card update.
