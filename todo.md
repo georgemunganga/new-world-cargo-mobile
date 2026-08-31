@@ -48,3 +48,7 @@
 - [x] Redesign the floating navigation as a compact white capsule with a Cargo Yellow active segment and quiet outlined inactive destinations inspired by the provided reference.
 - [x] Apply the minimalist hierarchy and spacing refinement across the Home, Shipments, Send, Bills, and Account screens.
 - [ ] Validate and checkpoint the minimalist visual-system and navigation update.
+- [x] Redesign Home around three large rounded containers: concise customer header, active-delivery/route hero, and compact service selection.
+- [x] Increase priority text sizes and reduce persistent secondary detail across the Home hierarchy, revealing extended information only inside the relevant destination.
+- [x] Create a reusable From/To route-entry component and apply it first to Home, service selection, and Local Delivery booking.
+- [ ] Validate and checkpoint the Home-focused minimalist redesign and route-entry reuse.
