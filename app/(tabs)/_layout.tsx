@@ -1,12 +1,16 @@
-import { Tabs } from "expo-router";
+import { Redirect, Tabs } from "expo-router";
 import { Platform, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CustomerTabIcon } from "@/components/navigation/customer-tab-icon";
 import { nwcColors } from "@/lib/nwc-theme";
+import { useCustomerAuth } from "@/stores/customer-auth";
 
 export default function CustomerTabLayout() {
+  const { customer, isRestoring } = useCustomerAuth();
   const insets = useSafeAreaInsets();
   const bottomPadding = Platform.OS === "web" ? 10 : Math.max(insets.bottom, 8);
+  if (!isRestoring && !customer) return <Redirect href="/auth/welcome" />;
+  if (isRestoring) return null;
   return <Tabs screenOptions={{
     headerShown: false,
     tabBarActiveTintColor: nwcColors.primary,

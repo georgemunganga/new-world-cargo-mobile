@@ -14,5 +14,9 @@
 - [x] Add accessibility labels, status icon/label treatments, safe-area behavior, text scaling, and pressed/disabled feedback.
 - [x] Add deterministic unit tests for navigation, booking-draft state, and booking confirmation behavior.
 - [x] Validate TypeScript, linting, and the mobile frontend build; update completed TODO items.
-- [ ] Create the first branded mobile-app checkpoint and provide the project version for review.
+- [x] Create the first branded mobile-app checkpoint and provide the project version for review.
 - [x] Reuse verified official web-app logo assets where appropriate and optimize the required mobile icon copies for checkpoint storage.
+- [x] Add a protected phone-first customer authentication flow with welcome, OTP verification, profile setup, session persistence, and sign-out.
+- [x] Replace preview customer sample identity with the authenticated customer’s local profile details.
+- [x] Add deterministic tests for session restore, OTP confirmation, protected entry, and sign-out.
+- [ ] Validate and checkpoint the functional customer authentication update.
