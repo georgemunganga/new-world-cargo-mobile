@@ -1,7 +1,7 @@
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { router, type Href } from "expo-router";
 import { AppIcon } from "@/components/ui/app-icon";
-import { Card, IconButton, Screen, SectionHeader, StatusBadge } from "@/components/ui/nwc-ui";
+import { Screen } from "@/components/ui/nwc-ui";
 import { mockPermissions, permissionStatusLabel, type MockPermission } from "@/lib/mock-permissions";
 import { nwcColors } from "@/lib/nwc-theme";
 import { useMockPermissions } from "@/stores/mock-permissions";
@@ -10,19 +10,24 @@ const permissionKeys = Object.keys(mockPermissions) as MockPermission[];
 
 export default function PermissionsScreen() {
   const { statuses } = useMockPermissions();
-  return <Screen><View style={styles.page}><View style={styles.header}><View><Text style={styles.eyebrow}>Customer controls</Text><SectionHeader title="Permissions" /></View><IconButton label="Go back" icon="arrow-left" onPress={() => router.back()} /></View><ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}><View style={styles.notice}><AppIcon name="shield-check-outline" size={22} color={nwcColors.info} /><Text style={styles.noticeText}>New WorldCargo asks for access only when you choose a feature that needs it. Every flow has a manual alternative.</Text></View>{permissionKeys.map((permission) => { const item = mockPermissions[permission]; const status = statuses[permission]; const tone = status === "granted" ? "success" : status === "denied" ? "warning" : "neutral"; return <TouchableOpacity key={permission} accessibilityRole="button" accessibilityLabel={`Manage ${item.title} permission`} accessibilityHint={`${permissionStatusLabel(status)}. ${item.summary}`} onPress={() => router.push(`/permissions/${permission}` as Href)} activeOpacity={0.77}><Card style={styles.card}><View style={styles.cardIcon}><AppIcon name={item.icon} size={22} color={nwcColors.brandNavy} /></View><View style={styles.cardCopy}><Text style={styles.cardTitle}>{item.title}</Text><Text style={styles.cardDetail}>{item.summary}</Text><StatusBadge label={permissionStatusLabel(status)} tone={tone} /></View><AppIcon name="chevron-right" size={22} color={nwcColors.muted} /></Card></TouchableOpacity>; })}</ScrollView></View></Screen>;
+  return <Screen><View style={styles.page}><View style={styles.header}><TouchableOpacity accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={styles.back}><AppIcon name="arrow-left" size={21} color={nwcColors.brandNavy} /></TouchableOpacity><View><Text style={styles.title}>Permissions</Text><Text style={styles.detail}>You choose when to allow access.</Text></View></View><ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>{permissionKeys.map((permission) => { const item = mockPermissions[permission]; const status = statuses[permission]; const allowed = status === "granted"; return <TouchableOpacity key={permission} accessibilityRole="button" accessibilityLabel={`Open ${item.title} permission`} onPress={() => router.push(`/permissions/${permission}` as Href)} style={styles.card}><View style={[styles.iconWrap, allowed && styles.iconWrapAllowed]}><AppIcon name={item.icon} size={22} color={allowed ? nwcColors.primaryInk : nwcColors.brandNavy} /></View><View style={styles.copy}><Text style={styles.cardTitle}>{item.title}</Text><Text numberOfLines={2} style={styles.summary}>{item.summary}</Text></View><View style={[styles.status, allowed && styles.statusAllowed]}><Text style={[styles.statusText, allowed && styles.statusTextAllowed]}>{permissionStatusLabel(status)}</Text></View><AppIcon name="chevron-right" size={19} color={nwcColors.muted} /></TouchableOpacity>; })}</ScrollView></View></Screen>;
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: nwcColors.background, paddingTop: 16, paddingHorizontal: 20 },
-  header: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 },
-  eyebrow: { color: nwcColors.info, fontSize: 12, lineHeight: 16, fontFamily: "Poppins_800ExtraBold", letterSpacing: 0.7, textTransform: "uppercase", marginBottom: 2 },
-  content: { gap: 11, paddingTop: 14, paddingBottom: 30 },
-  notice: { flexDirection: "row", alignItems: "flex-start", gap: 10, padding: 14, borderRadius: 16, backgroundColor: "#EAF4F8", marginBottom: 2 },
-  noticeText: { flex: 1, color: nwcColors.info, fontSize: 12, lineHeight: 18, fontFamily: "Poppins_600SemiBold" },
-  card: { minHeight: 90, flexDirection: "row", gap: 12, alignItems: "center" },
-  cardIcon: { width: 46, height: 46, borderRadius: 15, justifyContent: "center", alignItems: "center", backgroundColor: "#EAF1F4" },
-  cardCopy: { flex: 1, gap: 3 },
-  cardTitle: { color: nwcColors.foreground, fontSize: 15, lineHeight: 20, fontFamily: "Poppins_800ExtraBold" },
-  cardDetail: { color: nwcColors.muted, fontSize: 12, lineHeight: 17, fontFamily: "Poppins_500Medium" },
+  page: { flex: 1, backgroundColor: nwcColors.background },
+  header: { paddingHorizontal: 20, paddingTop: 21, paddingBottom: 16, flexDirection: "row", alignItems: "center", gap: 12 },
+  back: { width: 44, height: 44, borderRadius: 15, backgroundColor: nwcColors.white, borderWidth: 1, borderColor: nwcColors.border, alignItems: "center", justifyContent: "center" },
+  title: { color: nwcColors.foreground, fontSize: 23, lineHeight: 29, fontFamily: "Poppins_800ExtraBold" },
+  detail: { color: nwcColors.muted, fontSize: 12, lineHeight: 16, fontFamily: "Poppins_500Medium" },
+  content: { paddingHorizontal: 20, paddingBottom: 38, gap: 10 },
+  card: { minHeight: 85, padding: 12, borderWidth: 1, borderColor: "#E6ECEE", borderRadius: 20, backgroundColor: nwcColors.white, flexDirection: "row", alignItems: "center", gap: 10 },
+  iconWrap: { width: 46, height: 46, borderRadius: 16, backgroundColor: "#EDF3F5", alignItems: "center", justifyContent: "center" },
+  iconWrapAllowed: { backgroundColor: nwcColors.primary },
+  copy: { flex: 1, gap: 2 },
+  cardTitle: { color: nwcColors.foreground, fontSize: 14, lineHeight: 19, fontFamily: "Poppins_800ExtraBold" },
+  summary: { color: nwcColors.muted, fontSize: 11, lineHeight: 16, fontFamily: "Poppins_500Medium" },
+  status: { position: "absolute", right: 36, top: 13, paddingHorizontal: 7, paddingVertical: 3, borderRadius: 8, backgroundColor: "#F1F4F5" },
+  statusAllowed: { backgroundColor: "#FFF0B5" },
+  statusText: { color: nwcColors.muted, fontSize: 9, lineHeight: 12, fontFamily: "Poppins_700Bold" },
+  statusTextAllowed: { color: nwcColors.primaryInk },
 });

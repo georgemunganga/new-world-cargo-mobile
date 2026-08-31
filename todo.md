@@ -39,19 +39,19 @@
 - [x] Build mock address search, saved-place selection, map route context, service-area messaging, location accuracy warning, and accessible text route alternatives.
 - [x] Build mock payment state flows for initiation, pending, confirmation, failure, cancellation, delayed payment, receipt, and refund status.
 - [x] Build notification preference controls separating operational shipment/bill updates from marketing messages, including signed-out recovery copy.
-- [ ] Add deterministic tests for permission, route, payment, and notification-preference state transitions; validate and checkpoint the experience expansion.
+- [x] Add deterministic tests for permission, route, payment, and notification-preference state transitions; validate and checkpoint the experience expansion.
 - [x] Replace the fixed tab bar with a rounded floating navy navigation dock that improves active states, visual depth, safe-area spacing, and the centered Send action.
-- [ ] Validate and checkpoint the floating navigation refinement.
+- [x] Validate and checkpoint the floating navigation refinement.
 - [x] Compare the web Shipments page and selectively adapt its strongest customer-facing UI patterns to the mobile Shipments experience.
-- [ ] Validate and checkpoint the web-informed mobile Shipments interface refinement.
+- [x] Validate and checkpoint the web-informed mobile Shipments interface refinement.
 - [x] Refine the New WorldCargo mobile visual system toward a more minimalist modern style with clearer whitespace, restrained surfaces, and calmer content density.
 - [x] Redesign the floating navigation as a compact white capsule with a Cargo Yellow active segment and quiet outlined inactive destinations inspired by the provided reference.
 - [x] Apply the minimalist hierarchy and spacing refinement across the Home, Shipments, Send, Bills, and Account screens.
-- [ ] Validate and checkpoint the minimalist visual-system and navigation update.
+- [x] Validate and checkpoint the minimalist visual-system and navigation update.
 - [x] Redesign Home around three large rounded containers: concise customer header, active-delivery/route hero, and compact service selection.
 - [x] Increase priority text sizes and reduce persistent secondary detail across the Home hierarchy, revealing extended information only inside the relevant destination.
 - [x] Create a reusable From/To route-entry component and apply it first to Home, service selection, and Local Delivery booking.
-- [ ] Validate and checkpoint the Home-focused minimalist redesign and route-entry reuse.
+- [x] Validate and checkpoint the Home-focused minimalist redesign and route-entry reuse.
 - [x] Simplify the New WorldCargo Home experience to match the supplied reference’s concise header, visual delivery hero, six compact service options, and short My Orders list.
 - [x] Replace the current extended route-entry Home container with a service-first Home hierarchy while retaining reusable route entry only inside Send and booking flows.
 - [x] Rebuild Home to the supplied reference composition: compact New WorldCargo brand header, visual active-shipment hero, four intentional service destinations, and three compact shipment rows.
@@ -59,7 +59,27 @@
 - [x] Replace the six-tile service grid with International Imports, City-to-City, wider Local Delivery, and dark Custom Request cards; retain action destinations and omit Documents.
 - [x] Restyle recent shipment rows with origin/destination markers, bold routes, subdued order references, and clear status pills using deterministic mock data.
 - [x] Preserve the app’s floating navigation outside the Home content, despite the supplied static design brief excluding a bottom nav for its standalone mockup.
-- [ ] Validate and checkpoint the high-fidelity reference-informed Home implementation.
+- [x] Validate and checkpoint the high-fidelity reference-informed Home implementation.
 - [x] Optimize the user-supplied New WorldCargo parcel, branded truck, and branded delivery scooter images for lightweight mobile service-card presentation.
 - [x] Replace Home’s International Imports, City-to-City, and Local Delivery generic icons with the supplied branded cargo visuals.
-- [ ] Validate and checkpoint the branded cargo-artwork service-card update.
+- [x] Validate and checkpoint the branded cargo-artwork service-card update.
+- [ ] Create the dedicated private New WorldCargo mobile-app GitHub repository and commit the recovered frontend project archive.
+- [x] Push the prepared recovered mobile frontend commit to the user-provided georgemunganga/new-world-cargo-mobile repository.
+- [x] Replace Home’s text-based brand treatment with the supplied official New WorldCargo wordmark asset.
+- [x] Increase the floating navigation dock height, raise its vertical position, and enlarge its destination button targets without obscuring content.
+- [ ] Verify the renewed GitHub installation can create or access the dedicated New WorldCargo mobile-app repository.
+- [x] Validate and checkpoint the wordmark-header and enlarged floating-navigation refinement.
+- [x] Audit every primary tab, shipment detail, booking step, bill/payment, account, notification, permission, map, and system-state screen against New WorldCargo’s minimalist Home principles.
+- [x] Simplify Shipments and shipment detail to focus on status, route, ETA, and only contextually relevant actions.
+- [x] Simplify Send and Local Delivery booking to reveal one short decision or field group per step with clear visual progression.
+- [x] Simplify Bills, payment, receipt, Account, notifications, permissions, maps, authentication, and system states around a single customer task and progressive disclosure.
+- [ ] Validate and checkpoint the app-wide minimalist refinement.
+- [x] Refine Shipment Detail around a primary status/route/ETA summary with tracking history revealed progressively.
+- [x] Refine Send around focused service selection before route entry.
+- [x] Refine the shared Local Delivery booking scaffold around one decision group per step and hidden optional detail.
+- [x] Refine Bills and payment screens around a single amount, status, and next customer action.
+- [x] Refine Account, notifications, permissions, maps, authentication, and system pages around compact grouped actions and reduced persistent explanatory copy.
+- [ ] Validate and checkpoint each completed page-by-page minimalist refinement.
+- [x] Replace the International Imports service-card visual with the newly supplied transparent parcel asset.
+- [x] Reposition the Local Delivery scooter further right within the wide service card without reducing text clarity.
+- [x] Hide the floating bottom navigation only on the Home tab and retain it on all other primary destinations.

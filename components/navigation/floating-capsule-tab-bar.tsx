@@ -14,7 +14,8 @@ const navigationItems: Record<string, { label: string; icon: AppIconName }> = {
 
 export function FloatingCapsuleTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  return <View pointerEvents="box-none" style={styles.wrapper}><View style={[styles.dock, { marginBottom: Math.max(insets.bottom, 12) }]}>{state.routes.map((route, index) => {
+  if (state.routes[state.index]?.name === "index") return null;
+  return <View pointerEvents="box-none" style={styles.wrapper}><View style={[styles.dock, { marginBottom: Math.max(insets.bottom + 14, 30) }]}>{state.routes.map((route, index) => {
     const focused = state.index === index;
     const item = navigationItems[route.name];
     if (!item) return null;
@@ -24,15 +25,15 @@ export function FloatingCapsuleTabBar({ state, descriptors, navigation }: Bottom
       if (!focused && !event.defaultPrevented) navigation.navigate(route.name as never);
     };
     const onLongPress = () => navigation.emit({ type: "tabLongPress", target: route.key });
-    return <TouchableOpacity key={route.key} accessibilityRole="button" accessibilityState={{ selected: focused }} accessibilityLabel={options?.tabBarAccessibilityLabel ?? item.label} accessibilityHint={focused ? `${item.label} tab selected` : `Open ${item.label} tab`} onPress={onPress} onLongPress={onLongPress} activeOpacity={0.74} style={[styles.item, focused ? styles.itemActive : styles.itemInactive]}>{focused ? <><AppIcon name={item.icon} size={21} color={nwcColors.primaryInk} /><Text style={styles.activeLabel}>{item.label}</Text></> : <AppIcon name={item.icon} size={22} color={nwcColors.brandNavy} />}</TouchableOpacity>;
+      return <TouchableOpacity key={route.key} accessibilityRole="button" accessibilityState={{ selected: focused }} accessibilityLabel={options?.tabBarAccessibilityLabel ?? item.label} accessibilityHint={focused ? `${item.label} tab selected` : `Open ${item.label} tab`} onPress={onPress} onLongPress={onLongPress} activeOpacity={0.74} style={[styles.item, focused ? styles.itemActive : styles.itemInactive]}>{focused ? <><AppIcon name={item.icon} size={24} color={nwcColors.primaryInk} /><Text style={styles.activeLabel}>{item.label}</Text></> : <AppIcon name={item.icon} size={25} color={nwcColors.brandNavy} />}</TouchableOpacity>;
   })}</View></View>;
 }
 
 const styles = StyleSheet.create({
   wrapper: { position: "absolute", left: 0, right: 0, bottom: 0, alignItems: "center" },
-  dock: { width: "auto", alignSelf: "stretch", minHeight: 60, marginHorizontal: 18, padding: 5, gap: 5, flexDirection: "row", alignItems: "center", borderRadius: 30, backgroundColor: nwcColors.white, borderWidth: 1, borderColor: "#E4EAED", shadowColor: "#001624", shadowOffset: { width: 0, height: 9 }, shadowOpacity: 0.18, shadowRadius: 18, elevation: 12 },
-  item: { height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 7 },
-  itemActive: { flex: 1, minWidth: 88, backgroundColor: nwcColors.primary, paddingHorizontal: 13 },
-  itemInactive: { width: 48, borderWidth: 1, borderColor: "#DEE5E8", backgroundColor: "#F8FAFA" },
-  activeLabel: { color: nwcColors.primaryInk, fontSize: 14, lineHeight: 18, fontFamily: "Poppins_800ExtraBold" },
+  dock: { width: "auto", alignSelf: "stretch", minHeight: 74, marginHorizontal: 16, padding: 7, gap: 7, flexDirection: "row", alignItems: "center", borderRadius: 37, backgroundColor: nwcColors.white, borderWidth: 1, borderColor: "#E4EAED", shadowColor: "#001624", shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.19, shadowRadius: 22, elevation: 14 },
+  item: { height: 58, borderRadius: 29, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 },
+  itemActive: { flex: 1, minWidth: 110, backgroundColor: nwcColors.primary, paddingHorizontal: 15 },
+  itemInactive: { width: 58, borderWidth: 1, borderColor: "#DEE5E8", backgroundColor: "#F8FAFA" },
+  activeLabel: { color: nwcColors.primaryInk, fontSize: 15, lineHeight: 20, fontFamily: "Poppins_800ExtraBold" },
 });

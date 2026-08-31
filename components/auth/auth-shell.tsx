@@ -1,30 +1,43 @@
 import type { PropsWithChildren } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View, type TextInputProps } from "react-native";
-import { Image } from "expo-image";
-import { IconButton, PrimaryButton, Screen, SecondaryButton } from "@/components/ui/nwc-ui";
-import { nwcColors, nwcRadii } from "@/lib/nwc-theme";
+import { router } from "expo-router";
+import { AppIcon } from "@/components/ui/app-icon";
+import { IconButton, PrimaryButton, SecondaryButton, Screen } from "@/components/ui/nwc-ui";
+import { nwcColors } from "@/lib/nwc-theme";
 
-export function AuthScreen({ title, detail, children, primaryLabel, onPrimary, primaryDisabled, secondaryLabel, onSecondary, showBack = false }: PropsWithChildren<{ title: string; detail: string; primaryLabel: string; onPrimary: () => void; primaryDisabled?: boolean; secondaryLabel?: string; onSecondary?: () => void; showBack?: boolean }>) {
-  return <Screen><KeyboardAvoidingView style={styles.keyboard} behavior={Platform.select({ ios: "padding", default: undefined })}><ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}><View style={styles.top}>{showBack ? <IconButton label="Go back" icon="arrow-left" onPress={onSecondary ?? (() => undefined)} /> : <View style={styles.backSpacer} />}<Image source={require("../../assets/images/new-world-cargo-logo.png")} contentFit="contain" accessibilityLabel="New WorldCargo" style={styles.logo} /></View><View style={styles.intro}><Text style={styles.eyebrow}>New WorldCargo</Text><Text style={styles.title}>{title}</Text><Text style={styles.detail}>{detail}</Text></View><View style={styles.children}>{children}</View><View style={styles.actions}><PrimaryButton label={primaryLabel} icon="arrow-right" onPress={onPrimary} disabled={primaryDisabled} />{secondaryLabel && onSecondary ? <SecondaryButton label={secondaryLabel} onPress={onSecondary} /> : null}</View></ScrollView></KeyboardAvoidingView></Screen>;
+type AuthScreenProps = PropsWithChildren<{
+  title: string;
+  detail: string;
+  primaryLabel: string;
+  onPrimary: () => void;
+  primaryDisabled?: boolean;
+  secondaryLabel?: string;
+  onSecondary?: () => void;
+  showBack?: boolean;
+}>;
+
+export function AuthScreen({ children, title, detail, primaryLabel, onPrimary, primaryDisabled, secondaryLabel, onSecondary, showBack = false }: AuthScreenProps) {
+  return <Screen><KeyboardAvoidingView style={styles.flex} behavior={Platform.select({ ios: "padding", default: undefined })}><ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}><View style={styles.top}>{showBack ? <IconButton label="Go back" icon="arrow-left" onPress={() => router.back()} /> : <View style={styles.mark}><AppIcon name="arrow-top-right" size={24} color={nwcColors.primaryInk} /></View>}<View style={styles.brand}><Text style={styles.brandText}>New WorldCargo</Text><Text style={styles.brandSubtext}>Customer access</Text></View></View><View style={styles.copy}><Text style={styles.title}>{title}</Text><Text style={styles.detail}>{detail}</Text></View><View style={styles.children}>{children}</View><View style={styles.actions}><PrimaryButton label={primaryLabel} onPress={onPrimary} disabled={primaryDisabled} />{secondaryLabel && onSecondary ? <SecondaryButton label={secondaryLabel} onPress={onSecondary} /> : null}</View></ScrollView></KeyboardAvoidingView></Screen>;
 }
 
-export function AuthTextInput({ label, ...props }: TextInputProps & { label: string }) {
-  return <View style={styles.field}><Text style={styles.fieldLabel}>{label}</Text><TextInput placeholderTextColor="#91A0AE" style={styles.input} {...props} /></View>;
+export function AuthTextInput({ label, ...inputProps }: TextInputProps & { label: string }) {
+  return <View style={styles.inputGroup}><Text style={styles.inputLabel}>{label}</Text><TextInput accessibilityLabel={label} placeholderTextColor="#889AA8" style={styles.input} {...inputProps} /></View>;
 }
 
 const styles = StyleSheet.create({
-  keyboard: { flex: 1 },
-  content: { minHeight: "100%", paddingHorizontal: 24, paddingTop: 18, paddingBottom: 28 },
-  top: { minHeight: 52, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  logo: { width: 151, height: 60, marginRight: -3 },
-  backSpacer: { width: 44, height: 44 },
-  intro: { marginTop: 38, gap: 9 },
-  eyebrow: { color: nwcColors.info, fontSize: 12, lineHeight: 16, fontFamily: "Poppins_800ExtraBold", letterSpacing: 0.8, textTransform: "uppercase" },
-  title: { color: nwcColors.foreground, fontSize: 31, lineHeight: 39, fontFamily: "Poppins_800ExtraBold", letterSpacing: -0.5 },
-  detail: { color: nwcColors.muted, fontSize: 15, lineHeight: 22, fontFamily: "Poppins_500Medium", maxWidth: 350 },
-  children: { marginTop: 34, gap: 16 },
-  actions: { marginTop: "auto", paddingTop: 36, gap: 10 },
-  field: { gap: 8 },
-  fieldLabel: { color: nwcColors.foreground, fontSize: 13, lineHeight: 18, fontFamily: "Poppins_800ExtraBold" },
-  input: { minHeight: 55, borderRadius: nwcRadii.control, borderWidth: 1, borderColor: nwcColors.border, backgroundColor: nwcColors.surface, color: nwcColors.foreground, fontSize: 16, lineHeight: 21, fontFamily: "Poppins_600SemiBold", paddingHorizontal: 15 },
+  flex: { flex: 1 },
+  content: { flexGrow: 1, paddingHorizontal: 24, paddingTop: 24, paddingBottom: 36, gap: 28 },
+  top: { flexDirection: "row", alignItems: "center", gap: 12 },
+  mark: { width: 44, height: 44, borderRadius: 16, backgroundColor: nwcColors.primary, alignItems: "center", justifyContent: "center" },
+  brand: { gap: 1 },
+  brandText: { color: nwcColors.brandNavy, fontSize: 17, lineHeight: 22, fontFamily: "Poppins_800ExtraBold" },
+  brandSubtext: { color: nwcColors.muted, fontSize: 11, lineHeight: 15, fontFamily: "Poppins_600SemiBold" },
+  copy: { gap: 8 },
+  title: { color: nwcColors.foreground, fontSize: 30, lineHeight: 38, fontFamily: "Poppins_800ExtraBold", letterSpacing: -0.5 },
+  detail: { color: nwcColors.muted, fontSize: 15, lineHeight: 23, fontFamily: "Poppins_500Medium" },
+  children: { gap: 15 },
+  actions: { marginTop: "auto", gap: 10 },
+  inputGroup: { gap: 7 },
+  inputLabel: { color: nwcColors.foreground, fontSize: 13, lineHeight: 18, fontFamily: "Poppins_700Bold" },
+  input: { minHeight: 56, borderWidth: 1, borderColor: nwcColors.border, borderRadius: 16, color: nwcColors.foreground, backgroundColor: nwcColors.white, fontSize: 17, lineHeight: 22, fontFamily: "Poppins_600SemiBold", paddingHorizontal: 16 },
 });

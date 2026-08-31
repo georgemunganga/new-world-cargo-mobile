@@ -12,7 +12,7 @@ function validPermission(value: string | string[] | undefined): value is MockPer
 export default function PermissionDetailScreen() {
   const { permission } = useLocalSearchParams<{ permission: string }>();
   const { statuses, setStatus } = useMockPermissions();
-  if (!validPermission(permission)) return <AppStateScreen eyebrow="Permission not found" title="This setting is unavailable." detail="Return to permission controls and choose a supported customer setting." icon="alert-circle-outline" tone="error" primaryLabel="Back to permissions" onPrimary={() => router.replace("/permissions")} />;
+  if (!validPermission(permission)) return <AppStateScreen eyebrow="Permission not found" title="This setting is unavailable." detail="Return to permission controls and choose a supported customer setting." icon="alert-circle-outline" tone="error" primaryLabel="Back to permissions" onPrimary={() => router.replace("/permissions" as never)} />;
   const item = mockPermissions[permission];
   const status = statuses[permission];
   if (status === "denied") return <View style={styles.page}><AppStateScreen eyebrow="Permission unavailable" title={`${item.title} is turned off.`} detail={`${item.manualAlternative} In the connected app, Open Settings will take you to your device controls.`} icon="lock-alert-outline" tone="warning" primaryLabel="Allow for preview" onPrimary={() => { setStatus(permission, "granted"); router.back(); }} secondaryLabel="Use manual alternative" onSecondary={() => router.back()} /></View>;

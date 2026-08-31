@@ -20,6 +20,6 @@ const styles = StyleSheet.create({
   darkSubtext: { color: "#C9D7E1" },
   vehicleIcon: { position: "absolute", right: -8, bottom: 5, opacity: 0.94 },
   vehicleImage: { position: "absolute", right: -10, bottom: -3, height: 84, width: 112 },
-  wideVehicleImage: { right: -8, bottom: -10, height: 128, width: 166 },
+  wideVehicleImage: { right: -30, bottom: -10, height: 128, width: 166 },
   customIcon: { position: "absolute", right: 11, bottom: 12 },
 });

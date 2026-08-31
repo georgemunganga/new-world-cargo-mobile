@@ -12,6 +12,6 @@ const styles = StyleSheet.create({
   row: { minHeight: 70, flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 10 },
   iconWrap: { height: 42, width: 42, alignItems: "center", justifyContent: "center", borderRadius: 14, backgroundColor: "#EAF1F4" },
   copy: { flex: 1, gap: 2 },
-  title: { color: nwcColors.foreground, fontSize: 15, lineHeight: 20, fontWeight: "800" },
-  detail: { color: nwcColors.muted, fontSize: 12, lineHeight: 17, fontWeight: "500" },
+  title: { color: nwcColors.foreground, fontSize: 15, lineHeight: 20, fontFamily: "Poppins_800ExtraBold" },
+  detail: { color: nwcColors.muted, fontSize: 12, lineHeight: 17, fontFamily: "Poppins_500Medium" },
 });

@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, View, type GestureResponderEvent } from "react-native";
+import { Image, StyleSheet, Text, TouchableOpacity, View, type GestureResponderEvent, type ImageSourcePropType } from "react-native";
 import { AppIcon, type AppIconName } from "@/components/ui/app-icon";
 import { Card, StatusBadge } from "@/components/ui/nwc-ui";
 import { statusPresentation } from "@/lib/mock-cargo-data";
@@ -11,10 +11,10 @@ const serviceInfo: Record<ServiceType, { label: string; detail: string; icon: Ap
   local: { label: "Local Delivery", detail: "Pickup and delivery within your city", icon: "map-marker-path" },
 };
 
-export function ServiceCard({ service, onPress, status = "available" }: { service: ServiceType; onPress?: (event: GestureResponderEvent) => void; status?: "available" | "next" }) {
+export function ServiceCard({ service, onPress, status = "available", image }: { service: ServiceType; onPress?: (event: GestureResponderEvent) => void; status?: "available" | "next"; image?: ImageSourcePropType }) {
   const item = serviceInfo[service];
   const active = status === "available" && onPress;
-  const body = <><View style={[styles.serviceIcon, service === "local" && styles.serviceIconPrimary]}><AppIcon name={item.icon} size={22} color={service === "local" ? nwcColors.primaryInk : nwcColors.brandNavy} /></View><View style={styles.serviceCopy}><Text style={styles.serviceTitle}>{item.label}</Text><Text style={styles.serviceDetail}>{item.detail}</Text></View><View style={styles.serviceEnd}>{status === "next" ? <Text style={styles.nextLabel}>Next</Text> : <AppIcon name="chevron-right" size={22} color={nwcColors.muted} />}</View></>;
+  const body = <><View style={styles.serviceCopy}><View style={[styles.serviceIcon, service === "local" && styles.serviceIconPrimary]}><AppIcon name={item.icon} size={21} color={service === "local" ? nwcColors.primaryInk : nwcColors.brandNavy} /></View><Text style={styles.serviceTitle}>{item.label}</Text><Text style={styles.serviceDetail}>{item.detail}</Text></View>{image ? <Image source={image} resizeMode="contain" style={[styles.serviceArtwork, service === "local" && styles.localArtwork]} /> : null}<View style={styles.serviceEnd}>{status === "next" ? <Text style={styles.nextLabel}>Coming soon</Text> : <AppIcon name="arrow-top-right" size={20} color={nwcColors.brandNavy} />}</View></>;
   if (active) return <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Start ${item.label}`} accessibilityHint={item.detail} activeOpacity={0.78} onPress={onPress} style={styles.serviceCard}>{body}</TouchableOpacity>;
   return <View accessibilityRole="text" style={[styles.serviceCard, styles.serviceCardInactive]}>{body}</View>;
 }
@@ -31,15 +31,17 @@ export function ActionRequiredCard({ title, detail, onPress }: { title: string; 
 }
 
 const styles = StyleSheet.create({
-  serviceCard: { minHeight: 92, borderWidth: 1, borderColor: nwcColors.border, backgroundColor: nwcColors.surface, borderRadius: 18, padding: 14, flexDirection: "row", alignItems: "center", gap: 12 },
+  serviceCard: { minHeight: 126, borderWidth: 1, borderColor: "#E5ECEE", backgroundColor: nwcColors.surface, borderRadius: 24, padding: 15, overflow: "hidden", justifyContent: "space-between" },
   serviceCardInactive: { opacity: 0.76 },
-  serviceIcon: { height: 48, width: 48, borderRadius: 16, backgroundColor: "#EAF1F4", alignItems: "center", justifyContent: "center" },
+  serviceIcon: { height: 40, width: 40, borderRadius: 14, backgroundColor: "#EAF1F4", alignItems: "center", justifyContent: "center" },
   serviceIconPrimary: { backgroundColor: nwcColors.primary },
-  serviceCopy: { flex: 1, gap: 3 },
-  serviceTitle: { color: nwcColors.foreground, fontSize: 16, lineHeight: 21, fontWeight: "800" },
-  serviceDetail: { color: nwcColors.muted, fontSize: 13, lineHeight: 18, fontWeight: "500" },
-  serviceEnd: { alignItems: "flex-end", justifyContent: "center" },
-  nextLabel: { color: nwcColors.muted, fontSize: 12, lineHeight: 16, fontWeight: "800" },
+  serviceCopy: { flex: 1, gap: 5, maxWidth: "63%" },
+  serviceTitle: { color: nwcColors.foreground, fontSize: 18, lineHeight: 23, fontFamily: "Poppins_800ExtraBold" },
+  serviceDetail: { color: nwcColors.muted, fontSize: 12, lineHeight: 17, fontFamily: "Poppins_500Medium" },
+  serviceArtwork: { position: "absolute", right: -4, bottom: -7, width: 122, height: 102 },
+  localArtwork: { right: -23, bottom: -14, width: 154, height: 119 },
+  serviceEnd: { position: "absolute", right: 13, top: 13, alignItems: "flex-end", justifyContent: "center" },
+  nextLabel: { color: nwcColors.muted, fontSize: 10, lineHeight: 14, fontFamily: "Poppins_800ExtraBold" },
   shipmentCard: { gap: 14, padding: 17 },
   shipmentHeader: { flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "flex-start" },
   serviceTag: { minHeight: 27, alignSelf: "flex-start", borderRadius: 9, flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 8 },

@@ -14,15 +14,12 @@ const BookingDraftContext = createContext<BookingDraftContextValue | null>(null)
 
 export function BookingDraftProvider({ children }: PropsWithChildren) {
   const [localDraft, setLocalDraft] = useState<LocalDeliveryDraft>(freshDraft);
-  const value = useMemo<BookingDraftContextValue>(
-    () => ({
-      localDraft,
-      updateLocalDraft: (patch) => setLocalDraft((draft) => ({ ...draft, ...patch })),
-      setBookingStep: (step) => setLocalDraft((draft) => ({ ...draft, step })),
-      resetLocalDraft: () => setLocalDraft(freshDraft()),
-    }),
-    [localDraft],
-  );
+  const value = useMemo<BookingDraftContextValue>(() => ({
+    localDraft,
+    updateLocalDraft: (patch) => setLocalDraft((draft) => ({ ...draft, ...patch })),
+    setBookingStep: (step) => setLocalDraft((draft) => ({ ...draft, step })),
+    resetLocalDraft: () => setLocalDraft(freshDraft()),
+  }), [localDraft]);
   return <BookingDraftContext.Provider value={value}>{children}</BookingDraftContext.Provider>;
 }
 
