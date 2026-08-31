@@ -52,3 +52,5 @@
 - [x] Increase priority text sizes and reduce persistent secondary detail across the Home hierarchy, revealing extended information only inside the relevant destination.
 - [x] Create a reusable From/To route-entry component and apply it first to Home, service selection, and Local Delivery booking.
 - [ ] Validate and checkpoint the Home-focused minimalist redesign and route-entry reuse.
+- [x] Simplify the New WorldCargo Home experience to match the supplied reference’s concise header, visual delivery hero, six compact service options, and short My Orders list.
+- [x] Replace the current extended route-entry Home container with a service-first Home hierarchy while retaining reusable route entry only inside Send and booking flows.
