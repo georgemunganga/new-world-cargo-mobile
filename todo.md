@@ -64,6 +64,7 @@
 - [x] Replace Home’s International Imports, City-to-City, and Local Delivery generic icons with the supplied branded cargo visuals.
 - [ ] Validate and checkpoint the branded cargo-artwork service-card update.
 - [ ] Create the dedicated private New WorldCargo mobile-app GitHub repository and commit the recovered frontend project archive.
+- [x] Push the prepared recovered mobile frontend commit to the user-provided georgemunganga/new-world-cargo-mobile repository.
 - [x] Replace Home’s text-based brand treatment with the supplied official New WorldCargo wordmark asset.
 - [x] Increase the floating navigation dock height, raise its vertical position, and enlarge its destination button targets without obscuring content.
 - [ ] Verify the renewed GitHub installation can create or access the dedicated New WorldCargo mobile-app repository.
