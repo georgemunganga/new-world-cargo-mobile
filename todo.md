@@ -1,0 +1,73 @@
+# Project TODO
+
+- [x] Configure New WorldCargo semantic theme tokens, font strategy, and mobile branding.
+- [x] Generate and install the New WorldCargo application icon across required Expo asset locations.
+- [x] Define shared customer domain models and deterministic frontend sample data.
+- [x] Build source-owned mobile UI primitives and logistics domain components.
+- [x] Configure the five-tab customer navigation: Home, Shipments, Send, Bills, and Account.
+- [x] Build the Home overview with action-required, shipment, route-entry, service, and balance states.
+- [x] Build the Shipments list and local shipment detail/tracking timeline.
+- [x] Build the Send service-selection screen.
+- [x] Build the complete Local Delivery booking flow: Route, Parcel, Contacts, Schedule, Review, and Confirmation.
+- [x] Add local booking-draft state and complete all first-build navigation paths without dead ends.
+- [x] Build presentational Bills and Account screens with explicit frontend-only states.
+- [x] Add accessibility labels, status icon/label treatments, safe-area behavior, text scaling, and pressed/disabled feedback.
+- [x] Add deterministic unit tests for navigation, booking-draft state, and booking confirmation behavior.
+- [x] Validate TypeScript, linting, and the mobile frontend build; update completed TODO items.
+- [x] Create the first branded mobile-app checkpoint and provide the project version for review.
+- [x] Reuse verified official web-app logo assets where appropriate and optimize the required mobile icon copies for checkpoint storage.
+- [x] Add a protected phone-first customer authentication flow with welcome, OTP verification, profile setup, session persistence, and sign-out.
+- [x] Replace preview customer sample identity with the authenticated customer’s local profile details.
+- [x] Add deterministic tests for session restore, OTP confirmation, protected entry, and sign-out.
+- [x] Validate and checkpoint the functional customer authentication update.
+- [x] Complete frontend startup states for session restoration, booking-draft restoration, offline-safe entry, maintenance, update availability, and service-outage messaging using deterministic mock states.
+- [ ] Add light and dark logo treatment, branded loading, empty, success, error, and offline illustrations, plus clear service and tracking iconography.
+- [x] Add permission-education, permission-denied, and manual-alternative UI states for future location, camera, photo, contacts, notifications, and biometrics features without requesting permissions at startup.
+- [x] Build mock notification preferences, operational-versus-marketing message controls, foreground/inbox states, and signed-out notification recovery screens.
+- [x] Build mock map, address-search, route, service-area, branch/warehouse, location-warning, and text-alternative UI states without maps or geocoding integration.
+- [ ] Build frontend deep-link destinations and recovery states for shipment tracking, bills, support, expired links, unauthorized links, and signed-out return paths.
+- [x] Build complete payment experience states—start, pending, successful, failed, cancelled, delayed confirmation, receipt, and refund—using mock data without provider integration.
+- [ ] Add visible non-production environment treatment and customer-safe mock-data labels where required.
+- [ ] Design account recovery, customer data controls, and support-case frontend states; defer identity, privacy, payment, notification, monitoring, and release integrations to a later production phase.
+- [ ] Prepare final frontend-only physical-device review states for small/large phones, gesture navigation, text enlargement, screen reader, weak network, and interrupted-flow mock scenarios.
+- [x] Implement deterministic startup orchestration for customer-session and booking-draft restoration with explicit signed-in and signed-out destinations.
+- [x] Build a customer-facing startup status screen with non-blocking restoration feedback and recovery action.
+- [x] Build reusable offline, maintenance, required-update, optional-update, and unexpected-service-outage screens using mock development states.
+- [x] Add a developer-only state gallery/control surface to switch startup and recovery scenarios without live services.
+- [x] Add deterministic tests for startup-state routing and recovery actions, then validate and checkpoint the state-experience update.
+- [x] Build contextual mock permission education, denied recovery, and manual alternatives for location, camera, photo library, contacts, notifications, and biometrics.
+- [x] Build mock address search, saved-place selection, map route context, service-area messaging, location accuracy warning, and accessible text route alternatives.
+- [x] Build mock payment state flows for initiation, pending, confirmation, failure, cancellation, delayed payment, receipt, and refund status.
+- [x] Build notification preference controls separating operational shipment/bill updates from marketing messages, including signed-out recovery copy.
+- [ ] Add deterministic tests for permission, route, payment, and notification-preference state transitions; validate and checkpoint the experience expansion.
+- [x] Replace the fixed tab bar with a rounded floating navy navigation dock that improves active states, visual depth, safe-area spacing, and the centered Send action.
+- [ ] Validate and checkpoint the floating navigation refinement.
+- [x] Compare the web Shipments page and selectively adapt its strongest customer-facing UI patterns to the mobile Shipments experience.
+- [ ] Validate and checkpoint the web-informed mobile Shipments interface refinement.
+- [x] Refine the New WorldCargo mobile visual system toward a more minimalist modern style with clearer whitespace, restrained surfaces, and calmer content density.
+- [x] Redesign the floating navigation as a compact white capsule with a Cargo Yellow active segment and quiet outlined inactive destinations inspired by the provided reference.
+- [x] Apply the minimalist hierarchy and spacing refinement across the Home, Shipments, Send, Bills, and Account screens.
+- [ ] Validate and checkpoint the minimalist visual-system and navigation update.
+- [x] Redesign Home around three large rounded containers: concise customer header, active-delivery/route hero, and compact service selection.
+- [x] Increase priority text sizes and reduce persistent secondary detail across the Home hierarchy, revealing extended information only inside the relevant destination.
+- [x] Create a reusable From/To route-entry component and apply it first to Home, service selection, and Local Delivery booking.
+- [ ] Validate and checkpoint the Home-focused minimalist redesign and route-entry reuse.
+- [x] Simplify the New WorldCargo Home experience to match the supplied reference’s concise header, visual delivery hero, six compact service options, and short My Orders list.
+- [x] Replace the current extended route-entry Home container with a service-first Home hierarchy while retaining reusable route entry only inside Send and booking flows.
+- [x] Rebuild Home to the supplied reference composition: compact New WorldCargo brand header, visual active-shipment hero, four intentional service destinations, and three compact shipment rows.
+- [x] Add a monochrome delivery-city hero visual with a Cargo Yellow location highlight, a dark location pin, and a compact active-shipment overlay using mock data.
+- [x] Replace the six-tile service grid with International Imports, City-to-City, wider Local Delivery, and dark Custom Request cards; retain action destinations and omit Documents.
+- [x] Restyle recent shipment rows with origin/destination markers, bold routes, subdued order references, and clear status pills using deterministic mock data.
+- [x] Preserve the app’s floating navigation outside the Home content, despite the supplied static design brief excluding a bottom nav for its standalone mockup.
+- [ ] Validate and checkpoint the high-fidelity reference-informed Home implementation.
+- [x] Optimize the user-supplied New WorldCargo parcel, branded truck, and branded delivery scooter images for lightweight mobile service-card presentation.
+- [x] Replace Home’s International Imports, City-to-City, and Local Delivery generic icons with the supplied branded cargo visuals.
+- [ ] Validate and checkpoint the branded cargo-artwork service-card update.
+- [ ] Create the dedicated private New WorldCargo mobile-app GitHub repository and commit the recovered frontend project archive.
+- [x] Replace Home’s text-based brand treatment with the supplied official New WorldCargo wordmark asset.
+- [x] Increase the floating navigation dock height, raise its vertical position, and enlarge its destination button targets without obscuring content.
+- [ ] Verify the renewed GitHub installation can create or access the dedicated New WorldCargo mobile-app repository.
+- [ ] Validate and checkpoint the wordmark-header and enlarged floating-navigation refinement.
+- [x] Replace the International Imports service-card visual with the newly supplied transparent parcel asset.
+- [x] Reposition the Local Delivery scooter further right within the wide service card without reducing text clarity.
+- [x] Hide the floating bottom navigation only on the Home tab and retain it on all other primary destinations.
