@@ -44,3 +44,7 @@
 - [ ] Validate and checkpoint the floating navigation refinement.
 - [x] Compare the web Shipments page and selectively adapt its strongest customer-facing UI patterns to the mobile Shipments experience.
 - [ ] Validate and checkpoint the web-informed mobile Shipments interface refinement.
+- [x] Refine the New WorldCargo mobile visual system toward a more minimalist modern style with clearer whitespace, restrained surfaces, and calmer content density.
+- [x] Redesign the floating navigation as a compact white capsule with a Cargo Yellow active segment and quiet outlined inactive destinations inspired by the provided reference.
+- [x] Apply the minimalist hierarchy and spacing refinement across the Home, Shipments, Send, Bills, and Account screens.
+- [ ] Validate and checkpoint the minimalist visual-system and navigation update.

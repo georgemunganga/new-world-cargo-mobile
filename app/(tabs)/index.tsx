@@ -24,12 +24,12 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: nwcColors.background },
-  content: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 30, gap: 22 },
+  content: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 126, gap: 19 },
   header: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 },
   logo: { width: 136, height: 54, alignSelf: "flex-start", marginLeft: -5, marginBottom: 2 },
   location: { color: nwcColors.info, fontSize: 12, lineHeight: 17, fontWeight: "800", flexDirection: "row", alignItems: "center" },
   greeting: { marginTop: 6, maxWidth: 284 },
-  subheading: { color: nwcColors.muted, fontSize: 15, lineHeight: 22, fontWeight: "500", marginTop: 5 },
+  subheading: { color: nwcColors.muted, fontSize: 14, lineHeight: 21, fontWeight: "500", marginTop: 5 },
   link: { color: nwcColors.info, fontSize: 13, lineHeight: 18, fontWeight: "800" },
   routeStarter: { paddingVertical: 4, paddingHorizontal: 16 },
   routeRow: { minHeight: 62, flexDirection: "row", alignItems: "center", gap: 11 },

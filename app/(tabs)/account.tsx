@@ -15,7 +15,7 @@ export default function AccountScreen() {
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: nwcColors.background },
-  content: { paddingHorizontal: 20, paddingTop: 22, paddingBottom: 30, gap: 19 },
+  content: { paddingHorizontal: 20, paddingTop: 22, paddingBottom: 126, gap: 17 },
   eyebrow: { color: nwcColors.info, fontSize: 12, lineHeight: 16, fontWeight: "800", letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 2 },
   profileCard: { flexDirection: "row", alignItems: "center", gap: 13 },
   avatar: { height: 58, width: 58, borderRadius: 20, backgroundColor: nwcColors.primary, alignItems: "center", justifyContent: "center" },

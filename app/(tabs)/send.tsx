@@ -10,7 +10,7 @@ export default function SendScreen() {
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: nwcColors.background },
-  content: { paddingHorizontal: 20, paddingTop: 22, paddingBottom: 30, gap: 24 },
+  content: { paddingHorizontal: 20, paddingTop: 22, paddingBottom: 126, gap: 20 },
   eyebrow: { color: nwcColors.info, fontSize: 12, lineHeight: 16, fontWeight: "800", letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 2 },
   detail: { color: nwcColors.muted, fontSize: 15, lineHeight: 22, fontWeight: "500", marginTop: -4 },
   services: { gap: 11 },
