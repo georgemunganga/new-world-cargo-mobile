@@ -4,7 +4,8 @@ export type ShipmentStatus =
   | "booking_confirmed"
   | "in_transit"
   | "out_for_delivery"
-  | "delivered";
+  | "delivered"
+  | "pending";
 export type BookingStep = "route" | "parcel" | "contacts" | "schedule" | "review";
 
 export type Address = {

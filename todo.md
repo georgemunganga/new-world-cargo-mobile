@@ -54,3 +54,9 @@
 - [ ] Validate and checkpoint the Home-focused minimalist redesign and route-entry reuse.
 - [x] Simplify the New WorldCargo Home experience to match the supplied reference’s concise header, visual delivery hero, six compact service options, and short My Orders list.
 - [x] Replace the current extended route-entry Home container with a service-first Home hierarchy while retaining reusable route entry only inside Send and booking flows.
+- [x] Rebuild Home to the supplied reference composition: compact New WorldCargo brand header, visual active-shipment hero, four intentional service destinations, and three compact shipment rows.
+- [x] Add a monochrome delivery-city hero visual with a Cargo Yellow location highlight, a dark location pin, and a compact active-shipment overlay using mock data.
+- [x] Replace the six-tile service grid with International Imports, City-to-City, wider Local Delivery, and dark Custom Request cards; retain action destinations and omit Documents.
+- [x] Restyle recent shipment rows with origin/destination markers, bold routes, subdued order references, and clear status pills using deterministic mock data.
+- [x] Preserve the app’s floating navigation outside the Home content, despite the supplied static design brief excluding a bottom nav for its standalone mockup.
+- [ ] Validate and checkpoint the high-fidelity reference-informed Home implementation.
