@@ -1,40 +1,30 @@
 import { Tabs } from "expo-router";
+import { Platform, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { CustomerTabIcon } from "@/components/navigation/customer-tab-icon";
+import { nwcColors } from "@/lib/nwc-theme";
 
-import { HapticTab } from "@/components/haptic-tab";
-import { IconSymbol } from "@/components/ui/icon-symbol";
-import { Platform } from "react-native";
-import { useColors } from "@/hooks/use-colors";
-
-export default function TabLayout() {
-  const colors = useColors();
+export default function CustomerTabLayout() {
   const insets = useSafeAreaInsets();
-  const bottomPadding = Platform.OS === "web" ? 12 : Math.max(insets.bottom, 8);
-  const tabBarHeight = 56 + bottomPadding;
-
-  return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: colors.tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarStyle: {
-          paddingTop: 8,
-          paddingBottom: bottomPadding,
-          height: tabBarHeight,
-          backgroundColor: colors.background,
-          borderTopColor: colors.border,
-          borderTopWidth: 0.5,
-        },
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Home",
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
-      />
-    </Tabs>
-  );
+  const bottomPadding = Platform.OS === "web" ? 10 : Math.max(insets.bottom, 8);
+  return <Tabs screenOptions={{
+    headerShown: false,
+    tabBarActiveTintColor: nwcColors.primary,
+    tabBarInactiveTintColor: "#C5D0D7",
+    tabBarLabelStyle: styles.label,
+    tabBarStyle: [styles.tabBar, { height: 63 + bottomPadding, paddingBottom: bottomPadding }],
+    tabBarItemStyle: styles.tabItem,
+  }}>
+    <Tabs.Screen name="index" options={{ title: "Home", tabBarIcon: ({ color, focused }) => <CustomerTabIcon icon="home-variant-outline" color={color} focused={focused} /> }} />
+    <Tabs.Screen name="shipments" options={{ title: "Shipments", tabBarIcon: ({ color, focused }) => <CustomerTabIcon icon="package-variant-closed" color={color} focused={focused} /> }} />
+    <Tabs.Screen name="send" options={{ title: "Send", tabBarIcon: ({ color, focused }) => <CustomerTabIcon icon="plus" color={color} focused={focused} featured /> }} />
+    <Tabs.Screen name="bills" options={{ title: "Bills", tabBarIcon: ({ color, focused }) => <CustomerTabIcon icon="receipt-text-outline" color={color} focused={focused} /> }} />
+    <Tabs.Screen name="account" options={{ title: "Account", tabBarIcon: ({ color, focused }) => <CustomerTabIcon icon="account-circle-outline" color={color} focused={focused} /> }} />
+  </Tabs>;
 }
+
+const styles = StyleSheet.create({
+  tabBar: { backgroundColor: nwcColors.brandNavy, borderTopColor: "transparent", paddingTop: 8, elevation: 0, shadowOpacity: 0 },
+  tabItem: { paddingTop: 1 },
+  label: { fontSize: 11, lineHeight: 14, fontWeight: "700", marginTop: 2 },
+});
