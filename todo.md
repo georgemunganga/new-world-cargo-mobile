@@ -102,6 +102,11 @@
 - [x] Extend all service drafts with a consistent structured pickup/origin and destination model while preserving import country and shipping-method inputs.
 - [x] Build the Custom Request route-first entry and concise follow-up details flow using mock data.
 - [ ] Add deterministic tests for consistent cross-service route-entry validation, then validate and checkpoint the shared route-entry rollout.
+- [x] Replace route-card navigation to the separate address-search page with direct inline From/To search fields and a floating suggestion list below the field being edited.
+- [x] Create a reusable mock autocomplete provider that scopes local addresses for Local Delivery, cities and branches for City-to-City, and countries, supplier cities, ports, and airports for International Imports.
+- [x] Preserve typed customer input, keyboard-safe layout, deterministic empty results, selection feedback, and manual-address fallback in the reusable inline route-entry UI.
+- [x] Apply the inline route autocomplete to Local Delivery, City-to-City, International Imports, and Custom Request without changing their later service-specific questions.
+- [ ] Add deterministic tests for service-aware suggestion matching and selection, then validate and checkpoint the inline autocomplete rollout.
 - [x] Replace the International Imports service-card visual with the newly supplied transparent parcel asset.
 - [x] Reposition the Local Delivery scooter further right within the wide service card without reducing text clarity.
 - [x] Hide the floating bottom navigation only on the Home tab and retain it on all other primary destinations.
