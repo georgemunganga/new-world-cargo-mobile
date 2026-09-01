@@ -175,9 +175,28 @@
 - [ ] Validate the focused Home brand-emphasis restoration and checkpoint it when managed synchronization is available.
 - [x] Preserve the paired Home service row: a wide light Local Delivery tile with scooter and capacity beside a compact deep-blue Custom Request tile with white arrow and label.
 - [x] Commit and push the validated white-first visual-system refinement and restored Home paired-service row to the configured GitHub repository.
+- [x] Restore the approved designed shipment cards after the white-first surface pass removed their navy/Cargo Yellow backgrounds, layered depth, and contrast-aware hierarchy.
+- [x] Keep white-first application backgrounds and neutral supporting cards, while reserving the restored designed shipment cards for shipment-status emphasis.
+- [ ] Validate and checkpoint the restored reusable shipment-card design before any further visual-system changes.
 - [x] Replace tab-screen hard-coded bottom padding with a shared safe-area-aware floating-navigation clearance rule.
 - [x] Repair Account screen action affordances so unavailable preference rows do not appear tappable and customer support opens a clear mock support destination.
 - [x] Audit and repair the Local Delivery map sheet’s full-container sizing, keyboard behavior, and bottom safe-area clearance.
 - [x] Replace the International Imports service-card visual with the newly supplied transparent parcel asset.
 - [x] Reposition the Local Delivery scooter further right within the wide service card without reducing text clarity.
 - [x] Hide the floating bottom navigation only on the Home tab and retain it on all other primary destinations.
+- [x] Replace the saved-place add/edit interface with a reusable map-aware bottom drawer that includes mock location search, selection, and confirmation.
+- [x] Replace the recipient add/edit inline-page interface with a focused accessible modal popup and clear save/cancel actions.
+- [ ] Preserve deterministic saved-place and recipient management behavior, validate the new overlay interactions, and checkpoint when managed synchronization is available.
+- [x] Replace mock receipt download/share feedback with an actual browser-safe customer receipt export for paid mock invoices, while retaining a native-ready action seam.
+- [x] Re-audit public New WorldCargo web customer workflows against mobile and classify each as implemented, mock-only, partially implemented, or missing.
+- [ ] Prioritize and add the confirmed missing customer actions without adding backend or payment-provider dependencies.
+- [ ] Add actual proof-of-delivery export and share actions for completed shipments, using the same browser-safe document-export seam as receipts.
+- [ ] Add shipment draft list, resume, and delete flows for interrupted booking journeys.
+- [ ] Add pickup management for scheduled pickups: reschedule, cancel, missed-pickup help, and collection-point detail states.
+- [ ] Add a shipment after-booking management flow for delivery instructions, rescheduling, cancellation eligibility, and customer-visible exception handling.
+- [ ] Add return eligibility, reason, handover, review, and confirmation journeys for eligible delivered shipments.
+- [ ] Add customer security settings with mock sign-in activity, recognized-device control, and device-trust state.
+- [ ] Add profile photo management, customer data controls, and in-app legal-policy destinations.
+- [ ] Add mock QR scan entry and cargo photo/document attachment states behind the existing permission education flows.
+- [ ] Add recipient search and booking autofill, plus saved-place booking autofill, using the existing account directory data.
+- [ ] Commit and push the validated account overlay refinements, browser receipt export, and web-to-mobile workflow audit to the configured GitHub repository.
