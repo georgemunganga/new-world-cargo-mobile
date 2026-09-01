@@ -82,6 +82,10 @@
 - [ ] Validate and checkpoint each completed page-by-page minimalist refinement.
 - [x] Adapt the web shipment-card background treatment, visual depth, and clear status hierarchy into the mobile shipment-card component and active-delivery summary.
 - [ ] Validate and checkpoint the web-informed mobile shipment-card visual refinement.
+- [x] Apply the web-inspired Cargo Yellow and Navy status treatment to the Shipment Detail route and estimated-arrival hero.
+- [x] Add subtle scale and opacity press feedback to shipment cards while preserving their accessible touch targets.
+- [x] Use branded New WorldCargo vehicle artwork in the active-delivery summary and relevant Shipment Detail state.
+- [ ] Validate and checkpoint the shipment visual-system refinement.
 - [x] Replace the International Imports service-card visual with the newly supplied transparent parcel asset.
 - [x] Reposition the Local Delivery scooter further right within the wide service card without reducing text clarity.
 - [x] Hide the floating bottom navigation only on the Home tab and retain it on all other primary destinations.
