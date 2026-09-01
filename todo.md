@@ -199,4 +199,4 @@
 - [ ] Add profile photo management, customer data controls, and in-app legal-policy destinations.
 - [ ] Add mock QR scan entry and cargo photo/document attachment states behind the existing permission education flows.
 - [ ] Add recipient search and booking autofill, plus saved-place booking autofill, using the existing account directory data.
-- [ ] Commit and push the validated account overlay refinements, browser receipt export, and web-to-mobile workflow audit to the configured GitHub repository.
+- [x] Commit and push the validated account overlay refinements, browser receipt export, and web-to-mobile workflow audit to the configured GitHub repository.
