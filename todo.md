@@ -214,7 +214,7 @@
 - [x] Add deterministic tests, validate, checkpoint, and preserve the completed booking-draft, QR-scan, and attachment workflow batch.
 - [x] Eliminate the recurring 6000 ms browser startup timeout so no delayed font, asset, or initialization step can fall into the customer error screen.
 - [x] Add deterministic startup-timeout coverage and validate the browser-safe preview path before GitHub preservation.
-- [ ] Commit and push the validated startup repair and completed booking-continuity workflow batch to the configured GitHub repository.
+- [x] Commit and push the validated startup repair and completed booking-continuity workflow batch to the configured GitHub repository.
 - [x] Standardize Account create/edit/update operations on the reusable full-screen form drawer with fixed approve/cancel actions.
 - [x] Build a reusable confirmation popup for destructive or consequential actions with clear context, cancel, and explicit approval labels.
 - [x] Apply the confirmation popup to saved-place/recipient removal, recognized-device removal, account-deletion request, pickup cancellation, and other existing Account approvals.
