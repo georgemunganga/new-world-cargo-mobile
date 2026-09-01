@@ -129,6 +129,15 @@
 - [x] Add deterministic mock animation for active vehicle position and route progress in live tracking.
 - [x] Add active-tracking actions for mock courier contact and delivery instructions, plus a completed-shipment proof-of-delivery state with signature or photo confirmation.
 - [x] Add deterministic tests, validate, and checkpoint the reusable map and expanded tracking experience.
+- [x] Compare the public web portal’s /invoices customer workflow with the mobile Bills, payment, and receipt flows.
+- [x] Prioritize and implement any confirmed missing customer-facing invoice states or actions using deterministic mock data.
+- [x] Replace the single due-bill mobile view with a multi-invoice ledger that groups recent and older invoices and distinguishes paid from unpaid records.
+- [x] Add invoice search and All, Unpaid, and Paid filters to the mobile Bills screen.
+- [x] Add a mobile invoice-detail sheet or screen with shipment route, issued/due or paid dates, itemized charges, total, status context, and a clear pay action for unpaid invoices.
+- [x] Add mock invoice and receipt download/share actions, including paid receipt history linked to the original shipment and payment method.
+- [x] Update mock billing state so a successful payment marks its invoice as paid and moves it into the paid/receipt history rather than returning to the same outstanding card.
+- [x] Add Bills loading, empty-search, and recoverable-error states comparable to the web invoice workflow.
+- [x] Integrate the confirmed invoice ledger, detail, document-action, and paid-history workflows with the existing mobile payment and receipt screens using deterministic mock data.
 - [x] Replace the International Imports service-card visual with the newly supplied transparent parcel asset.
 - [x] Reposition the Local Delivery scooter further right within the wide service card without reducing text clarity.
 - [x] Hide the floating bottom navigation only on the Home tab and retain it on all other primary destinations.

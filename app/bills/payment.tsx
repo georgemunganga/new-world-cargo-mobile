@@ -1,17 +1,18 @@
-import { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { router, type Href } from "expo-router";
 import { AppIcon } from "@/components/ui/app-icon";
 import { Card, IconButton, PrimaryButton, Screen, SecondaryButton, StatusBadge } from "@/components/ui/nwc-ui";
-import { mockInvoice } from "@/lib/mock-billing";
+import { paymentMethodLabel } from "@/lib/mock-billing";
 import { nwcColors } from "@/lib/nwc-theme";
 import { useMockBilling } from "@/stores/mock-billing";
 
 export default function PaymentScreen() {
-  const { setPaymentState } = useMockBilling();
-  const [method, setMethod] = useState<"mobile" | "card" | "wallet">("mobile");
+  const { selectedInvoice, setPaymentState, selectedPaymentMethod, setSelectedPaymentMethod } = useMockBilling();
+  const invoice = selectedInvoice;
+  const method = selectedPaymentMethod;
   const beginPayment = () => { setPaymentState("pending"); router.push("/bills/payment-status" as Href); };
-  return <Screen><View style={styles.page}><View style={styles.header}><IconButton label="Go back" icon="arrow-left" onPress={() => router.back()} /><Text style={styles.headerTitle}>Payment</Text><View style={styles.headerSpacer} /></View><View style={styles.content}><View style={styles.titleBlock}><Text style={styles.title}>Pay {mockInvoice.amount}</Text><Text style={styles.detail}>{mockInvoice.description}</Text></View><Card style={styles.invoice}><View style={styles.invoiceTop}><Text style={styles.invoiceReference}>{mockInvoice.reference}</Text><StatusBadge label="Due" tone="warning" /></View><Text style={styles.shipment}>{`For shipment ${mockInvoice.shipmentReference}`}</Text></Card><View style={styles.methods}><Text style={styles.methodsTitle}>Pay with</Text><PaymentMethod icon="cellphone" title="Mobile money" selected={method === "mobile"} onPress={() => setMethod("mobile")} /><PaymentMethod icon="bank-outline" title="Bank card" selected={method === "card"} onPress={() => setMethod("card")} /><PaymentMethod icon="wallet-outline" title="Cargo wallet" selected={method === "wallet"} onPress={() => setMethod("wallet")} /></View><View style={styles.actions}><PrimaryButton label="Continue to payment" icon="arrow-right" onPress={beginPayment} /><SecondaryButton label="Cancel" onPress={() => router.back()} /></View></View></View></Screen>;
+  if (!invoice) return null;
+  return <Screen><View style={styles.page}><View style={styles.header}><IconButton label="Go back" icon="arrow-left" onPress={() => router.back()} /><Text style={styles.headerTitle}>Payment</Text><View style={styles.headerSpacer} /></View><View style={styles.content}><View style={styles.titleBlock}><Text style={styles.title}>Pay {invoice.amount}</Text><Text style={styles.detail}>{invoice.description}</Text></View><Card style={styles.invoice}><View style={styles.invoiceTop}><Text style={styles.invoiceReference}>{invoice.reference}</Text><StatusBadge label="Due" tone="warning" /></View><Text style={styles.shipment}>{`For shipment ${invoice.shipmentReference}`}</Text></Card><View style={styles.methods}><Text style={styles.methodsTitle}>Pay with</Text><PaymentMethod icon="cellphone" title="Mobile money" selected={method === "mobile"} onPress={() => setSelectedPaymentMethod("mobile")} /><PaymentMethod icon="bank-outline" title="Bank card" selected={method === "card"} onPress={() => setSelectedPaymentMethod("card")} /><PaymentMethod icon="wallet-outline" title="Cargo wallet" selected={method === "wallet"} onPress={() => setSelectedPaymentMethod("wallet")} /></View><View style={styles.actions}><PrimaryButton label={`Pay with ${paymentMethodLabel(method)}`} icon="arrow-right" onPress={beginPayment} /><SecondaryButton label="Cancel" onPress={() => router.back()} /></View></View></View></Screen>;
 }
 
 function PaymentMethod({ icon, title, selected = false, onPress }: { icon: "cellphone" | "bank-outline" | "wallet-outline"; title: string; selected?: boolean; onPress: () => void }) {
