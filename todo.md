@@ -155,6 +155,9 @@
 - [x] Redesign the Home screen before auditing other customer screens; the supplied screenshot identifies Home defects in top-bar placement, service-grid proportion, card density, and unnecessary bottom whitespace.
 - [x] Reduce Home to a clearer one-handed customer hierarchy with a properly inset greeting/header, one primary shipment or send action, a deliberate service-discovery treatment, and a compact shipment preview.
 - [x] Rebuild Home using reusable layout and domain primitives, then add deterministic layout validation for its corrected insets and natural content ending.
+- [x] Restore the earlier branded New WorldCargo top command-bar treatment on Home while retaining the corrected safe-area spacing and focused content hierarchy.
+- [x] Restore Poppins as the customer typography on browser and native builds with a non-blocking system-font fallback if web font loading is delayed.
+- [ ] Validate the restored Home command bar and typography, then commit and push the current mobile application state to the configured GitHub repository.
 - [x] Replace tab-screen hard-coded bottom padding with a shared safe-area-aware floating-navigation clearance rule.
 - [x] Repair Account screen action affordances so unavailable preference rows do not appear tappable and customer support opens a clear mock support destination.
 - [x] Audit and repair the Local Delivery map sheet’s full-container sizing, keyboard behavior, and bottom safe-area clearance.
