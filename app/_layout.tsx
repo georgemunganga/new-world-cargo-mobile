@@ -15,6 +15,7 @@ import { MockAccountDirectoryProvider } from "@/stores/mock-account-directory";
 import { MockSupportProvider } from "@/stores/mock-support";
 import { MockPickupManagementProvider } from "@/stores/mock-pickup-management";
 import { MockAccountSettingsProvider } from "@/stores/mock-account-settings";
+import { MockReturnsProvider } from "@/stores/mock-returns";
 import { shouldLoadBundledPoppins } from "@/lib/startup-font-policy";
 
 const poppinsFonts = { Poppins_500Medium, Poppins_600SemiBold, Poppins_700Bold, Poppins_800ExtraBold };
@@ -31,5 +32,5 @@ function NativeFontRoot() {
 }
 
 function AppRoot() {
-  return <GestureHandlerRootView style={{ flex: 1 }}><SafeAreaProvider><ThemeProvider><AppStartupProvider><CustomerAuthProvider><MockPermissionProvider><MockBillingProvider><MockAccountDirectoryProvider><MockSupportProvider><MockPickupManagementProvider><MockAccountSettingsProvider><NotificationPreferenceProvider><BookingDraftProvider><StatusBar style="dark" /><Stack screenOptions={{ headerShown: false, animation: "fade" }} /></BookingDraftProvider></NotificationPreferenceProvider></MockAccountSettingsProvider></MockPickupManagementProvider></MockSupportProvider></MockAccountDirectoryProvider></MockBillingProvider></MockPermissionProvider></CustomerAuthProvider></AppStartupProvider></ThemeProvider></SafeAreaProvider></GestureHandlerRootView>;
+  return <GestureHandlerRootView style={{ flex: 1 }}><SafeAreaProvider><ThemeProvider><AppStartupProvider><CustomerAuthProvider><MockPermissionProvider><MockBillingProvider><MockAccountDirectoryProvider><MockSupportProvider><MockPickupManagementProvider><MockAccountSettingsProvider><MockReturnsProvider><NotificationPreferenceProvider><BookingDraftProvider><StatusBar style="dark" /><Stack screenOptions={{ headerShown: false, animation: "fade" }} /></BookingDraftProvider></NotificationPreferenceProvider></MockReturnsProvider></MockAccountSettingsProvider></MockPickupManagementProvider></MockSupportProvider></MockAccountDirectoryProvider></MockBillingProvider></MockPermissionProvider></CustomerAuthProvider></AppStartupProvider></ThemeProvider></SafeAreaProvider></GestureHandlerRootView>;
 }

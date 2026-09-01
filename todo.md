@@ -191,13 +191,13 @@
 - [x] Re-audit public New WorldCargo web customer workflows against mobile and classify each as implemented, mock-only, partially implemented, or missing.
 - [ ] Prioritize and add the confirmed missing customer actions without adding backend or payment-provider dependencies.
 - [x] Add actual proof-of-delivery export and share actions for completed shipments, using the same browser-safe document-export seam as receipts.
-- [ ] Add shipment draft list, resume, and delete flows for interrupted booking journeys.
+- [x] Add shipment draft list, resume, and delete flows for interrupted booking journeys.
 - [x] Add pickup management for scheduled pickups: reschedule, cancel, missed-pickup help, and collection-point detail states.
-- [ ] Add a shipment after-booking management flow for delivery instructions, rescheduling, cancellation eligibility, and customer-visible exception handling.
-- [ ] Add return eligibility, reason, handover, review, and confirmation journeys for eligible delivered shipments.
-- [ ] Add customer security settings with mock sign-in activity, recognized-device control, and device-trust state.
+- [x] Add a shipment after-booking management flow for delivery instructions, rescheduling, cancellation eligibility, and customer-visible exception handling.
+- [x] Add return eligibility, reason, handover, review, and confirmation journeys for eligible delivered shipments.
+- [x] Add customer security settings with mock sign-in activity, recognized-device control, and device-trust state.
 - [ ] Add profile photo management, customer data controls, and in-app legal-policy destinations.
-- [ ] Add mock QR scan entry and cargo photo/document attachment states behind the existing permission education flows.
+- [x] Add mock QR scan entry and cargo photo/document attachment states behind the existing permission education flows.
 - [x] Add recipient search and booking autofill, plus saved-place booking autofill, using the existing account directory data.
 - [x] Commit and push the validated account overlay refinements, browser receipt export, and web-to-mobile workflow audit to the configured GitHub repository.
 - [x] Add deterministic tests, validate, checkpoint, and preserve the completed proof download, pickup management, and booking-autofill lifecycle batch.
@@ -215,6 +215,26 @@
 - [x] Eliminate the recurring 6000 ms browser startup timeout so no delayed font, asset, or initialization step can fall into the customer error screen.
 - [x] Add deterministic startup-timeout coverage and validate the browser-safe preview path before GitHub preservation.
 - [x] Commit and push the validated startup repair and completed booking-continuity workflow batch to the configured GitHub repository.
+- [x] Add a compact Track shipment icon control in the Home command bar immediately before Notifications.
+- [x] Build a minimalist public tracking entry screen based on the public web tracking workflow, with code input, browser-safe scan entry, recent-code context, empty/error feedback, and direct shipment lookup.
+- [x] Route found tracking codes to the correct existing live-tracking or completed-delivery detail screen using deterministic mock data.
+- [x] Add deterministic tests, validate, checkpoint, and preserve the Home tracking control and public tracking workflow.
+- [x] Make the Home tracking control open a reusable full-screen translucent blurred overlay with one tracking-code search field and submit action, rather than navigating directly to results.
+- [x] Close the tracking overlay only after a successful deterministic lookup, then navigate to the correct existing dedicated live-tracking or completed-delivery screen.
+- [x] Compare the public web tracking result state with mobile’s live and delivered tracking result screens, then prioritize any missing customer-facing result details or actions.
+- [x] Add a compact shipment identity panel at the top of dedicated live tracking: tracking number, cargo title, route, and current status.
+- [x] Add actual browser-safe copy/share tracking-number actions on both live and completed tracking screens, replacing mock feedback where present.
+- [x] Add short lookup loading and retryable-unavailable states to the public tracking overlay while retaining direct navigation to dedicated results after success.
+- [ ] Support public tracking entry with a prefilled code from a typed deep-link/query parameter when native linking is enabled later.
+- [x] Keep the existing map-first Live Tracking screen and bottom Tracking history toggle, while adding concise shipment identity, route, and current-status context above the supporting cards.
+- [x] Enrich expanded Tracking history with chronological operational context, meaningful timestamps, location/handling detail, and clear completed/current/upcoming visual distinction.
+- [x] Preserve minimalist progressive disclosure: no persistent web-style result card, and keep detailed timeline content hidden until the customer opens Tracking history.
+- [x] Add deterministic timeline-presentation tests and validate the enhanced Live Tracking screen.
+- [x] Replace mock feedback with actual browser-safe tracking-number copy and share actions on live and completed shipment detail screens.
+- [x] Add deterministic loading and retryable-unavailable states to the public tracking lookup while preserving not-found feedback and direct success routing.
+- [x] Build an eligible-delivered-shipment return journey with reason selection, handover choice, review, submitted confirmation, and customer-visible request status.
+- [x] Add deterministic tests and validate the completed tracking actions, lookup resilience, and returns lifecycle batch.
+- [ ] Checkpoint and preserve the completed tracking actions, lookup resilience, and returns lifecycle batch when managed synchronization is available.
 - [x] Standardize Account create/edit/update operations on the reusable full-screen form drawer with fixed approve/cancel actions.
 - [x] Build a reusable confirmation popup for destructive or consequential actions with clear context, cancel, and explicit approval labels.
 - [x] Apply the confirmation popup to saved-place/recipient removal, recognized-device removal, account-deletion request, pickup cancellation, and other existing Account approvals.

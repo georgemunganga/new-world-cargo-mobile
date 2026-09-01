@@ -3,9 +3,9 @@ import { AppIcon } from "@/components/ui/app-icon";
 import { IconButton } from "@/components/ui/nwc-ui";
 import { nwcColors } from "@/lib/nwc-theme";
 
-export function CustomerHomeHeader({ customerName, onNotifications, onAccount }: { customerName?: string; onNotifications: () => void; onAccount: () => void }) {
+export function CustomerHomeHeader({ customerName, onTracking, onNotifications, onAccount }: { customerName?: string; onTracking: () => void; onNotifications: () => void; onAccount: () => void }) {
   const firstName = customerName?.trim().split(/\s+/)[0] || "there";
-  return <View style={styles.header}><View style={styles.brand}><View style={styles.brandMark}><AppIcon name="arrow-top-right" size={19} color={nwcColors.primaryInk} /></View><Image accessibilityLabel="New WorldCargo" source={require("../../assets/images/new-world-cargo-wordmark.png")} resizeMode="contain" style={styles.wordmark} /></View><View style={styles.actions}><IconButton label="Open notifications" icon="bell-outline" badge onPress={onNotifications} /><TouchableOpacity accessibilityRole="button" accessibilityLabel="Open Account" accessibilityHint="Open your account and delivery preferences" onPress={onAccount} activeOpacity={0.74} style={styles.avatar}><Text style={styles.avatarText}>{firstName.slice(0, 1).toUpperCase()}</Text></TouchableOpacity></View></View>;
+  return <View style={styles.header}><View style={styles.brand}><View style={styles.brandMark}><AppIcon name="arrow-top-right" size={19} color={nwcColors.primaryInk} /></View><Image accessibilityLabel="New WorldCargo" source={require("../../assets/images/new-world-cargo-wordmark.png")} resizeMode="contain" style={styles.wordmark} /></View><View style={styles.actions}><IconButton label="Track a shipment" icon="package-variant-closed" onPress={onTracking} /><IconButton label="Open notifications" icon="bell-outline" badge onPress={onNotifications} /><TouchableOpacity accessibilityRole="button" accessibilityLabel="Open Account" accessibilityHint="Open your account and delivery preferences" onPress={onAccount} activeOpacity={0.74} style={styles.avatar}><Text style={styles.avatarText}>{firstName.slice(0, 1).toUpperCase()}</Text></TouchableOpacity></View></View>;
 }
 
 const styles = StyleSheet.create({
