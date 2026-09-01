@@ -6,6 +6,10 @@ describe("Local Delivery route sheet state", () => {
     expect(getLocalDeliveryRouteSheetState(null, 844)).toEqual({ mode: "compact", target: null, height: localDeliveryCompactSheetHeight });
   });
 
+  it("uses a deliberate intermediate height for pickup-pin adjustment", () => {
+    expect(getLocalDeliveryRouteSheetState(null, 844, true)).toEqual({ mode: "adjusting-pin", target: null, height: 458 });
+  });
+
   it("expands to a keyboard-safe capped height while editing pickup or destination", () => {
     expect(getLocalDeliveryRouteSheetState("from", 844)).toEqual({ mode: "editing", target: "from", height: 600 });
     const destinationState = getLocalDeliveryRouteSheetState("to", 640);

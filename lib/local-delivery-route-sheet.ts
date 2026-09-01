@@ -1,12 +1,15 @@
 export type LocalDeliveryRouteTarget = "from" | "to";
+export type LocalDeliverySheetMode = "compact" | "editing" | "adjusting-pin";
 
-export const localDeliveryCompactSheetHeight = 314;
+export const localDeliveryCompactSheetHeight = 414;
+export const localDeliveryPinAdjustmentSheetHeight = 458;
 
-export function getLocalDeliveryRouteSheetState(activeTarget: LocalDeliveryRouteTarget | null, viewportHeight: number) {
+export function getLocalDeliveryRouteSheetState(activeTarget: LocalDeliveryRouteTarget | null, viewportHeight: number, isAdjustingPin = false) {
   const expandedHeight = Math.min(Math.max(viewportHeight * 0.72, 440), 600);
+  const mode: LocalDeliverySheetMode = activeTarget ? "editing" : isAdjustingPin ? "adjusting-pin" : "compact";
   return {
-    mode: activeTarget ? "editing" as const : "compact" as const,
+    mode,
     target: activeTarget,
-    height: activeTarget ? expandedHeight : localDeliveryCompactSheetHeight,
+    height: mode === "editing" ? expandedHeight : mode === "adjusting-pin" ? localDeliveryPinAdjustmentSheetHeight : localDeliveryCompactSheetHeight,
   };
 }

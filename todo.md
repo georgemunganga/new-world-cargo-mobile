@@ -112,6 +112,11 @@
 - [x] Animate bottom-sheet expansion and contraction with keyboard-safe spacing, floating inline suggestions, and clear route-selection feedback using mock data.
 - [x] Preserve the selected Local Delivery route, map context, saved places, manual fallback, and continuation into Parcel after the bottom sheet returns to its compact state.
 - [x] Add deterministic tests for the map-first Local Delivery route state, then validate and checkpoint the bottom-sheet refinement.
+- [x] Fix the Local Delivery map-first screen so the route drawer renders visibly above the map in the web preview and on native devices.
+- [x] Add a pickup-pin adjustment mode that lets customers confirm and move their pickup point within the mock map experience.
+- [x] Show a deterministic Local Delivery price and ETA preview only after pickup and destination are selected, before the Parcel step.
+- [x] Preserve the existing mock autocomplete provider boundary for a later native Places/maps replacement; do not activate a live Places connection in this frontend phase.
+- [x] Add deterministic tests, validate, and checkpoint the repaired Local Delivery map-first mock experience.
 - [x] Replace the International Imports service-card visual with the newly supplied transparent parcel asset.
 - [x] Reposition the Local Delivery scooter further right within the wide service card without reducing text clarity.
 - [x] Hide the floating bottom navigation only on the Home tab and retain it on all other primary destinations.
