@@ -235,7 +235,7 @@
 - [x] Build an eligible-delivered-shipment return journey with reason selection, handover choice, review, submitted confirmation, and customer-visible request status.
 - [x] Add deterministic tests and validate the completed tracking actions, lookup resilience, and returns lifecycle batch.
 - [ ] Checkpoint and preserve the completed tracking actions, lookup resilience, and returns lifecycle batch when managed synchronization is available.
-- [ ] Commit and push the validated tracking actions, lookup resilience, and returns lifecycle batch to the configured GitHub repository.
+- [x] Commit and push the validated tracking actions, lookup resilience, and returns lifecycle batch to the configured GitHub repository.
 - [x] Standardize Account create/edit/update operations on the reusable full-screen form drawer with fixed approve/cancel actions.
 - [x] Build a reusable confirmation popup for destructive or consequential actions with clear context, cancel, and explicit approval labels.
 - [x] Apply the confirmation popup to saved-place/recipient removal, recognized-device removal, account-deletion request, pickup cancellation, and other existing Account approvals.
