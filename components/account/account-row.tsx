@@ -3,7 +3,7 @@ import { AppIcon, type AppIconName } from "@/components/ui/app-icon";
 import { nwcColors } from "@/lib/nwc-theme";
 
 export function AccountRow({ icon, title, detail, onPress }: { icon: AppIconName; title: string; detail: string; onPress?: () => void }) {
-  const content = <><View style={styles.iconWrap}><AppIcon name={icon} size={21} color={nwcColors.brandNavy} /></View><View style={styles.copy}><Text style={styles.title}>{title}</Text><Text style={styles.detail}>{detail}</Text></View><AppIcon name="chevron-right" size={21} color={nwcColors.muted} /></>;
+  const content = <><View style={styles.iconWrap}><AppIcon name={icon} size={21} color={nwcColors.brandNavy} /></View><View style={styles.copy}><Text style={styles.title}>{title}</Text><Text style={styles.detail}>{detail}</Text></View>{onPress ? <AppIcon name="chevron-right" size={21} color={nwcColors.muted} /> : null}</>;
   if (onPress) return <TouchableOpacity accessibilityRole="button" accessibilityLabel={title} accessibilityHint={detail} activeOpacity={0.75} onPress={onPress} style={styles.row}>{content}</TouchableOpacity>;
   return <View style={styles.row}>{content}</View>;
 }

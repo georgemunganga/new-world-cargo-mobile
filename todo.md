@@ -145,6 +145,13 @@
 - [x] Add deterministic tests, validate, and checkpoint the Cargo Wallet, reminder, and invoice-resolution workflow expansion.
 - [x] Fix the browser preview error caused by a 6000ms font-loading timeout so customer routes do not fall into the error screen when Poppins is unavailable or delayed.
 - [x] Add a browser-safe typography fallback and validate resilient startup for the New WorldCargo mobile preview.
+- [x] Adopt the supplied Universal Mobile Screen Standards as a New WorldCargo quality gate for every new or revised customer screen.
+- [x] Audit shared screen containers, gutters, headers, bottom navigation, sticky actions, scroll clearance, keyboard behavior, touch targets, typography, and component states before screen-level refinements.
+- [x] Create and maintain a screen-by-screen audit record covering Home, Shipments, Send, booking flows, Bills, Account, auth, tracking, maps, and system states.
+- [ ] Repair identified customer-screen gaps in prioritized, validated batches using deterministic mock data and shared mobile primitives.
+- [x] Replace tab-screen hard-coded bottom padding with a shared safe-area-aware floating-navigation clearance rule.
+- [x] Repair Account screen action affordances so unavailable preference rows do not appear tappable and customer support opens a clear mock support destination.
+- [x] Audit and repair the Local Delivery map sheet’s full-container sizing, keyboard behavior, and bottom safe-area clearance.
 - [x] Replace the International Imports service-card visual with the newly supplied transparent parcel asset.
 - [x] Reposition the Local Delivery scooter further right within the wide service card without reducing text clarity.
 - [x] Hide the floating bottom navigation only on the Home tab and retain it on all other primary destinations.

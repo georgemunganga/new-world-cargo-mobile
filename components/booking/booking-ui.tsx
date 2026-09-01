@@ -1,6 +1,7 @@
 import { useState, type PropsWithChildren } from "react";
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, type TextInputProps } from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, type TextInputProps } from "react-native";
 import { router } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppIcon, type AppIconName } from "@/components/ui/app-icon";
 import { IconButton, PrimaryButton, SecondaryButton, Screen } from "@/components/ui/nwc-ui";
 import { nwcColors } from "@/lib/nwc-theme";
@@ -17,7 +18,10 @@ const steps: { id: BookingStep; label: string }[] = [
 export type BookingProgressStep = { id: string; label: string };
 
 export function BookingScreen({ activeStep, title, detail, children, continueLabel, onContinue, continueDisabled, secondaryLabel, onSecondary, serviceLabel = "Local Delivery", progressSteps = steps }: PropsWithChildren<{ activeStep: string; title: string; detail: string; continueLabel: string; onContinue: () => void; continueDisabled?: boolean; secondaryLabel?: string; onSecondary?: () => void; serviceLabel?: string; progressSteps?: BookingProgressStep[] }>) {
-  return <Screen><View style={styles.screen}><View style={styles.topBar}><IconButton label="Go back" icon="arrow-left" onPress={() => router.back()} /><Text style={styles.topBarTitle}>{serviceLabel}</Text><View style={styles.topBarSpacer} /></View><ProgressSteps activeStep={activeStep} steps={progressSteps} /><ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}><Text style={styles.kicker}>New booking</Text><Text style={styles.bookingTitle}>{title}</Text><Text style={styles.detail}>{detail}</Text><View style={styles.content}>{children}</View></ScrollView><View style={styles.footer}>{secondaryLabel && onSecondary ? <SecondaryButton label={secondaryLabel} onPress={onSecondary} style={styles.secondaryFooterButton} /> : null}<PrimaryButton label={continueLabel} onPress={onContinue} disabled={continueDisabled} icon="arrow-right" /></View></View></Screen>;
+  const insets = useSafeAreaInsets();
+  const footerBottomPadding = Math.max(insets.bottom, 16);
+  const scrollBottomPadding = footerBottomPadding + (secondaryLabel && onSecondary ? 152 : 100);
+  return <Screen><KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === "ios" ? "padding" : undefined}><View style={styles.topBar}><IconButton label="Go back" icon="arrow-left" onPress={() => router.back()} /><Text style={styles.topBarTitle}>{serviceLabel}</Text><View style={styles.topBarSpacer} /></View><ProgressSteps activeStep={activeStep} steps={progressSteps} /><ScrollView keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scrollContent, { paddingBottom: scrollBottomPadding }]}><Text style={styles.kicker}>New booking</Text><Text style={styles.bookingTitle}>{title}</Text><Text style={styles.detail}>{detail}</Text><View style={styles.content}>{children}</View></ScrollView><View style={[styles.footer, { paddingBottom: footerBottomPadding }]}>{secondaryLabel && onSecondary ? <SecondaryButton label={secondaryLabel} onPress={onSecondary} style={styles.secondaryFooterButton} /> : null}<PrimaryButton label={continueLabel} onPress={onContinue} disabled={continueDisabled} icon="arrow-right" /></View></KeyboardAvoidingView></Screen>;
 }
 
 export function ProgressSteps({ activeStep, steps: progressSteps = steps }: { activeStep: string; steps?: BookingProgressStep[] }) {
@@ -26,7 +30,7 @@ export function ProgressSteps({ activeStep, steps: progressSteps = steps }: { ac
 }
 
 export function FormField({ label, icon, ...props }: TextInputProps & { label: string; icon?: AppIconName }) {
-  return <View style={styles.fieldWrap}><Text style={styles.fieldLabel}>{label}</Text><View style={styles.inputFrame}>{icon ? <AppIcon name={icon} size={20} color={nwcColors.muted} /> : null}<TextInput placeholderTextColor="#91A0AE" style={styles.input} {...props} /></View></View>;
+  return <View style={styles.fieldWrap}><Text style={styles.fieldLabel}>{label}</Text><View style={styles.inputFrame}>{icon ? <AppIcon name={icon} size={20} color={nwcColors.muted} /> : null}<TextInput accessibilityLabel={label} placeholderTextColor="#91A0AE" style={styles.input} {...props} /></View></View>;
 }
 
 export function ChoiceTile({ title, detail, icon, selected, onPress }: { title: string; detail: string; icon: AppIconName; selected: boolean; onPress: () => void }) {
@@ -56,12 +60,12 @@ const styles = StyleSheet.create({
   progressSegmentActive: { backgroundColor: nwcColors.primary },
   progressLabel: { color: nwcColors.muted, fontSize: 11, lineHeight: 15, fontFamily: "Poppins_700Bold" },
   progressName: { color: nwcColors.brandNavy, fontSize: 11, lineHeight: 15, fontFamily: "Poppins_800ExtraBold" },
-  scrollContent: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 28 },
+  scrollContent: { flexGrow: 1, paddingHorizontal: 20, paddingTop: 18 },
   kicker: { color: nwcColors.info, fontSize: 11, lineHeight: 15, fontFamily: "Poppins_800ExtraBold", letterSpacing: 0.6, textTransform: "uppercase" },
   bookingTitle: { color: nwcColors.foreground, fontSize: 27, lineHeight: 34, fontFamily: "Poppins_800ExtraBold", letterSpacing: -0.45, marginTop: 4 },
   detail: { color: nwcColors.muted, fontSize: 14, lineHeight: 21, fontFamily: "Poppins_500Medium", marginTop: 5 },
   content: { marginTop: 22, gap: 18 },
-  footer: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16, borderTopWidth: 1, borderTopColor: nwcColors.border, backgroundColor: nwcColors.surface },
+  footer: { paddingHorizontal: 20, paddingTop: 12, borderTopWidth: 1, borderTopColor: nwcColors.border, backgroundColor: nwcColors.surface },
   secondaryFooterButton: { marginBottom: 9 },
   fieldWrap: { gap: 7 },
   fieldLabel: { color: nwcColors.foreground, fontSize: 13, lineHeight: 18, fontFamily: "Poppins_700Bold" },

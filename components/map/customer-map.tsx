@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from "react";
-import { PanResponder, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { PanResponder, StyleSheet, Text, TouchableOpacity, View, type StyleProp, type ViewStyle } from "react-native";
 import Svg, { Circle, Path, Polygon, Rect } from "react-native-svg";
 
 import { AppIcon } from "@/components/ui/app-icon";
@@ -20,6 +20,8 @@ type CustomerMapProps = {
   routeReady?: boolean;
   routeProgress?: number;
   height?: number;
+  fill?: boolean;
+  style?: StyleProp<ViewStyle>;
   onZoomChange?: (zoom: number) => void;
 };
 
@@ -33,7 +35,7 @@ const modeCopy: Record<CustomerMapMode, { label: string; accessibility: string }
 
 const pinOffsets: Record<MapPinPosition, { marginTop?: number; marginLeft?: number }> = { initial: {}, north: { marginTop: -20 }, south: { marginTop: 20 }, east: { marginLeft: 20 }, west: { marginLeft: -20 } };
 
-export function CustomerMap({ mode, pickup, destination, shipment, pickupPinPosition = "initial", destinationPinPosition = "initial", adjustingTarget, routeReady = false, routeProgress, height = 328, onZoomChange }: CustomerMapProps) {
+export function CustomerMap({ mode, pickup, destination, shipment, pickupPinPosition = "initial", destinationPinPosition = "initial", adjustingTarget, routeReady = false, routeProgress, height = 328, fill = false, style, onZoomChange }: CustomerMapProps) {
   const initialZoom = mode === "international" ? 0.82 : 1;
   const [zoom, setZoom] = useState(initialZoom);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -68,7 +70,7 @@ export function CustomerMap({ mode, pickup, destination, shipment, pickupPinPosi
   const pickupLabel = origin?.area ?? "Pickup";
   const destinationLabel = endpoint?.area ?? "Destination";
 
-  return <View accessibilityRole="image" accessibilityLabel={copy.accessibility} style={[styles.wrap, { height }]}>
+  return <View accessibilityRole="image" accessibilityLabel={copy.accessibility} style={[styles.wrap, fill ? styles.fill : { height }, style]}>
     <View {...mapGesture.panHandlers} style={[styles.mapCanvas, { transform: [{ translateX: pan.x }, { translateY: pan.y }, { scale: zoom }] }]}>
       {isInternational ? <InternationalBase progress={progress} /> : <CityBase progress={progress} routeReady={routeReady || mode === "completed"} />}
       <MapMarker position={isInternational ? styles.internationalOrigin : styles.pickupMarker} offset={pinOffsets[pickupPinPosition]} icon="circle-outline" label={isInternational ? origin?.city ?? "Origin" : pickupLabel} inverse />
@@ -105,6 +107,7 @@ function clamp(value: number, min: number, max: number) { return Math.max(min, M
 
 const styles = StyleSheet.create({
   wrap: { overflow: "hidden", backgroundColor: "#EDF1F2" },
+  fill: { ...StyleSheet.absoluteFillObject },
   mapCanvas: { ...StyleSheet.absoluteFillObject },
   pickupMarker: { left: "12%", top: "63%" }, destinationMarker: { left: "57%", top: "38%" }, internationalOrigin: { left: "11%", top: "25%" }, internationalDestination: { left: "69%", top: "29%" },
   marker: { position: "absolute", maxWidth: 114, alignItems: "center" }, markerIcon: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center", backgroundColor: nwcColors.primary, borderWidth: 2, borderColor: nwcColors.primaryInk }, markerIconInverse: { backgroundColor: nwcColors.brandNavy, borderColor: nwcColors.white }, markerText: { maxWidth: 110, marginTop: 4, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 7, overflow: "hidden", backgroundColor: "rgba(255,255,255,0.92)", color: nwcColors.foreground, fontSize: 10, lineHeight: 14, fontFamily: "Poppins_800ExtraBold" },
