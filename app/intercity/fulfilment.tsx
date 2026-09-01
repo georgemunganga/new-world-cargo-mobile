@@ -1,0 +1,6 @@
+import { router } from "expo-router";
+import { BookingScreen, BookingSection, ChoiceTile } from "@/components/booking/booking-ui";
+import { intercitySteps } from "@/lib/service-booking";
+import { useBookingDraft } from "@/stores/booking-draft";
+
+export default function IntercityFulfilmentScreen() { const { intercityDraft, updateIntercityDraft } = useBookingDraft(); return <BookingScreen activeStep="fulfilment" serviceLabel="City-to-City" progressSteps={intercitySteps} title="How should it be collected?" detail="Choose a simple collection option. Delivery availability is confirmed with your quote." continueLabel="Review shipment" onContinue={() => router.push("/intercity/review" as never)}><BookingSection><ChoiceTile title="Collection point" detail="Sender or receiver uses a New WorldCargo branch." icon="storefront-outline" selected={intercityDraft.fulfilment === "collection"} onPress={() => updateIntercityDraft({ fulfilment: "collection" })} /><ChoiceTile title="Door delivery" detail="Arrange collection or delivery to the supplied address." icon="home-variant-outline" selected={intercityDraft.fulfilment === "door_delivery"} onPress={() => updateIntercityDraft({ fulfilment: "door_delivery" })} /></BookingSection></BookingScreen>; }

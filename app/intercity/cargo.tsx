@@ -1,0 +1,6 @@
+import { router } from "expo-router";
+import { BookingScreen, BookingSection, ChoiceTile } from "@/components/booking/booking-ui";
+import { intercitySteps } from "@/lib/service-booking";
+import { useBookingDraft } from "@/stores/booking-draft";
+
+export default function IntercityCargoScreen() { const { intercityDraft, updateIntercityDraft } = useBookingDraft(); const categories = [{ id: "parcel", title: "Parcel or documents", icon: "package-variant" }, { id: "cartons", title: "Cartons or bags", icon: "package-variant-closed" }, { id: "bulk", title: "Larger cargo", icon: "truck-outline" }]; return <BookingScreen activeStep="cargo" serviceLabel="City-to-City" progressSteps={intercitySteps} title="What are you sending?" detail="Select the closest cargo type. We will confirm size and final charge later." continueLabel="Continue to contacts" continueDisabled={!intercityDraft.cargoCategory} onContinue={() => router.push("/intercity/contacts" as never)}><BookingSection>{categories.map((category) => <ChoiceTile key={category.id} title={category.title} detail="Select cargo type" icon={category.icon as any} selected={intercityDraft.cargoCategory === category.id} onPress={() => updateIntercityDraft({ cargoCategory: category.id })} />)}</BookingSection></BookingScreen>; }

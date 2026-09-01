@@ -1,4 +1,5 @@
 export type ServiceType = "import" | "intercity" | "local";
+export type ShippingMethod = "air" | "sea";
 export type ShipmentStatus =
   | "action_required"
   | "booking_confirmed"
@@ -65,4 +66,28 @@ export type LocalDeliveryDraft = {
   receiver?: PersonContact;
   deliveryInstructions?: string;
   schedule?: "as_soon_as_possible" | "later_today" | "scheduled";
+};
+
+export type ImportBookingDraft = {
+  service: "import";
+  method?: ShippingMethod;
+  originCountry?: string;
+  originCity?: string;
+  destinationCity?: string;
+  cargoCategory?: string;
+  cargoDescription?: string;
+  quantity?: number;
+  consignee?: PersonContact;
+};
+
+export type IntercityBookingDraft = {
+  service: "intercity";
+  originCity?: string;
+  destinationCity?: string;
+  cargoCategory?: string;
+  quantity?: number;
+  sender?: PersonContact;
+  receiver?: PersonContact;
+  fulfilment?: "collection" | "door_delivery";
+  schedule?: "next_available" | "scheduled";
 };

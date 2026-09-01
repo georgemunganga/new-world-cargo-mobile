@@ -91,6 +91,12 @@
 - [x] Route active shipments to Live Shipment Tracking and completed shipments to the Delivery Summary/Shipment Detail screen.
 - [x] Add mock driver contact, share, options, order details, payment details, and support actions without live communication or payment integration.
 - [ ] Validate and checkpoint the active-shipment tracking experience.
+- [x] Define shared service-booking models and maintain independent drafts for import, city-to-city, and local delivery customer journeys.
+- [x] Build the International Imports entry flow with an Air Freight or Sea Freight decision before source, cargo, consignee, and review steps.
+- [x] Build the City-to-City Katundu flow with origin, destination, cargo, contact, collection/delivery preference, schedule, and review steps.
+- [x] Connect the International Imports, City-to-City, Local Delivery, and Custom Request Home cards to their intended customer flows.
+- [x] Preserve the existing Local Delivery route, parcel, contacts, schedule, review, and confirmation flow as the tailored local service journey.
+- [ ] Add deterministic tests for service-specific draft validation and route destinations; validate and checkpoint the booking-journey expansion.
 - [x] Replace the International Imports service-card visual with the newly supplied transparent parcel asset.
 - [x] Reposition the Local Delivery scooter further right within the wide service card without reducing text clarity.
 - [x] Hide the floating bottom navigation only on the Home tab and retain it on all other primary destinations.

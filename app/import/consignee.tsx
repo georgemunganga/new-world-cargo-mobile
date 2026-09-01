@@ -1,0 +1,6 @@
+import { router } from "expo-router";
+import { BookingScreen, BookingSection, FormField } from "@/components/booking/booking-ui";
+import { importSteps } from "@/lib/service-booking";
+import { useBookingDraft } from "@/stores/booking-draft";
+
+export default function ImportConsigneeScreen() { const { importDraft, updateImportDraft } = useBookingDraft(); const consignee = importDraft.consignee ?? { name: "", phone: "" }; const update = (field: "name" | "phone", value: string) => updateImportDraft({ consignee: { ...consignee, [field]: value } }); return <BookingScreen activeStep="consignee" serviceLabel="International Imports" progressSteps={importSteps} title="Who will receive the cargo?" detail="Use the person or business responsible for collection or delivery." continueLabel="Review import" continueDisabled={!consignee.name || !consignee.phone} onContinue={() => router.push("/import/review" as never)}><BookingSection><FormField label="Consignee name" icon="account-outline" placeholder="Full name or business" value={consignee.name} onChangeText={(name) => update("name", name)} /><FormField label="Contact number" icon="phone-outline" placeholder="e.g. +260 97 000 0000" keyboardType="phone-pad" value={consignee.phone} onChangeText={(phone) => update("phone", phone)} /></BookingSection></BookingScreen>; }
