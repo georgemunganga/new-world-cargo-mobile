@@ -86,6 +86,11 @@
 - [x] Add subtle scale and opacity press feedback to shipment cards while preserving their accessible touch targets.
 - [x] Use branded New WorldCargo vehicle artwork in the active-delivery summary and relevant Shipment Detail state.
 - [ ] Validate and checkpoint the shipment visual-system refinement.
+- [x] Build a reusable Live Shipment Tracking screen with map route, vehicle marker, destination pin, responsible contact, delivery progress, and concise secondary actions.
+- [x] Adapt the tracking content by service type: local courier movement, city-to-city hubs, and international milestones, using deterministic mock data.
+- [x] Route active shipments to Live Shipment Tracking and completed shipments to the Delivery Summary/Shipment Detail screen.
+- [x] Add mock driver contact, share, options, order details, payment details, and support actions without live communication or payment integration.
+- [ ] Validate and checkpoint the active-shipment tracking experience.
 - [x] Replace the International Imports service-card visual with the newly supplied transparent parcel asset.
 - [x] Reposition the Local Delivery scooter further right within the wide service card without reducing text clarity.
 - [x] Hide the floating bottom navigation only on the Home tab and retain it on all other primary destinations.

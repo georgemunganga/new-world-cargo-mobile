@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
+import { Redirect, router, useLocalSearchParams } from "expo-router";
 import { AppIcon } from "@/components/ui/app-icon";
 import { IconButton, PrimaryButton, Screen } from "@/components/ui/nwc-ui";
 import { shipments, statusPresentation } from "@/lib/mock-cargo-data";
+import { isActiveShipment } from "@/lib/shipment-navigation";
 import { nwcColors } from "@/lib/nwc-theme";
 
 const timeline = [
@@ -18,6 +19,7 @@ export default function ShipmentDetailScreen() {
   const shipment = shipments.find((item) => item.id === shipmentId) ?? shipments[0];
   const status = statusPresentation[shipment.status];
   const latest = timeline[0];
+  if (isActiveShipment(shipment)) return <Redirect href={`/tracking/${shipment.id}` as never} />;
   const isImport = shipment.service === "import";
   const foreground = isImport ? nwcColors.primaryInk : nwcColors.white;
   const muted = isImport ? "#4A4A45" : "#B9C8D1";

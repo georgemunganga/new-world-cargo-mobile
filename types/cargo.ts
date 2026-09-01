@@ -20,6 +20,23 @@ export type PersonContact = {
   phone: string;
 };
 
+export type TrackingContact = {
+  name: string;
+  role: string;
+  phone: string;
+  rating?: string;
+  verified?: boolean;
+};
+
+export type TrackingProgress = {
+  distanceLabel: string;
+  pickupTime: string;
+  arrivalTime: string;
+  fraction: number;
+  mapLabel: string;
+  stages: string[];
+};
+
 export type Shipment = {
   id: string;
   reference: string;
@@ -31,6 +48,8 @@ export type Shipment = {
   eta: string;
   dateLabel: string;
   actionLabel?: string;
+  trackingContact?: TrackingContact;
+  trackingProgress?: TrackingProgress;
 };
 
 export type LocalDeliveryDraft = {

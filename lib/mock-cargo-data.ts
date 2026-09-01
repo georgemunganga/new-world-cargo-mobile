@@ -18,6 +18,8 @@ export const shipments: Shipment[] = [
     eta: "Estimated 14 Sep",
     dateLabel: "In transit",
     actionLabel: "Track shipment",
+    trackingContact: { name: "Naomi Phiri", role: "New WorldCargo shipment agent", phone: "+260 970 020 190", rating: "4.8", verified: true },
+    trackingProgress: { distanceLabel: "International transit", pickupTime: "30 Aug", arrivalTime: "14 Sep", fraction: 0.54, mapLabel: "Guangzhou to Lusaka route", stages: ["Origin warehouse", "Exported", "International transit", "Zambia warehouse"] },
   },
   {
     id: "nwc-24206",
@@ -40,6 +42,8 @@ export const shipments: Shipment[] = [
     destination: { city: "Lusaka", area: "Kabwata", detail: "Collection branch" },
     eta: "Pending confirmation",
     dateLabel: "Pending",
+    trackingContact: { name: "Import support", role: "New WorldCargo support agent", phone: "+260 970 020 190", verified: true },
+    trackingProgress: { distanceLabel: "Confirmation pending", pickupTime: "Awaiting", arrivalTime: "To confirm", fraction: 0.12, mapLabel: "Dubai to Lusaka route", stages: ["Order confirmed", "Supplier received", "International transit", "Lusaka branch"] },
   },
   {
     id: "nwc-23411",

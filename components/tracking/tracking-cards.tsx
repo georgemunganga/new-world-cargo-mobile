@@ -1,0 +1,63 @@
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { AppIcon, type AppIconName } from "@/components/ui/app-icon";
+import { nwcColors } from "@/lib/nwc-theme";
+import type { Shipment, TrackingContact } from "@/types/cargo";
+
+export function TrackingContactCard({ contact, onMessage, onCall }: { contact: TrackingContact; onMessage: () => void; onCall: () => void }) {
+  const initials = contact.name.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase();
+  return <View style={styles.contactCard}><View style={styles.contactAvatar}><Text style={styles.contactInitials}>{initials}</Text></View><View style={styles.contactCopy}><View style={styles.contactNameLine}><Text numberOfLines={1} style={styles.contactName}>{contact.name}</Text>{contact.rating ? <View style={styles.rating}><AppIcon name="star" size={13} color={nwcColors.primary} /><Text style={styles.ratingText}>{contact.rating}</Text></View> : null}</View><Text numberOfLines={1} style={styles.contactRole}>{contact.role}</Text>{contact.verified ? <View style={styles.verified}><AppIcon name="shield-check-outline" size={13} color={nwcColors.brandNavy} /><Text style={styles.verifiedText}>Verified</Text></View> : null}</View><View style={styles.contactActions}><CircleAction label={`Message ${contact.name}`} icon="message-text-outline" onPress={onMessage} /><CircleAction label={`Call ${contact.name}`} icon="phone-outline" onPress={onCall} /></View></View>;
+}
+
+export function DeliveryProgressCard({ shipment }: { shipment: Shipment }) {
+  const progress = shipment.trackingProgress ?? { fraction: 0.5, distanceLabel: "On the way", pickupTime: "Picked up", arrivalTime: shipment.eta, stages: [] };
+  const status = shipment.status === "out_for_delivery" ? "Out for delivery" : shipment.status === "in_transit" ? "In transit" : "Booking confirmed";
+  return <View style={styles.progressCard}><View style={styles.progressHeader}><View style={styles.destinationCopy}><Text style={styles.progressEyebrow}>Delivery destination</Text><Text numberOfLines={1} style={styles.destinationTitle}>{shipment.destination.detail}</Text><Text numberOfLines={1} style={styles.destinationSubline}>{shipment.destination.area}, {shipment.destination.city}</Text></View><View style={styles.statusPill}><AppIcon name={shipment.status === "out_for_delivery" ? "truck-delivery-outline" : "truck-fast-outline"} size={14} color={nwcColors.primaryInk} /><Text style={styles.statusPillText}>{status}</Text></View></View><View style={styles.distance}><AppIcon name="map-marker-distance" size={18} color={nwcColors.muted} /><Text style={styles.distanceText}>{progress.distanceLabel}</Text></View><View style={styles.progressRail}><View style={[styles.progressFill, { width: `${Math.max(6, Math.min(100, progress.fraction * 100))}%` }]} /><View style={[styles.progressMarker, { left: `${Math.max(2, Math.min(94, progress.fraction * 100))}%` }]} /><View style={styles.progressEnd} /></View><View style={styles.progressTimes}><View><Text style={styles.timeValue}>{progress.pickupTime}</Text><Text style={styles.timeLabel}>Picked up</Text></View><View style={styles.timeEnd}><Text style={styles.timeValue}>{progress.arrivalTime}</Text><Text style={styles.timeLabel}>Estimated arrival</Text></View></View></View>;
+}
+
+export function TrackingActionList({ onOrder, onPayment, onSupport }: { onOrder: () => void; onPayment: () => void; onSupport: () => void }) {
+  const rows: { label: string; icon: AppIconName; onPress: () => void }[] = [{ label: "Order details", icon: "clipboard-text-outline", onPress: onOrder }, { label: "Payment details", icon: "credit-card-outline", onPress: onPayment }, { label: "Support", icon: "lifebuoy", onPress: onSupport }];
+  return <View style={styles.actionList}>{rows.map((row, index) => <TouchableOpacity key={row.label} accessibilityRole="button" accessibilityLabel={row.label} activeOpacity={0.72} onPress={row.onPress} style={[styles.actionRow, index !== rows.length - 1 && styles.actionDivider]}><View style={styles.actionIcon}><AppIcon name={row.icon} size={21} color={nwcColors.brandNavy} /></View><Text style={styles.actionLabel}>{row.label}</Text><AppIcon name="chevron-right" size={22} color={nwcColors.muted} /></TouchableOpacity>)}</View>;
+}
+
+function CircleAction({ label, icon, onPress }: { label: string; icon: AppIconName; onPress: () => void }) {
+  return <TouchableOpacity accessibilityRole="button" accessibilityLabel={label} activeOpacity={0.7} onPress={onPress} style={styles.circleAction}><AppIcon name={icon} size={21} color={nwcColors.brandNavy} /></TouchableOpacity>;
+}
+
+const styles = StyleSheet.create({
+  contactCard: { minHeight: 110, borderRadius: 23, backgroundColor: nwcColors.surface, padding: 14, flexDirection: "row", alignItems: "center", gap: 11, borderWidth: 1, borderColor: "#E5EBED" },
+  contactAvatar: { width: 58, height: 58, borderRadius: 21, alignItems: "center", justifyContent: "center", backgroundColor: nwcColors.brandNavy, borderWidth: 3, borderColor: nwcColors.primary },
+  contactInitials: { color: nwcColors.white, fontSize: 16, lineHeight: 20, fontFamily: "Poppins_800ExtraBold" },
+  contactCopy: { minWidth: 0, flex: 1, gap: 2 },
+  contactNameLine: { flexDirection: "row", alignItems: "center", gap: 7 },
+  contactName: { maxWidth: 106, color: nwcColors.foreground, fontSize: 16, lineHeight: 21, fontFamily: "Poppins_800ExtraBold" },
+  rating: { flexDirection: "row", alignItems: "center", gap: 2 },
+  ratingText: { color: nwcColors.foreground, fontSize: 12, lineHeight: 16, fontFamily: "Poppins_700Bold" },
+  contactRole: { color: nwcColors.muted, fontSize: 11, lineHeight: 15, fontFamily: "Poppins_500Medium" },
+  verified: { alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 3, borderRadius: 7, backgroundColor: "#EDF3F4", paddingHorizontal: 6, paddingVertical: 3 },
+  verifiedText: { color: nwcColors.brandNavy, fontSize: 9, lineHeight: 12, fontFamily: "Poppins_800ExtraBold" },
+  contactActions: { flexDirection: "row", gap: 7 },
+  circleAction: { width: 43, height: 43, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: "#F1F5F6" },
+  progressCard: { borderRadius: 24, backgroundColor: nwcColors.surface, padding: 17, gap: 13, borderWidth: 1, borderColor: "#E5EBED" },
+  progressHeader: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 9 },
+  destinationCopy: { flex: 1, gap: 1 },
+  progressEyebrow: { color: nwcColors.muted, fontSize: 10, lineHeight: 14, fontFamily: "Poppins_700Bold", textTransform: "uppercase", letterSpacing: 0.5 },
+  destinationTitle: { color: nwcColors.foreground, fontSize: 18, lineHeight: 24, fontFamily: "Poppins_800ExtraBold" },
+  destinationSubline: { color: nwcColors.muted, fontSize: 12, lineHeight: 17, fontFamily: "Poppins_500Medium" },
+  statusPill: { maxWidth: 125, borderRadius: 11, backgroundColor: nwcColors.primary, paddingHorizontal: 8, paddingVertical: 7, flexDirection: "row", alignItems: "center", gap: 4 },
+  statusPillText: { color: nwcColors.primaryInk, fontSize: 10, lineHeight: 14, fontFamily: "Poppins_800ExtraBold" },
+  distance: { flexDirection: "row", alignItems: "center", gap: 5 },
+  distanceText: { color: nwcColors.muted, fontSize: 12, lineHeight: 16, fontFamily: "Poppins_600SemiBold" },
+  progressRail: { position: "relative", height: 24, marginTop: 1, justifyContent: "center", backgroundColor: "transparent" },
+  progressFill: { position: "absolute", left: 0, height: 4, borderRadius: 2, backgroundColor: nwcColors.primary },
+  progressMarker: { position: "absolute", top: 2, width: 21, height: 21, borderRadius: 11, borderWidth: 4, borderColor: nwcColors.primary, backgroundColor: nwcColors.brandNavy },
+  progressEnd: { position: "absolute", right: 0, width: 14, height: 14, borderRadius: 7, backgroundColor: "#DDE3E5" },
+  progressTimes: { flexDirection: "row", justifyContent: "space-between", gap: 12 },
+  timeEnd: { alignItems: "flex-end", flex: 1 },
+  timeValue: { color: nwcColors.foreground, fontSize: 13, lineHeight: 18, fontFamily: "Poppins_800ExtraBold" },
+  timeLabel: { color: nwcColors.muted, fontSize: 10, lineHeight: 14, fontFamily: "Poppins_500Medium" },
+  actionList: { borderRadius: 23, overflow: "hidden", backgroundColor: nwcColors.surface, borderWidth: 1, borderColor: "#E5EBED", paddingHorizontal: 14 },
+  actionRow: { minHeight: 66, flexDirection: "row", alignItems: "center", gap: 12 },
+  actionDivider: { borderBottomWidth: 1, borderBottomColor: "#E9EEEF" },
+  actionIcon: { width: 32, alignItems: "center" },
+  actionLabel: { flex: 1, color: nwcColors.foreground, fontSize: 15, lineHeight: 20, fontFamily: "Poppins_700Bold" },
+});
