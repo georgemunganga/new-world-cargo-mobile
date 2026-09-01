@@ -22,10 +22,10 @@ The attached **Universal Mobile Screen Standards** are now the project quality g
 | Customer area | Screen type | Current assessment | Priority action |
 |---|---|---|---|
 | Startup and authentication | System / authentication | **Improved.** Session restoration previously returned a blank tab layout. It now routes to the dedicated Startup screen. The auth shell already supports keyboard-safe scrolling. | Verify small-device text scaling and restore-flow timing on a physical device. |
-| Home | Dashboard / content | Branded, intentionally concise, and without floating navigation. It needs ongoing verification that active-shipment cards do not overflow on smaller phones. | Low: add layout tests for long customer/shipment labels. |
-| Shipments | List / feed | Has search, filters, deterministic empty treatment, and floating-dock clearance. Its spacing remains page-owned rather than tokenized. | Medium: move list bottom clearance to a shared dock-clearance rule. |
+| Home | Dashboard / content | **Repaired.** It now receives shared top and bottom content insets rather than owning a top-edge-adjacent header and fixed 38-point bottom gap. | Low: add layout tests for long customer/shipment labels. |
+| Shipments | List / feed | **Repaired.** It has search, filters, deterministic empty treatment, and shared floating-dock clearance. | Low: review long destination labels and filter wrapping. |
 | Live tracking | Map / detail | Reusable map modes, tracking status, contact actions, instructions, and proof context are present. It remains a high-risk overlay screen. | High: audit safe-area/keyboard behavior for controls over the map at short viewport heights. |
-| Local Delivery route | Full-screen map / sheet | Map-first, purpose-aware map, bottom-sheet route entry, manual fallback, and quote states exist. It has recently required browser rendering repairs. | **Highest priority:** test and standardize the full-bleed map sheet across web and physical devices. |
+| Local Delivery route | Full-screen map / sheet | **Repaired.** The purpose-aware map now fills its caller rather than using a fixed 760-point backdrop; the sheet receives safe bottom clearance and keyboard-aware layout. | High: test the full-bleed map sheet across web and physical devices. |
 | Import, City-to-City, Custom Request | Wizard / form | Shared route entry and service-specific questions are present. Sticky footer and keyboard behavior have now been standardized through `BookingScreen`. | Verify every field’s return key, validation, and final action on small screens. |
 | Bills and wallet | List / detail / payment | Ledger, filters, detail, document actions, payment result, wallet, reminders, and resolution timelines are present with mock data. | Medium: audit long invoice routes/charge rows and ensure every pay state has appropriate footer clearance. |
 | Account, permissions, notifications | Settings / form | Customer-facing mock states exist but need a focused action and state audit. | Medium: make every listed action navigable or visibly disabled with explanation. |
@@ -33,7 +33,7 @@ The attached **Universal Mobile Screen Standards** are now the project quality g
 
 ## First implemented shared repairs
 
-This audit batch fixes two broad risks. While customer session state is restoring, the tab layout now redirects to the existing Startup screen rather than rendering nothing. All shared booking wizards now use keyboard avoidance, drag-to-dismiss behavior, persistent-action clearance, bottom safe-area padding, and accessible field labels. These changes apply to Local Delivery, International Imports, City-to-City, and Custom Request wherever they use `BookingScreen`.
+This audit batch fixes four broad risks. While customer session state is restoring, the tab layout now redirects to the existing Startup screen rather than rendering nothing. All shared booking wizards now use keyboard avoidance, drag-to-dismiss behavior, persistent-action clearance, bottom safe-area padding, and accessible field labels. Home now uses a shared content inset rather than a header crowded toward the top edge or arbitrary bottom space. The new layout contract also supplies one floating-navigation clearance value to Send, Shipments, Bills, and Account, while the Local Delivery map fills its own container instead of assuming a 760-point height.
 
 ## Next repair batch
 

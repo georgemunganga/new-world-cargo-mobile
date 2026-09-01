@@ -149,6 +149,9 @@
 - [x] Audit shared screen containers, gutters, headers, bottom navigation, sticky actions, scroll clearance, keyboard behavior, touch targets, typography, and component states before screen-level refinements.
 - [x] Create and maintain a screen-by-screen audit record covering Home, Shipments, Send, booking flows, Bills, Account, auth, tracking, maps, and system states.
 - [ ] Repair identified customer-screen gaps in prioritized, validated batches using deterministic mock data and shared mobile primitives.
+- [x] Remove the Home screen’s top-edge crowding and unnecessary hard-coded bottom space using shared safe-area and content-inset rules.
+- [x] Create reusable customer-screen layout primitives for standard gutters, Home bottom spacing, floating-navigation clearance, and scrollable content regions.
+- [x] Apply the reusable layout contract to Home and affected customer tab screens, then validate across short and tall mock viewports.
 - [x] Replace tab-screen hard-coded bottom padding with a shared safe-area-aware floating-navigation clearance rule.
 - [x] Repair Account screen action affordances so unavailable preference rows do not appear tappable and customer support opens a clear mock support destination.
 - [x] Audit and repair the Local Delivery map sheet’s full-container sizing, keyboard behavior, and bottom safe-area clearance.

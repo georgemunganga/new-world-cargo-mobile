@@ -1,3 +1,4 @@
+import { getCustomerContentBottomInset } from "@/lib/customer-screen-layout";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /**
@@ -6,7 +7,5 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
  */
 export function useFloatingNavigationClearance() {
   const insets = useSafeAreaInsets();
-  const dockHeight = 74;
-  const dockOffset = Math.max(insets.bottom + 14, 30);
-  return dockHeight + dockOffset + 18;
+  return getCustomerContentBottomInset(insets.bottom, true);
 }
