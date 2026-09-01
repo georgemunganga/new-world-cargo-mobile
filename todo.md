@@ -138,6 +138,11 @@
 - [x] Update mock billing state so a successful payment marks its invoice as paid and moves it into the paid/receipt history rather than returning to the same outstanding card.
 - [x] Add Bills loading, empty-search, and recoverable-error states comparable to the web invoice workflow.
 - [x] Integrate the confirmed invoice ledger, detail, document-action, and paid-history workflows with the existing mobile payment and receipt screens using deterministic mock data.
+- [x] Add a mock Cargo Wallet balance summary and a browser-safe top-up journey to the mobile Bills experience.
+- [x] Allow mock Cargo Wallet selection during an invoice payment and update its displayed balance only after payment confirmation.
+- [x] Add due-date reminder treatment to unpaid invoice list and detail states using deterministic reminder settings and time labels.
+- [x] Add mock invoice resolution timelines for refund and disputed-charge states, including a customer-facing support/dispute entry point.
+- [x] Add deterministic tests, validate, and checkpoint the Cargo Wallet, reminder, and invoice-resolution workflow expansion.
 - [x] Replace the International Imports service-card visual with the newly supplied transparent parcel asset.
 - [x] Reposition the Local Delivery scooter further right within the wide service card without reducing text clarity.
 - [x] Hide the floating bottom navigation only on the Home tab and retain it on all other primary destinations.
