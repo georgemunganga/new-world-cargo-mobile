@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { ActivityIndicator, Modal, Platform, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { BlurView } from "expo-blur";
+import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { router, type Href } from "expo-router";
 
 import { AppIcon } from "@/components/ui/app-icon";
@@ -29,7 +28,7 @@ function TrackingLookupContent({ onDismiss, mode }: TrackingLookupContentProps) 
 }
 
 export function TrackingLookupOverlay({ visible, onDismiss }: { visible: boolean; onDismiss: () => void }) {
-  return <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onDismiss}><View style={styles.modal}><BlurView intensity={Platform.OS === "web" ? 30 : 55} tint="light" style={StyleSheet.absoluteFill} experimentalBlurMethod={Platform.OS === "android" ? "dimezisBlurView" : undefined} /><Pressable style={styles.dim} onPress={onDismiss} /><View style={styles.overlayPanel}><TrackingLookupContent mode="overlay" onDismiss={onDismiss} /></View></View></Modal>;
+  return <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onDismiss}><View style={styles.modal}><Pressable style={styles.dim} onPress={onDismiss} /><View style={styles.overlayPanel}><TrackingLookupContent mode="overlay" onDismiss={onDismiss} /></View></View></Modal>;
 }
 
 export function PublicTrackingLookupScreen() { return <View style={styles.screen}><TrackingLookupContent mode="screen" /></View>; }

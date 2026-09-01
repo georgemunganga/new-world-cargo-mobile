@@ -4,7 +4,7 @@ import { useCustomerAuth } from "@/stores/customer-auth";
 
 export default function CustomerTabLayout() {
   const { customer, isRestoring } = useCustomerAuth();
-  if (!isRestoring && !customer) return <Redirect href="/auth/welcome" />;
+  if (!isRestoring && !customer) return <Redirect href="/auth/phone" />;
   if (isRestoring) return <Redirect href="/startup" />;
   return <Tabs tabBar={(props) => <FloatingCapsuleTabBar {...props} />} screenOptions={{ headerShown: false }}>
     <Tabs.Screen name="index" options={{ title: "Home" }} />
