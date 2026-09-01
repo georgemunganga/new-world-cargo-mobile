@@ -8,6 +8,7 @@ export type ShipmentStatus =
   | "delivered"
   | "pending";
 export type BookingStep = "route" | "parcel" | "contacts" | "schedule" | "review";
+export type LocalDeliveryVehicle = "scooter" | "small_van" | "cargo_van";
 
 export type Address = {
   label?: string;
@@ -66,6 +67,7 @@ export type LocalDeliveryDraft = {
   receiver?: PersonContact;
   deliveryInstructions?: string;
   schedule?: "as_soon_as_possible" | "later_today" | "scheduled";
+  vehicle?: LocalDeliveryVehicle;
 };
 
 export type ImportBookingDraft = {

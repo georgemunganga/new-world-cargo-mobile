@@ -119,6 +119,10 @@
 - [x] Add deterministic tests, validate, and checkpoint the repaired Local Delivery map-first mock experience.
 - [x] Fix the Local Delivery browser rendering defect where only the top back and notification controls appear while the map and route drawer are blank or clipped.
 - [x] Verify the Local Delivery mock map and route drawer remain visible and interactive in the browser preview without enabling Google Places or native maps.
+- [x] Add a destination-pin adjustment mode with the same clear mock-map controls and confirmation behavior as pickup adjustment.
+- [x] Refine the mock map state after both endpoints are selected to clearly communicate that the route and estimate are ready.
+- [x] Add Local Delivery vehicle-size choices that visibly update deterministic mock fare, ETA, and capacity information.
+- [x] Add deterministic tests, validate, and checkpoint the extended Local Delivery route-map and vehicle-selection experience.
 - [x] Replace the International Imports service-card visual with the newly supplied transparent parcel asset.
 - [x] Reposition the Local Delivery scooter further right within the wide service card without reducing text clarity.
 - [x] Hide the floating bottom navigation only on the Home tab and retain it on all other primary destinations.

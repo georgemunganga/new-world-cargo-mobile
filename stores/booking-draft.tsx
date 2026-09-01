@@ -1,7 +1,7 @@
 import { createContext, useContext, useMemo, useState, type PropsWithChildren } from "react";
 import type { BookingStep, CustomRequestDraft, ImportBookingDraft, IntercityBookingDraft, LocalDeliveryDraft } from "@/types/cargo";
 
-const freshDraft = (): LocalDeliveryDraft => ({ service: "local", step: "route", quantity: 1, handling: "standard", schedule: "as_soon_as_possible" });
+const freshDraft = (): LocalDeliveryDraft => ({ service: "local", step: "route", quantity: 1, handling: "standard", schedule: "as_soon_as_possible", vehicle: "scooter" });
 const freshImportDraft = (): ImportBookingDraft => ({ service: "import", quantity: 1 });
 const freshIntercityDraft = (): IntercityBookingDraft => ({ service: "intercity", quantity: 1, fulfilment: "collection", schedule: "next_available" });
 const freshCustomDraft = (): CustomRequestDraft => ({ service: "custom" });
