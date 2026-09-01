@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isImportReady, isIntercityReady } from "../lib/service-booking";
+import { isImportReady, isIntercityReady, isRouteComplete } from "../lib/service-booking";
 
 describe("service-specific booking readiness", () => {
   it("requires a freight method and core import route, cargo, and consignee information", () => {
@@ -14,5 +14,12 @@ describe("service-specific booking readiness", () => {
     expect(isIntercityReady(draft)).toBe(true);
     expect(isIntercityReady({ ...draft, receiver: { name: "Mwila", phone: "" } })).toBe(false);
     expect(isIntercityReady({ ...draft, fulfilment: undefined })).toBe(false);
+  });
+
+  it("uses the same complete pickup and destination rule for route-first services", () => {
+    const pickup = { city: "Lusaka", area: "Longacres", detail: "Cairo Road" };
+    const destination = { city: "Lusaka", area: "Roma", detail: "Great East Road" };
+    expect(isRouteComplete(pickup, destination)).toBe(true);
+    expect(isRouteComplete(pickup, { ...destination, detail: "" })).toBe(false);
   });
 });

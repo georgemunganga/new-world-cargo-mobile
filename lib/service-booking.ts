@@ -1,4 +1,4 @@
-import type { ImportBookingDraft, IntercityBookingDraft } from "@/types/cargo";
+import type { Address, ImportBookingDraft, IntercityBookingDraft } from "@/types/cargo";
 
 export const importSteps = [{ id: "method", label: "Method" }, { id: "route", label: "Route" }, { id: "cargo", label: "Cargo" }, { id: "consignee", label: "Consignee" }, { id: "review", label: "Review" }];
 
@@ -10,4 +10,8 @@ export const intercitySteps = [{ id: "route", label: "Route" }, { id: "cargo", l
 
 export function isIntercityReady(draft: IntercityBookingDraft) {
   return Boolean(draft.originCity && draft.destinationCity && draft.cargoCategory && draft.sender?.name && draft.sender.phone && draft.receiver?.name && draft.receiver.phone && draft.fulfilment);
+}
+
+export function isRouteComplete(pickup?: Address, destination?: Address) {
+  return Boolean(pickup?.city && pickup.area && pickup.detail && destination?.city && destination.area && destination.detail);
 }

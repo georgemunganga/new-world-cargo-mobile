@@ -1,9 +1,10 @@
 import { createContext, useContext, useMemo, useState, type PropsWithChildren } from "react";
-import type { BookingStep, ImportBookingDraft, IntercityBookingDraft, LocalDeliveryDraft } from "@/types/cargo";
+import type { BookingStep, CustomRequestDraft, ImportBookingDraft, IntercityBookingDraft, LocalDeliveryDraft } from "@/types/cargo";
 
 const freshDraft = (): LocalDeliveryDraft => ({ service: "local", step: "route", quantity: 1, handling: "standard", schedule: "as_soon_as_possible" });
 const freshImportDraft = (): ImportBookingDraft => ({ service: "import", quantity: 1 });
 const freshIntercityDraft = (): IntercityBookingDraft => ({ service: "intercity", quantity: 1, fulfilment: "collection", schedule: "next_available" });
+const freshCustomDraft = (): CustomRequestDraft => ({ service: "custom" });
 
 type BookingDraftContextValue = {
   localDraft: LocalDeliveryDraft;
@@ -16,6 +17,9 @@ type BookingDraftContextValue = {
   intercityDraft: IntercityBookingDraft;
   updateIntercityDraft: (patch: Partial<IntercityBookingDraft>) => void;
   resetIntercityDraft: () => void;
+  customDraft: CustomRequestDraft;
+  updateCustomDraft: (patch: Partial<CustomRequestDraft>) => void;
+  resetCustomDraft: () => void;
 };
 
 const BookingDraftContext = createContext<BookingDraftContextValue | null>(null);
@@ -24,6 +28,7 @@ export function BookingDraftProvider({ children }: PropsWithChildren) {
   const [localDraft, setLocalDraft] = useState<LocalDeliveryDraft>(freshDraft);
   const [importDraft, setImportDraft] = useState<ImportBookingDraft>(freshImportDraft);
   const [intercityDraft, setIntercityDraft] = useState<IntercityBookingDraft>(freshIntercityDraft);
+  const [customDraft, setCustomDraft] = useState<CustomRequestDraft>(freshCustomDraft);
   const value = useMemo<BookingDraftContextValue>(() => ({
     localDraft,
     updateLocalDraft: (patch) => setLocalDraft((draft) => ({ ...draft, ...patch })),
@@ -35,7 +40,10 @@ export function BookingDraftProvider({ children }: PropsWithChildren) {
     intercityDraft,
     updateIntercityDraft: (patch) => setIntercityDraft((draft) => ({ ...draft, ...patch })),
     resetIntercityDraft: () => setIntercityDraft(freshIntercityDraft()),
-  }), [localDraft, importDraft, intercityDraft]);
+    customDraft,
+    updateCustomDraft: (patch) => setCustomDraft((draft) => ({ ...draft, ...patch })),
+    resetCustomDraft: () => setCustomDraft(freshCustomDraft()),
+  }), [localDraft, importDraft, intercityDraft, customDraft]);
   return <BookingDraftContext.Provider value={value}>{children}</BookingDraftContext.Provider>;
 }
 

@@ -97,6 +97,11 @@
 - [x] Connect the International Imports, City-to-City, Local Delivery, and Custom Request Home cards to their intended customer flows.
 - [x] Preserve the existing Local Delivery route, parcel, contacts, schedule, review, and confirmation flow as the tailored local service journey.
 - [ ] Add deterministic tests for service-specific draft validation and route destinations; validate and checkpoint the booking-journey expansion.
+- [x] Promote the From where?/Add pickup and To where?/Add destination interface into the shared route-entry primitive for all customer booking journeys.
+- [x] Apply the shared route-entry pattern to International Imports, City-to-City, Local Delivery, and Custom Request before service-specific cargo questions.
+- [x] Extend all service drafts with a consistent structured pickup/origin and destination model while preserving import country and shipping-method inputs.
+- [x] Build the Custom Request route-first entry and concise follow-up details flow using mock data.
+- [ ] Add deterministic tests for consistent cross-service route-entry validation, then validate and checkpoint the shared route-entry rollout.
 - [x] Replace the International Imports service-card visual with the newly supplied transparent parcel asset.
 - [x] Reposition the Local Delivery scooter further right within the wide service card without reducing text clarity.
 - [x] Hide the floating bottom navigation only on the Home tab and retain it on all other primary destinations.

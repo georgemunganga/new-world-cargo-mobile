@@ -91,3 +91,12 @@ export type IntercityBookingDraft = {
   fulfilment?: "collection" | "door_delivery";
   schedule?: "next_available" | "scheduled";
 };
+
+export type CustomRequestDraft = {
+  service: "custom";
+  pickup?: Address;
+  destination?: Address;
+  requestType?: string;
+  requestDetail?: string;
+  contact?: PersonContact;
+};
