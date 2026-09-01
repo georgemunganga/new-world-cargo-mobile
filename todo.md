@@ -143,6 +143,8 @@
 - [x] Add due-date reminder treatment to unpaid invoice list and detail states using deterministic reminder settings and time labels.
 - [x] Add mock invoice resolution timelines for refund and disputed-charge states, including a customer-facing support/dispute entry point.
 - [x] Add deterministic tests, validate, and checkpoint the Cargo Wallet, reminder, and invoice-resolution workflow expansion.
+- [x] Fix the browser preview error caused by a 6000ms font-loading timeout so customer routes do not fall into the error screen when Poppins is unavailable or delayed.
+- [x] Add a browser-safe typography fallback and validate resilient startup for the New WorldCargo mobile preview.
 - [x] Replace the International Imports service-card visual with the newly supplied transparent parcel asset.
 - [x] Reposition the Local Delivery scooter further right within the wide service card without reducing text clarity.
 - [x] Hide the floating bottom navigation only on the Home tab and retain it on all other primary destinations.
