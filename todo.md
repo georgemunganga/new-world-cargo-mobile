@@ -152,6 +152,9 @@
 - [x] Remove the Home screen’s top-edge crowding and unnecessary hard-coded bottom space using shared safe-area and content-inset rules.
 - [x] Create reusable customer-screen layout primitives for standard gutters, Home bottom spacing, floating-navigation clearance, and scrollable content regions.
 - [x] Apply the reusable layout contract to Home and affected customer tab screens, then validate across short and tall mock viewports.
+- [x] Redesign the Home screen before auditing other customer screens; the supplied screenshot identifies Home defects in top-bar placement, service-grid proportion, card density, and unnecessary bottom whitespace.
+- [x] Reduce Home to a clearer one-handed customer hierarchy with a properly inset greeting/header, one primary shipment or send action, a deliberate service-discovery treatment, and a compact shipment preview.
+- [x] Rebuild Home using reusable layout and domain primitives, then add deterministic layout validation for its corrected insets and natural content ending.
 - [x] Replace tab-screen hard-coded bottom padding with a shared safe-area-aware floating-navigation clearance rule.
 - [x] Repair Account screen action affordances so unavailable preference rows do not appear tappable and customer support opens a clear mock support destination.
 - [x] Audit and repair the Local Delivery map sheet’s full-container sizing, keyboard behavior, and bottom safe-area clearance.
