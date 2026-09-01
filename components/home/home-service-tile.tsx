@@ -3,17 +3,18 @@ import { AppIcon, type AppIconName } from "@/components/ui/app-icon";
 import { nwcColors } from "@/lib/nwc-theme";
 
 export function HomeServiceTile({ title, subtitle, capacity, icon, image, variant = "half", onPress }: { title: string; subtitle?: string; capacity?: string; icon: AppIconName; image?: ImageSourcePropType; variant?: "half" | "wide" | "custom" | "compact" | "compactDark"; onPress: () => void }) {
-  const dark = variant === "custom" || variant === "compactDark";
-  return <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Choose ${title}`} accessibilityHint={subtitle} onPress={onPress} activeOpacity={0.76} style={[styles.tile, styles[variant]]}><View style={styles.copy}><Text numberOfLines={2} style={[styles.title, variant.includes("compact") && styles.compactTitle, dark && styles.darkText]}>{title}</Text>{subtitle ? <Text numberOfLines={1} style={[styles.subtitle, dark && styles.darkSubtext]}>{subtitle}</Text> : null}</View>{capacity ? <Text style={[styles.capacity, dark && styles.darkSubtext]}>{capacity}</Text> : null}{dark ? <AppIcon name="arrow-top-right" size={variant === "custom" ? 48 : 34} color={nwcColors.white} style={variant === "custom" ? styles.customIcon : styles.compactCustomIcon} /> : image ? <Image accessibilityIgnoresInvertColors source={image} resizeMode="contain" style={[styles.vehicleImage, variant === "wide" && styles.wideVehicleImage, variant === "compact" && styles.compactVehicleImage]} /> : <AppIcon name={icon} size={variant === "wide" ? 60 : variant === "compact" ? 40 : 53} color={nwcColors.primaryInk} style={styles.vehicleIcon} />}</TouchableOpacity>;
+  const accent = variant === "custom" || variant === "compactDark";
+  const dark = variant === "custom";
+  return <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Choose ${title}`} accessibilityHint={subtitle} onPress={onPress} activeOpacity={0.76} style={[styles.tile, styles[variant]]}><View style={styles.copy}><Text numberOfLines={2} style={[styles.title, variant.includes("compact") && styles.compactTitle, dark && styles.darkText]}>{title}</Text>{subtitle ? <Text numberOfLines={1} style={[styles.subtitle, dark && styles.darkSubtext]}>{subtitle}</Text> : null}</View>{capacity ? <Text style={[styles.capacity, dark && styles.darkSubtext]}>{capacity}</Text> : null}{accent ? <AppIcon name="arrow-top-right" size={variant === "custom" ? 42 : 31} color={dark ? nwcColors.white : nwcColors.brandNavy} style={variant === "custom" ? styles.customIcon : styles.compactCustomIcon} /> : image ? <Image accessibilityIgnoresInvertColors source={image} resizeMode="contain" style={[styles.vehicleImage, variant === "wide" && styles.wideVehicleImage, variant === "compact" && styles.compactVehicleImage]} /> : <AppIcon name={icon} size={variant === "wide" ? 60 : variant === "compact" ? 40 : 53} color={nwcColors.primaryInk} style={styles.vehicleIcon} />}</TouchableOpacity>;
 }
 
 const styles = StyleSheet.create({
-  tile: { position: "relative", overflow: "hidden", borderRadius: 24, padding: 15, backgroundColor: nwcColors.white, borderWidth: 1, borderColor: "#E8EDEF", justifyContent: "space-between" },
+  tile: { position: "relative", overflow: "hidden", borderRadius: 24, padding: 15, backgroundColor: nwcColors.surface, borderWidth: 1, borderColor: "#E3E9EB", justifyContent: "space-between" },
   half: { width: "48.4%", minHeight: 145 },
   wide: { width: "64.8%", minHeight: 142 },
   custom: { width: "32%", minHeight: 142, backgroundColor: nwcColors.brandNavy, borderColor: nwcColors.brandNavy },
   compact: { width: "48.4%", minHeight: 116, borderRadius: 20, padding: 13 },
-  compactDark: { width: "48.4%", minHeight: 116, borderRadius: 20, padding: 13, backgroundColor: nwcColors.brandNavy, borderColor: nwcColors.brandNavy },
+  compactDark: { width: "48.4%", minHeight: 116, borderRadius: 20, padding: 13, backgroundColor: nwcColors.surfaceNavyTint, borderColor: "#D7E6ED" },
   copy: { maxWidth: "82%", gap: 1 },
   title: { color: nwcColors.foreground, fontSize: 16, lineHeight: 21, fontFamily: "Poppins_800ExtraBold", letterSpacing: -0.25 },
   compactTitle: { fontSize: 14, lineHeight: 18 },

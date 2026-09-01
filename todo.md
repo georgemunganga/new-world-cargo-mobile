@@ -166,6 +166,15 @@
 - [x] Add deterministic tests, validate, and checkpoint the completed account and billing destination batch.
 - [x] Keep every unfinished Account and Bills destination task-first and minimalist: one clear primary action, restrained visible options, progressive disclosure for edits/details, shared layout primitives, and no dashboard-style clutter.
 - [x] Commit and push the validated Account and Bills destination batch to the configured GitHub repository.
+- [x] Invert the shared surface hierarchy so New WorldCargo screens use a primarily white application canvas and cards provide controlled contrast through pale grey, soft navy tint, or Cargo Yellow accent.
+- [x] Update reusable card, grouping, selection, and status-surface primitives so accent backgrounds are reserved for priority or selected content rather than every page background.
+- [x] Apply the white-first surface system to Home, Shipments, Send, Bills, Account, and tracking while preserving status clarity, touch targets, and minimalist hierarchy.
+- [x] Add deterministic token and component-state coverage, validate, and checkpoint the white-first visual-system refinement.
+- [x] Restore the full deep-blue Home command bar as a deliberate brand-priority element within the otherwise white-first visual system.
+- [x] Restore the small deep-blue Custom Request service tile with high-contrast label and arrow treatment.
+- [ ] Validate the focused Home brand-emphasis restoration and checkpoint it when managed synchronization is available.
+- [x] Preserve the paired Home service row: a wide light Local Delivery tile with scooter and capacity beside a compact deep-blue Custom Request tile with white arrow and label.
+- [ ] Commit and push the validated white-first visual-system refinement and restored Home paired-service row to the configured GitHub repository.
 - [x] Replace tab-screen hard-coded bottom padding with a shared safe-area-aware floating-navigation clearance rule.
 - [x] Repair Account screen action affordances so unavailable preference rows do not appear tappable and customer support opens a clear mock support destination.
 - [x] Audit and repair the Local Delivery map sheet’s full-container sizing, keyboard behavior, and bottom safe-area clearance.
