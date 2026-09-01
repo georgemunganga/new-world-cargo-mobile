@@ -7,13 +7,14 @@ import { nwcColors } from "@/lib/nwc-theme";
 type RoutePoint = { value: string; detail: string };
 type RouteTarget = "from" | "to";
 
-export function RouteEntryCard({ from, to, scope, onSuggestionSelect, onManualEntryPress, accessibilityHint, fromLabel = "From where?", toLabel = "To where?" }: { from: RoutePoint; to: RoutePoint; scope: RouteSearchScope; onSuggestionSelect: (target: RouteTarget, suggestion: RouteSuggestion) => void; onManualEntryPress?: () => void; accessibilityHint?: string; fromLabel?: string; toLabel?: string }) {
+export function RouteEntryCard({ from, to, scope, onSuggestionSelect, onManualEntryPress, onActiveTargetChange, accessibilityHint, fromLabel = "From where?", toLabel = "To where?" }: { from: RoutePoint; to: RoutePoint; scope: RouteSearchScope; onSuggestionSelect: (target: RouteTarget, suggestion: RouteSuggestion) => void; onManualEntryPress?: () => void; onActiveTargetChange?: (target: RouteTarget | null) => void; accessibilityHint?: string; fromLabel?: string; toLabel?: string }) {
   const [active, setActive] = useState<RouteTarget | null>(null);
   const [query, setQuery] = useState("");
   const results = useMemo(() => active ? searchRouteSuggestions(scope, query) : [], [active, query, scope]);
-  const open = (target: RouteTarget) => { setActive(target); setQuery(""); };
-  const select = (suggestion: RouteSuggestion) => { if (!active) return; const next = active === "from" ? "to" : null; onSuggestionSelect(active, suggestion); setQuery(""); setActive(next); };
-  return <View accessibilityLabel={accessibilityHint} style={styles.card}><RouteField target="from" label={fromLabel} point={from} active={active === "from"} query={query} scope={scope} results={results} onOpen={() => open("from")} onChangeText={setQuery} onSelect={select} onManualEntryPress={onManualEntryPress} /><View style={styles.divider} /><RouteField target="to" label={toLabel} point={to} active={active === "to"} query={query} scope={scope} results={results} onOpen={() => open("to")} onChangeText={setQuery} onSelect={select} onManualEntryPress={onManualEntryPress} /></View>;
+  const open = (target: RouteTarget) => { setActive(target); setQuery(""); onActiveTargetChange?.(target); };
+  const select = (suggestion: RouteSuggestion) => { if (!active) return; const next = active === "from" ? "to" : null; onSuggestionSelect(active, suggestion); setQuery(""); setActive(next); onActiveTargetChange?.(next); };
+  const openManualEntry = () => { setActive(null); setQuery(""); onActiveTargetChange?.(null); onManualEntryPress?.(); };
+  return <View accessibilityLabel={accessibilityHint} style={styles.card}><RouteField target="from" label={fromLabel} point={from} active={active === "from"} query={query} scope={scope} results={results} onOpen={() => open("from")} onChangeText={setQuery} onSelect={select} onManualEntryPress={onManualEntryPress ? openManualEntry : undefined} /><View style={styles.divider} /><RouteField target="to" label={toLabel} point={to} active={active === "to"} query={query} scope={scope} results={results} onOpen={() => open("to")} onChangeText={setQuery} onSelect={select} onManualEntryPress={onManualEntryPress ? openManualEntry : undefined} /></View>;
 }
 
 function RouteField({ target, label, point, active, query, scope, results, onOpen, onChangeText, onSelect, onManualEntryPress }: { target: RouteTarget; label: string; point: RoutePoint; active: boolean; query: string; scope: RouteSearchScope; results: RouteSuggestion[]; onOpen: () => void; onChangeText: (value: string) => void; onSelect: (suggestion: RouteSuggestion) => void; onManualEntryPress?: () => void }) {

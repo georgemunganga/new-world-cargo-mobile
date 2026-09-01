@@ -107,6 +107,11 @@
 - [x] Preserve typed customer input, keyboard-safe layout, deterministic empty results, selection feedback, and manual-address fallback in the reusable inline route-entry UI.
 - [x] Apply the inline route autocomplete to Local Delivery, City-to-City, International Imports, and Custom Request without changing their later service-specific questions.
 - [ ] Add deterministic tests for service-aware suggestion matching and selection, then validate and checkpoint the inline autocomplete rollout.
+- [x] Replace the Local Delivery step-one route screen with a full-height map-first layout and remove the visible step rail on that screen.
+- [x] Place the Local Delivery From/To route-entry UI inside a rounded bottom sheet over the map, compact by default and expanded while a customer edits a location.
+- [x] Animate bottom-sheet expansion and contraction with keyboard-safe spacing, floating inline suggestions, and clear route-selection feedback using mock data.
+- [x] Preserve the selected Local Delivery route, map context, saved places, manual fallback, and continuation into Parcel after the bottom sheet returns to its compact state.
+- [x] Add deterministic tests for the map-first Local Delivery route state, then validate and checkpoint the bottom-sheet refinement.
 - [x] Replace the International Imports service-card visual with the newly supplied transparent parcel asset.
 - [x] Reposition the Local Delivery scooter further right within the wide service card without reducing text clarity.
 - [x] Hide the floating bottom navigation only on the Home tab and retain it on all other primary destinations.
