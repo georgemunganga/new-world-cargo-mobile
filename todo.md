@@ -117,6 +117,8 @@
 - [x] Show a deterministic Local Delivery price and ETA preview only after pickup and destination are selected, before the Parcel step.
 - [x] Preserve the existing mock autocomplete provider boundary for a later native Places/maps replacement; do not activate a live Places connection in this frontend phase.
 - [x] Add deterministic tests, validate, and checkpoint the repaired Local Delivery map-first mock experience.
+- [x] Fix the Local Delivery browser rendering defect where only the top back and notification controls appear while the map and route drawer are blank or clipped.
+- [x] Verify the Local Delivery mock map and route drawer remain visible and interactive in the browser preview without enabling Google Places or native maps.
 - [x] Replace the International Imports service-card visual with the newly supplied transparent parcel asset.
 - [x] Reposition the Local Delivery scooter further right within the wide service card without reducing text clarity.
 - [x] Hide the floating bottom navigation only on the Home tab and retain it on all other primary destinations.
