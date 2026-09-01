@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
 import { Poppins_500Medium, Poppins_600SemiBold, Poppins_700Bold, Poppins_800ExtraBold, useFonts } from "@expo-google-fonts/poppins";
 import { StatusBar } from "expo-status-bar";
+import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ThemeProvider } from "@/lib/theme-provider";
@@ -12,11 +13,23 @@ import { MockBillingProvider } from "@/stores/mock-billing";
 import { NotificationPreferenceProvider } from "@/stores/notification-preferences";
 import { MockAccountDirectoryProvider } from "@/stores/mock-account-directory";
 import { MockSupportProvider } from "@/stores/mock-support";
+import { MockPickupManagementProvider } from "@/stores/mock-pickup-management";
+import { MockAccountSettingsProvider } from "@/stores/mock-account-settings";
+import { shouldLoadBundledPoppins } from "@/lib/startup-font-policy";
 
 const poppinsFonts = { Poppins_500Medium, Poppins_600SemiBold, Poppins_700Bold, Poppins_800ExtraBold };
 
 export default function RootLayout() {
-  // Deliberately render immediately. React Native Web falls back to system typography until bundled Poppins is ready.
+  if (shouldLoadBundledPoppins(Platform.OS)) return <NativeFontRoot />;
+  return <AppRoot />;
+}
+
+function NativeFontRoot() {
+  // Native ships Poppins with the binary. It is intentionally never awaited, so startup remains responsive.
   useFonts(poppinsFonts);
-  return <GestureHandlerRootView style={{ flex: 1 }}><SafeAreaProvider><ThemeProvider><AppStartupProvider><CustomerAuthProvider><MockPermissionProvider><MockBillingProvider><MockAccountDirectoryProvider><MockSupportProvider><NotificationPreferenceProvider><BookingDraftProvider><StatusBar style="dark" /><Stack screenOptions={{ headerShown: false, animation: "fade" }} /></BookingDraftProvider></NotificationPreferenceProvider></MockSupportProvider></MockAccountDirectoryProvider></MockBillingProvider></MockPermissionProvider></CustomerAuthProvider></AppStartupProvider></ThemeProvider></SafeAreaProvider></GestureHandlerRootView>;
+  return <AppRoot />;
+}
+
+function AppRoot() {
+  return <GestureHandlerRootView style={{ flex: 1 }}><SafeAreaProvider><ThemeProvider><AppStartupProvider><CustomerAuthProvider><MockPermissionProvider><MockBillingProvider><MockAccountDirectoryProvider><MockSupportProvider><MockPickupManagementProvider><MockAccountSettingsProvider><NotificationPreferenceProvider><BookingDraftProvider><StatusBar style="dark" /><Stack screenOptions={{ headerShown: false, animation: "fade" }} /></BookingDraftProvider></NotificationPreferenceProvider></MockAccountSettingsProvider></MockPickupManagementProvider></MockSupportProvider></MockAccountDirectoryProvider></MockBillingProvider></MockPermissionProvider></CustomerAuthProvider></AppStartupProvider></ThemeProvider></SafeAreaProvider></GestureHandlerRootView>;
 }

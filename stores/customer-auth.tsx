@@ -12,6 +12,7 @@ type AuthContextValue = {
   beginPhoneVerification: (phone: string) => void;
   clearPendingPhone: () => void;
   completeProfile: (details: Pick<CustomerProfile, "name" | "city">) => Promise<void>;
+  updateProfile: (details: Pick<CustomerProfile, "name" | "phone">) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -44,6 +45,12 @@ export function CustomerAuthProvider({ children }: PropsWithChildren) {
       await writeStoredSession(JSON.stringify(nextCustomer));
       setCustomer(nextCustomer);
       setPendingPhone("");
+    },
+    updateProfile: async ({ name, phone }) => {
+      if (!customer) return;
+      const nextCustomer: CustomerProfile = { ...customer, name: name.trim(), phone: phone.trim() };
+      await writeStoredSession(JSON.stringify(nextCustomer));
+      setCustomer(nextCustomer);
     },
     signOut: async () => {
       await clearStoredSession();

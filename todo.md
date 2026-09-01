@@ -190,13 +190,32 @@
 - [x] Replace mock receipt download/share feedback with an actual browser-safe customer receipt export for paid mock invoices, while retaining a native-ready action seam.
 - [x] Re-audit public New WorldCargo web customer workflows against mobile and classify each as implemented, mock-only, partially implemented, or missing.
 - [ ] Prioritize and add the confirmed missing customer actions without adding backend or payment-provider dependencies.
-- [ ] Add actual proof-of-delivery export and share actions for completed shipments, using the same browser-safe document-export seam as receipts.
+- [x] Add actual proof-of-delivery export and share actions for completed shipments, using the same browser-safe document-export seam as receipts.
 - [ ] Add shipment draft list, resume, and delete flows for interrupted booking journeys.
-- [ ] Add pickup management for scheduled pickups: reschedule, cancel, missed-pickup help, and collection-point detail states.
+- [x] Add pickup management for scheduled pickups: reschedule, cancel, missed-pickup help, and collection-point detail states.
 - [ ] Add a shipment after-booking management flow for delivery instructions, rescheduling, cancellation eligibility, and customer-visible exception handling.
 - [ ] Add return eligibility, reason, handover, review, and confirmation journeys for eligible delivered shipments.
 - [ ] Add customer security settings with mock sign-in activity, recognized-device control, and device-trust state.
 - [ ] Add profile photo management, customer data controls, and in-app legal-policy destinations.
 - [ ] Add mock QR scan entry and cargo photo/document attachment states behind the existing permission education flows.
-- [ ] Add recipient search and booking autofill, plus saved-place booking autofill, using the existing account directory data.
+- [x] Add recipient search and booking autofill, plus saved-place booking autofill, using the existing account directory data.
 - [x] Commit and push the validated account overlay refinements, browser receipt export, and web-to-mobile workflow audit to the configured GitHub repository.
+- [x] Add deterministic tests, validate, checkpoint, and preserve the completed proof download, pickup management, and booking-autofill lifecycle batch.
+- [x] Restore the deep-blue Bills outstanding-balance summary card with white financial copy and a compact yellow status accent, while keeping invoice records on white supporting surfaces.
+- [x] Build post-booking delivery-change controls for eligible shipments: update delivery instructions, request a delivery window change, cancellation eligibility, and customer-visible exception status.
+- [x] Add focused Account security screens for mock sign-in activity, recognized devices, and trusted-device revocation.
+- [x] Add focused Account data-control screens for mock data export, communication preferences, and account-deletion request confirmation.
+- [x] Add in-app legal-policy destinations for terms, privacy, and payment/refund policy summaries.
+- [ ] Add deterministic tests, validate, checkpoint, and preserve the completed Bills, delivery-change, security, data-control, and policy batch.
+- [x] Build a customer-facing booking-draft list with service, route, progress, last-updated context, resume action, and confirmation-protected delete action.
+- [x] Connect unfinished Local Delivery, Import, City-to-City, and Custom Request in-memory drafts to the booking-draft list and their correct resume destinations.
+- [x] Add a browser-safe QR scan entry flow with typed tracking code fallback and a future native camera-scanner seam.
+- [x] Add a mock support-evidence attachment flow with selected-item, upload-progress, remove, and submitted-case states behind the existing support case experience.
+- [x] Add deterministic tests, validate, checkpoint, and preserve the completed booking-draft, QR-scan, and attachment workflow batch.
+- [x] Eliminate the recurring 6000 ms browser startup timeout so no delayed font, asset, or initialization step can fall into the customer error screen.
+- [x] Add deterministic startup-timeout coverage and validate the browser-safe preview path before GitHub preservation.
+- [ ] Commit and push the validated startup repair and completed booking-continuity workflow batch to the configured GitHub repository.
+- [x] Standardize Account create/edit/update operations on the reusable full-screen form drawer with fixed approve/cancel actions.
+- [x] Build a reusable confirmation popup for destructive or consequential actions with clear context, cancel, and explicit approval labels.
+- [x] Apply the confirmation popup to saved-place/recipient removal, recognized-device removal, account-deletion request, pickup cancellation, and other existing Account approvals.
+- [x] Add deterministic presentation-state tests and validate the shared Account CRUD drawer and confirmation-dialog system.

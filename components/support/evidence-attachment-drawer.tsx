@@ -1,0 +1,22 @@
+import { useEffect, useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+
+import { FullScreenFormDrawer } from "@/components/account/full-screen-form-drawer";
+import { AppIcon } from "@/components/ui/app-icon";
+import { Card, SecondaryButton } from "@/components/ui/nwc-ui";
+import { nwcColors } from "@/lib/nwc-theme";
+
+type EvidenceAttachmentDrawerProps = { visible: boolean; caseTitle: string; onDismiss: () => void; onAttached: (name: string) => void };
+const mockEvidence = ["delivery-photo.jpg", "receipt-screenshot.png", "cargo-label.jpg"];
+
+export function EvidenceAttachmentDrawer({ visible, caseTitle, onDismiss, onAttached }: EvidenceAttachmentDrawerProps) {
+  const [selected, setSelected] = useState<string | null>(null);
+  const [attached, setAttached] = useState(false);
+  useEffect(() => { if (visible) { setSelected(null); setAttached(false); } }, [visible]);
+  const approve = () => { if (!selected) return; setAttached(true); onAttached(selected); };
+  return <FullScreenFormDrawer visible={visible} overline="Support evidence" title="Attach evidence" detail={`Add one mock file to ${caseTitle}. A native file picker can connect here later.`} approveLabel={attached ? "Evidence attached" : "Attach evidence"} approveDisabled={!selected || attached} onDismiss={onDismiss} onApprove={approve} footerNote={attached ? <Text style={styles.success}>Evidence added to this mock case.</Text> : <Text style={styles.note}>No device files are accessed in browser preview.</Text>}><Card style={styles.explainer}><View style={styles.explainerIcon}><AppIcon name="paperclip" size={22} color={nwcColors.primaryInk} /></View><View style={styles.explainerCopy}><Text style={styles.explainerTitle}>Choose a file</Text><Text style={styles.explainerDetail}>Photos, delivery labels, or payment evidence can be attached in the full service.</Text></View></Card><View style={styles.files}>{mockEvidence.map((file) => <TouchableOpacity key={file} accessibilityRole="button" accessibilityState={{ selected: selected === file }} accessibilityLabel={`Choose ${file}`} onPress={() => { setSelected(file); setAttached(false); }} style={[styles.file, selected === file && styles.fileSelected]}><View style={styles.fileIcon}><AppIcon name={file.endsWith("png") ? "image-outline" : "file-image-outline"} size={20} color={nwcColors.brandNavy} /></View><View style={styles.fileCopy}><Text style={styles.fileName}>{file}</Text><Text style={styles.fileDetail}>{selected === file ? attached ? "Attached · 100%" : "Ready to attach · 0%" : "Mock attachment"}</Text></View>{selected === file ? <AppIcon name={attached ? "check-circle" : "circle-outline"} size={20} color={attached ? nwcColors.success : nwcColors.info} /> : null}</TouchableOpacity>)}</View>{selected && !attached ? <SecondaryButton label="Remove selected file" icon="close" onPress={() => setSelected(null)} /> : null}</FullScreenFormDrawer>;
+}
+
+const styles = StyleSheet.create({
+  explainer: { minHeight: 84, padding: 14, flexDirection: "row", alignItems: "center", gap: 11, backgroundColor: nwcColors.surfaceNavyTint }, explainerIcon: { width: 43, height: 43, borderRadius: 15, alignItems: "center", justifyContent: "center", backgroundColor: nwcColors.primary }, explainerCopy: { flex: 1, gap: 2 }, explainerTitle: { color: nwcColors.foreground, fontSize: 14, lineHeight: 19, fontFamily: "Poppins_800ExtraBold" }, explainerDetail: { color: nwcColors.muted, fontSize: 11, lineHeight: 16, fontFamily: "Poppins_500Medium" }, files: { gap: 8 }, file: { minHeight: 66, padding: 11, borderRadius: 19, borderWidth: 1, borderColor: "#E2EAEC", backgroundColor: nwcColors.surface, flexDirection: "row", alignItems: "center", gap: 10 }, fileSelected: { borderColor: nwcColors.primary, backgroundColor: nwcColors.surfaceAccent }, fileIcon: { width: 39, height: 39, borderRadius: 13, alignItems: "center", justifyContent: "center", backgroundColor: nwcColors.surfaceNavyTint }, fileCopy: { flex: 1, gap: 1 }, fileName: { color: nwcColors.foreground, fontSize: 12, lineHeight: 17, fontFamily: "Poppins_800ExtraBold" }, fileDetail: { color: nwcColors.muted, fontSize: 10, lineHeight: 14, fontFamily: "Poppins_500Medium" }, success: { color: nwcColors.success, fontSize: 11, lineHeight: 16, fontFamily: "Poppins_700Bold", textAlign: "center" }, note: { color: nwcColors.muted, fontSize: 10, lineHeight: 15, fontFamily: "Poppins_500Medium", textAlign: "center" },
+});
