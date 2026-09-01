@@ -165,7 +165,7 @@
 - [x] Build customer account-recovery and support-case list/detail states using deterministic mock data, including an entry from Account and invoice charge-review flow.
 - [x] Add deterministic tests, validate, and checkpoint the completed account and billing destination batch.
 - [x] Keep every unfinished Account and Bills destination task-first and minimalist: one clear primary action, restrained visible options, progressive disclosure for edits/details, shared layout primitives, and no dashboard-style clutter.
-- [ ] Commit and push the validated Account and Bills destination batch to the configured GitHub repository.
+- [x] Commit and push the validated Account and Bills destination batch to the configured GitHub repository.
 - [x] Replace tab-screen hard-coded bottom padding with a shared safe-area-aware floating-navigation clearance rule.
 - [x] Repair Account screen action affordances so unavailable preference rows do not appear tappable and customer support opens a clear mock support destination.
 - [x] Audit and repair the Local Delivery map sheet’s full-container sizing, keyboard behavior, and bottom safe-area clearance.
