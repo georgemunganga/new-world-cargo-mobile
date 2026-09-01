@@ -123,6 +123,12 @@
 - [x] Refine the mock map state after both endpoints are selected to clearly communicate that the route and estimate are ready.
 - [x] Add Local Delivery vehicle-size choices that visibly update deterministic mock fare, ETA, and capacity information.
 - [x] Add deterministic tests, validate, and checkpoint the extended Local Delivery route-map and vehicle-selection experience.
+- [x] Define a shared, purpose-aware customer map contract for booking location search, route review, local live tracking, international shipment tracking, and completed delivery views.
+- [x] Replace isolated mock map backdrops with one reusable map component that supports mode-specific zoom levels, manual mock zoom controls, pan/pinch affordances, route lines, and cargo or vehicle markers.
+- [x] Integrate the shared map into Local Delivery booking, live local shipment tracking, and an international shipment journey that visually zooms out to show origin, destination, and in-transit cargo across regions.
+- [x] Add deterministic mock animation for active vehicle position and route progress in live tracking.
+- [x] Add active-tracking actions for mock courier contact and delivery instructions, plus a completed-shipment proof-of-delivery state with signature or photo confirmation.
+- [x] Add deterministic tests, validate, and checkpoint the reusable map and expanded tracking experience.
 - [x] Replace the International Imports service-card visual with the newly supplied transparent parcel asset.
 - [x] Reposition the Local Delivery scooter further right within the wide service card without reducing text clarity.
 - [x] Hide the floating bottom navigation only on the Home tab and retain it on all other primary destinations.
