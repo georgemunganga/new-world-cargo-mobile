@@ -158,6 +158,13 @@
 - [x] Restore the earlier branded New WorldCargo top command-bar treatment on Home while retaining the corrected safe-area spacing and focused content hierarchy.
 - [x] Restore Poppins as the customer typography on browser and native builds with a non-blocking system-font fallback if web font loading is delayed.
 - [x] Validate the restored Home command bar and typography, then commit and push the current mobile application state to the configured GitHub repository.
+- [x] Build a customer payment-methods screen with deterministic saved cards, mobile money, Cargo Wallet visibility, default-method selection, and a browser-safe add-method flow.
+- [x] Connect selected saved payment methods to the existing invoice-payment journey without provider integration.
+- [x] Build a receipt-history screen that lists paid invoices and opens the existing receipt state with mock download/share feedback.
+- [x] Build Account destinations for saved places and recipients, including add/edit/delete mock states that can later supply booking route and contact fields.
+- [x] Build customer account-recovery and support-case list/detail states using deterministic mock data, including an entry from Account and invoice charge-review flow.
+- [x] Add deterministic tests, validate, and checkpoint the completed account and billing destination batch.
+- [x] Keep every unfinished Account and Bills destination task-first and minimalist: one clear primary action, restrained visible options, progressive disclosure for edits/details, shared layout primitives, and no dashboard-style clutter.
 - [x] Replace tab-screen hard-coded bottom padding with a shared safe-area-aware floating-navigation clearance rule.
 - [x] Repair Account screen action affordances so unavailable preference rows do not appear tappable and customer support opens a clear mock support destination.
 - [x] Audit and repair the Local Delivery map sheet’s full-container sizing, keyboard behavior, and bottom safe-area clearance.

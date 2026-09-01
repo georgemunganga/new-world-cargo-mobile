@@ -10,11 +10,13 @@ import { AppStartupProvider } from "@/stores/app-startup";
 import { MockPermissionProvider } from "@/stores/mock-permissions";
 import { MockBillingProvider } from "@/stores/mock-billing";
 import { NotificationPreferenceProvider } from "@/stores/notification-preferences";
+import { MockAccountDirectoryProvider } from "@/stores/mock-account-directory";
+import { MockSupportProvider } from "@/stores/mock-support";
 
 const poppinsFonts = { Poppins_500Medium, Poppins_600SemiBold, Poppins_700Bold, Poppins_800ExtraBold };
 
 export default function RootLayout() {
   // Deliberately render immediately. React Native Web falls back to system typography until bundled Poppins is ready.
   useFonts(poppinsFonts);
-  return <GestureHandlerRootView style={{ flex: 1 }}><SafeAreaProvider><ThemeProvider><AppStartupProvider><CustomerAuthProvider><MockPermissionProvider><MockBillingProvider><NotificationPreferenceProvider><BookingDraftProvider><StatusBar style="dark" /><Stack screenOptions={{ headerShown: false, animation: "fade" }} /></BookingDraftProvider></NotificationPreferenceProvider></MockBillingProvider></MockPermissionProvider></CustomerAuthProvider></AppStartupProvider></ThemeProvider></SafeAreaProvider></GestureHandlerRootView>;
+  return <GestureHandlerRootView style={{ flex: 1 }}><SafeAreaProvider><ThemeProvider><AppStartupProvider><CustomerAuthProvider><MockPermissionProvider><MockBillingProvider><MockAccountDirectoryProvider><MockSupportProvider><NotificationPreferenceProvider><BookingDraftProvider><StatusBar style="dark" /><Stack screenOptions={{ headerShown: false, animation: "fade" }} /></BookingDraftProvider></NotificationPreferenceProvider></MockSupportProvider></MockAccountDirectoryProvider></MockBillingProvider></MockPermissionProvider></CustomerAuthProvider></AppStartupProvider></ThemeProvider></SafeAreaProvider></GestureHandlerRootView>;
 }
