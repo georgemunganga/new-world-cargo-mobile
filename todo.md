@@ -251,3 +251,8 @@
 - [ ] Add profile-photo management and complete legal-policy screens with readable in-app policy content rather than summary labels only.
 - [ ] Add customer-facing long-label, loading, empty, error, disabled, and retry states for Home, Shipments, Bills, Notifications, and Account where each is currently absent or partial.
 - [ ] Perform the required physical-device UI review: small/large phones, text scaling, screen reader, keyboard, weak network, interrupted flow, map gestures, and visible system bars.
+- [x] Build the missing Notification Preferences route with operational and marketing controls, delivery/billing notification granularity, all-off confirmation, and saved-state feedback.
+- [x] Complete Custom Request with a manual destination fallback, route/detail review, focused edit actions, and confirmation parity with other booking services.
+- [x] Create a physical-device accessibility review checklist and deterministic test route covering small/large screens, text scaling, screen reader focus, keyboard, weak network, interrupted flow, map gestures, and system bars.
+- [x] Run deterministic validation and prepare the device-review handoff for the Notification Preferences and Custom Request completion batch.
+- [ ] Create a managed checkpoint for the completed Notification Preferences, Custom Request, and device-review batch.

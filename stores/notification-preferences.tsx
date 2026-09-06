@@ -9,6 +9,7 @@ export type NotificationPreferences = {
 type NotificationContextValue = {
   preferences: NotificationPreferences;
   setPreference: (key: keyof NotificationPreferences, value: boolean) => void;
+  setAllPreferences: (value: boolean) => void;
 };
 
 const NotificationPreferenceContext = createContext<NotificationContextValue | null>(null);
@@ -17,7 +18,11 @@ export const defaultNotificationPreferences: NotificationPreferences = { shipmen
 
 export function NotificationPreferenceProvider({ children }: PropsWithChildren) {
   const [preferences, setPreferences] = useState<NotificationPreferences>(defaultNotificationPreferences);
-  const value = useMemo(() => ({ preferences, setPreference: (key: keyof NotificationPreferences, value: boolean) => setPreferences((current) => ({ ...current, [key]: value })) }), [preferences]);
+  const value = useMemo(() => ({
+    preferences,
+    setPreference: (key: keyof NotificationPreferences, value: boolean) => setPreferences((current) => ({ ...current, [key]: value })),
+    setAllPreferences: (value: boolean) => setPreferences({ shipmentUpdates: value, billUpdates: value, marketing: value }),
+  }), [preferences]);
   return <NotificationPreferenceContext.Provider value={value}>{children}</NotificationPreferenceContext.Provider>;
 }
 
