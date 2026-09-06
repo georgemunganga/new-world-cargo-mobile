@@ -256,3 +256,8 @@
 - [x] Create a physical-device accessibility review checklist and deterministic test route covering small/large screens, text scaling, screen reader focus, keyboard, weak network, interrupted flow, map gestures, and system bars.
 - [x] Run deterministic validation and prepare the device-review handoff for the Notification Preferences and Custom Request completion batch.
 - [ ] Create a managed checkpoint for the completed Notification Preferences, Custom Request, and device-review batch.
+- [x] Build focused in-app Terms and Conditions, Privacy Policy, and Payment & Refund Policy destinations with clear legal-review and effective-date treatment.
+- [x] Build an About New WorldCargo destination with concise customer-facing service, support, and company information.
+- [x] Create reusable legal-document screen primitives with a readable mobile hierarchy, table-of-contents navigation, and standard policy acknowledgement treatment.
+- [x] Connect Account settings and related customer flows to the new legal and company-information destinations and validate them.
+- [ ] Create a managed checkpoint for the completed legal-information batch.
