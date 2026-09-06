@@ -267,3 +267,8 @@
 - [x] Replace or extend existing single-cargo steps across all booking services without losing current booking draft, review, or confirmation behavior.
 - [x] Add deterministic tests and validate the reusable cargo-item and attachment workflow expansion.
 - [ ] Create a managed checkpoint for the reusable cargo-item and attachment workflow expansion.
+- [ ] Commit and push the validated shared cargo-item and attachment workflow expansion to the configured GitHub repository.
+- [ ] Build one reusable customer bottom-drawer primitive with a top drag handle, half-height, expanded/full-height, and dismissed states, scroll-safe contents, safe-area spacing, and persistent approval actions.
+- [ ] Standardize all customer create and update flows on the reusable draggable bottom drawer, using half-height for short forms and expanded height for long or multi-section forms.
+- [ ] Retain the shared confirmation popup for delete and other consequential approvals; do not use drawers for destructive confirmation.
+- [ ] Add deterministic drawer-state tests, validate, checkpoint, and preserve the app-wide CRUD interaction standard.
