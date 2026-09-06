@@ -240,3 +240,14 @@
 - [x] Build a reusable confirmation popup for destructive or consequential actions with clear context, cancel, and explicit approval labels.
 - [x] Apply the confirmation popup to saved-place/recipient removal, recognized-device removal, account-deletion request, pickup cancellation, and other existing Account approvals.
 - [x] Add deterministic presentation-state tests and validate the shared Account CRUD drawer and confirmation-dialog system.
+- [x] Synchronize the local mobile project with the user's externally pushed GitHub changes and verify the resulting project state.
+- [x] Audit every customer route and operational state for production-ready UI coverage, distinguishing complete, mock-only, partial, missing, and native-service-dependent screens.
+- [x] Create a prioritized production UI gap register and convert confirmed missing customer screens into backlog items before calling the app production-ready.
+- [ ] Build the missing Notification Preferences route and ensure the existing Account and Notifications controls no longer route to a missing destination.
+- [ ] Complete Custom Request with manual-destination fallback, review, edit, and confirmation states that match the other service booking journeys.
+- [ ] Add a Returns history/status screen so submitted requests remain visible after customers leave the confirmation state.
+- [ ] Complete notification inbox management with unread/read state, mark-all-read, contextual empty state, and a dynamic Home notification badge.
+- [ ] Repair the support-case creation transition so a new case opens its case detail, then add evidence metadata and a customer-visible case update timeline.
+- [ ] Add profile-photo management and complete legal-policy screens with readable in-app policy content rather than summary labels only.
+- [ ] Add customer-facing long-label, loading, empty, error, disabled, and retry states for Home, Shipments, Bills, Notifications, and Account where each is currently absent or partial.
+- [ ] Perform the required physical-device UI review: small/large phones, text scaling, screen reader, keyboard, weak network, interrupted flow, map gestures, and visible system bars.
