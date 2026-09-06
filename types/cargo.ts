@@ -22,6 +22,18 @@ export type PersonContact = {
   phone: string;
 };
 
+export type BookingCargoItem = {
+  id: string;
+  name: string;
+  quantity: number;
+};
+
+export type BookingCargoAttachment = {
+  id: string;
+  name: string;
+  kind: "photo" | "supporting_document";
+};
+
 export type TrackingContact = {
   name: string;
   role: string;
@@ -62,6 +74,10 @@ export type LocalDeliveryDraft = {
   parcelCategory?: string;
   parcelDescription?: string;
   quantity?: number;
+  cargoItems?: BookingCargoItem[];
+  cargoDescription?: string;
+  cargoPhotos?: BookingCargoAttachment[];
+  supportingDocument?: BookingCargoAttachment;
   handling?: "standard" | "fragile";
   sender?: PersonContact;
   receiver?: PersonContact;
@@ -79,6 +95,9 @@ export type ImportBookingDraft = {
   cargoCategory?: string;
   cargoDescription?: string;
   quantity?: number;
+  cargoItems?: BookingCargoItem[];
+  cargoPhotos?: BookingCargoAttachment[];
+  supportingDocument?: BookingCargoAttachment;
   consignee?: PersonContact;
 };
 
@@ -88,6 +107,10 @@ export type IntercityBookingDraft = {
   destinationCity?: string;
   cargoCategory?: string;
   quantity?: number;
+  cargoItems?: BookingCargoItem[];
+  cargoDescription?: string;
+  cargoPhotos?: BookingCargoAttachment[];
+  supportingDocument?: BookingCargoAttachment;
   sender?: PersonContact;
   receiver?: PersonContact;
   fulfilment?: "collection" | "door_delivery";
@@ -100,5 +123,9 @@ export type CustomRequestDraft = {
   destination?: Address;
   requestType?: string;
   requestDetail?: string;
+  cargoItems?: BookingCargoItem[];
+  cargoDescription?: string;
+  cargoPhotos?: BookingCargoAttachment[];
+  supportingDocument?: BookingCargoAttachment;
   contact?: PersonContact;
 };

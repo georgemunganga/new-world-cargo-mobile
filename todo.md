@@ -261,3 +261,9 @@
 - [x] Create reusable legal-document screen primitives with a readable mobile hierarchy, table-of-contents navigation, and standard policy acknowledgement treatment.
 - [x] Connect Account settings and related customer flows to the new legal and company-information destinations and validate them.
 - [ ] Create a managed checkpoint for the completed legal-information batch.
+- [x] Define a shared booking cargo-item model with name, quantity, optional description, mock photo attachments, and a service-aware supporting-document attachment.
+- [x] Build a minimalist reusable Cargo Items screen with add/remove rows, quantity controls, optional description, and browser-safe mock upload states.
+- [x] Require an optional supplier debit or delivery note for International Imports and an optional receipt, invoice, document, or proof attachment for Local Delivery, City-to-City, and Custom Request.
+- [x] Replace or extend existing single-cargo steps across all booking services without losing current booking draft, review, or confirmation behavior.
+- [x] Add deterministic tests and validate the reusable cargo-item and attachment workflow expansion.
+- [ ] Create a managed checkpoint for the reusable cargo-item and attachment workflow expansion.
