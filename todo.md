@@ -277,4 +277,4 @@
 - [x] Audit remaining booking create and update interactions and migrate suitable in-context edits to the reusable draggable bottom drawer without replacing clear multi-step booking screens.
 - [x] Validate the booking-drawer migration across Local Delivery, City-to-City, Imports, and Custom Request.
 - [x] Create a managed checkpoint for the booking-drawer migration.
-- [ ] Commit and push the validated booking-drawer migration to the configured GitHub repository.
+- [x] Commit and push the validated booking-drawer migration to the configured GitHub repository.
