@@ -9,7 +9,7 @@ describe("mobile permission domain", () => {
 
   it("uses customer-safe permission status labels", () => {
     expect(permissionStatusLabel("not_requested")).toBe("Not requested");
-    expect(permissionStatusLabel("granted")).toBe("Allowed for preview");
+    expect(permissionStatusLabel("granted")).toBe("Allowed");
     expect(permissionStatusLabel("denied")).toBe("Not allowed");
   });
 });

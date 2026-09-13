@@ -1,6 +1,4 @@
 import { Platform } from "react-native";
-import * as DocumentPicker from "expo-document-picker";
-import * as ImagePicker from "expo-image-picker";
 import { nativeSuccess, nativeUnavailable, type NativeServiceResult } from "./native-service-result";
 
 export type PickedDocument = {
@@ -25,6 +23,8 @@ export function safeDownloadFilename(filename: string) {
 
 export const fileService = {
   async pickDocument(): Promise<NativeServiceResult<PickedDocument>> {
+    if (Platform.OS === "web") return nativeUnavailable("browser-preview", "Document picking is available in the mobile app.");
+    const DocumentPicker = await import("expo-document-picker");
     const result = await DocumentPicker.getDocumentAsync({
       copyToCacheDirectory: true,
       multiple: false,
@@ -36,6 +36,8 @@ export const fileService = {
     return nativeSuccess({ uri: asset.uri, name: asset.name ?? "Supporting document", type: asset.mimeType, size: asset.size });
   },
   async pickImage(): Promise<NativeServiceResult<PickedImage>> {
+    if (Platform.OS === "web") return nativeUnavailable("browser-preview", "Photo picking is available in the mobile app.");
+    const ImagePicker = await import("expo-image-picker");
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) return nativeUnavailable("permission-denied", "Photo access is needed to choose a cargo image.");
     const result = await ImagePicker.launchImageLibraryAsync({

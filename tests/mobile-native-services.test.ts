@@ -1,6 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
-
-vi.mock("react-native", () => ({ Platform: { OS: "web" } }));
+import { describe, expect, it } from "vitest";
 
 import { cameraService } from "../lib/services/device/camera-service";
 import { fileService, safeDownloadFilename } from "../lib/services/device/file-service";
@@ -13,7 +11,7 @@ describe("mobile native-service adapter contracts", () => {
   it("returns structured unavailable results for device features not installed in the browser-safe build", async () => {
     await expect(cameraService.scanQrCode()).resolves.toMatchObject({ ok: false, reason: "missing-native-module" });
     await expect(cameraService.pickImage()).resolves.toMatchObject({ ok: false, reason: "missing-native-module" });
-    await expect(fileService.pickDocument()).resolves.toMatchObject({ ok: false, reason: "missing-native-module" });
+    await expect(fileService.pickDocument()).resolves.toMatchObject({ ok: false, reason: "browser-preview" });
     await expect(locationService.getCurrentLocation()).resolves.toMatchObject({ ok: false, reason: "missing-native-module" });
   });
 
