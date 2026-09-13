@@ -37,7 +37,7 @@ async function uploadAttachment(attachment: BookingCargoAttachment): Promise<Boo
     name: attachment.name,
     type: attachment.type ?? (attachment.kind === "photo" ? "image/jpeg" : "application/octet-stream"),
     size: attachment.size,
-  }, attachment.kind === "photo" ? "booking-photo" : "booking-document");
+  }, "shipment-evidence");
   return {
     ...attachment,
     id: `uploaded-${uploaded.id}`,

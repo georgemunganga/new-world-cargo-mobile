@@ -28,7 +28,7 @@ async function fileBlob(file: UploadFile) {
   return response.blob();
 }
 
-async function uploadFile(file: UploadFile, purpose = "attachment") {
+async function uploadFile(file: UploadFile, purpose = "shipment-evidence") {
     const blob = await fileBlob(file);
     const intent = await apiClient.post<{ data: UploadIntentResponse }>("/api/v1/files/upload-intents", {
       fileName: file.name,
