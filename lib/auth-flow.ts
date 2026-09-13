@@ -24,7 +24,7 @@ export function normaliseAuthIdentifier(value: string) {
 }
 
 export function isValidFrontendOtp(value: string) {
-  return value.replace(/\s/g, "") === FRONTEND_OTP_CODE;
+  return /^\d{6}$/.test(value.replace(/\s/g, ""));
 }
 
 export function firstName(name: string) {

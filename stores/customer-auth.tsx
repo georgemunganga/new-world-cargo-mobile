@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
 
 import { isValidEmailInput, normaliseAuthIdentifier, normaliseZambianPhone } from "@/lib/auth-flow";
+import { MobileApiError } from "@/lib/api/errors";
+import { featureFlags } from "@/lib/config/feature-flags";
 import { decodeStoredCustomer, type StoredCustomer } from "@/lib/customer-session";
 import type { AuthSession, OtpChallenge } from "@/lib/domain/auth";
 import type { CustomerProfile as DomainCustomerProfile } from "@/lib/domain/customer";
@@ -91,6 +93,33 @@ export function CustomerAuthProvider({ children }: PropsWithChildren) {
     void Promise.all([readStoredSession(), readSecureSession()])
       .then(async ([storedCustomerValue, storedSession]) => {
         if (!active) return;
+        if (featureFlags.useLaravelAuth) {
+          try {
+            const remoteSession = await repositories.auth.restoreSession();
+            if (!active) return;
+            if (remoteSession?.customer) {
+              const remoteCustomer = await persistAuthSession(remoteSession);
+              setCustomer(remoteCustomer);
+              return;
+            }
+            await Promise.all([clearStoredSession(), clearSecureSession(), removeSessionToken()]);
+            setCustomer(null);
+            return;
+          } catch {
+            if (storedSession?.customer) {
+              setCustomer(customerFromSession(storedSession));
+              return;
+            }
+            const saved = decodeStoredCustomer(storedCustomerValue);
+            if (saved) {
+              setCustomer(saved);
+              return;
+            }
+            await Promise.all([clearStoredSession(), clearSecureSession(), removeSessionToken()]);
+            setCustomer(null);
+            return;
+          }
+        }
         if (storedSession?.customer) {
           const savedSessionCustomer = customerFromSession(storedSession);
           setCustomer(savedSessionCustomer);
@@ -157,11 +186,23 @@ export function CustomerAuthProvider({ children }: PropsWithChildren) {
         setAuthError("");
         return true;
       } catch (error) {
+        if (error instanceof MobileApiError && error.code === "CONTACT_UNVERIFIED") {
+          setAuthError("This account still needs verification. Please use the verification link or contact support to resend the code.");
+          return false;
+        }
+        if (error instanceof MobileApiError && error.code === "FORBIDDEN") {
+          setAuthError("This account is not enabled for the customer portal yet.");
+          return false;
+        }
         setAuthError(error instanceof Error ? error.message : "We could not sign you in. Please try again.");
         return false;
       }
     },
     completeGoogleSignIn: async () => {
+      if (featureFlags.useLaravelAuth) {
+        setAuthError("Google sign-in is not connected for the live customer portal yet. Please sign in with email or phone.");
+        return false;
+      }
       const nextCustomer: CustomerProfile = { id: `google-${Date.now()}`, name: "Google customer", phone: "+260971234567", email: "customer@gmail.com", city: "Lusaka", portalEnabled: true };
       await writeSecureSession({ customer: domainCustomerFromStored(nextCustomer) });
       setCustomer(nextCustomer);

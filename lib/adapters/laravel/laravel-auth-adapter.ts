@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/api/client";
+import { MobileApiError } from "@/lib/api/errors";
 import type { OtpChallenge } from "@/lib/domain/auth";
 import type { AuthRepository } from "@/lib/repositories/types";
 import { mapPortalSession, portalPasswordResetPayload, portalRegisterPayload } from "./portal-auth-contract";
@@ -65,8 +66,9 @@ export const laravelAuthRepository: AuthRepository = {
     try {
       const response = await apiClient.get<PortalEnvelope<PortalAuthUser>>("/api/v1/session", { auth: false });
       return mapPortalSession(response);
-    } catch {
-      return null;
+    } catch (error) {
+      if (error instanceof MobileApiError && error.code === "UNAUTHENTICATED") return null;
+      throw error;
     }
   },
   async signOut() {

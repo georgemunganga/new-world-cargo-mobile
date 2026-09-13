@@ -2,14 +2,14 @@ import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { router, type Href } from "expo-router";
 
-import { AuthPasswordInput, AuthScreen, AuthTextInput, OtpInput } from "@/components/auth/auth-shell";
-import { isValidAuthIdentifier } from "@/lib/auth-flow";
+import { AuthPasswordInput, AuthScreen, AuthTextInput } from "@/components/auth/auth-shell";
+import { isValidEmailInput } from "@/lib/auth-flow";
 import { nwcColors } from "@/lib/nwc-theme";
 import { useCustomerAuth } from "@/stores/customer-auth";
 
 export default function ForgotPasswordScreen() {
   const [identifier, setIdentifier] = useState("");
-  const [code, setCode] = useState("");
+  const [token, setToken] = useState("");
   const [password, setPassword] = useState("");
   const [sent, setSent] = useState(false);
   const [changed, setChanged] = useState(false);
@@ -19,11 +19,11 @@ export default function ForgotPasswordScreen() {
     if (started) setSent(true);
   };
   const submitNewPassword = async () => {
-    const saved = await resetPassword(code, password);
+    const saved = await resetPassword(token.trim(), password);
     if (saved) setChanged(true);
   };
   if (changed) return <AuthScreen showBack title="Password changed" detail="Your New WorldCargo password has been updated. Sign in with the new password to continue." primaryLabel="Back to sign in" onPrimary={() => router.replace("/auth/phone" as Href)}><View style={styles.notice}><Text style={styles.noticeTitle}>All set</Text><Text style={styles.noticeDetail}>Use your new password the next time you open the app.</Text></View></AuthScreen>;
-  return <AuthScreen showBack title="Reset your password" detail={sent ? "Enter the verification code and choose a new password." : "Enter the email address or phone number connected to your account."} primaryLabel={sent ? "Save new password" : "Send recovery code"} onPrimary={sent ? submitNewPassword : requestReset} primaryDisabled={sent ? code.length < 6 || password.length < 8 : !isValidAuthIdentifier(identifier)} secondaryLabel="Back to sign in" onSecondary={() => router.replace("/auth/phone" as Href)}><AuthTextInput label="Email address or phone" placeholder="name@email.com or +260 97 123 4567" value={identifier} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" autoFocus={!sent} editable={!sent} onChangeText={setIdentifier} />{sent ? <><OtpInput value={code} onChange={setCode} /><AuthPasswordInput label="New password" placeholder="At least 8 characters" value={password} autoComplete="new-password" textContentType="newPassword" onChangeText={setPassword} /><View style={styles.notice}><Text style={styles.noticeTitle}>Check your messages</Text><Text style={styles.noticeDetail}>If an account matches those details, the reset code is ready for this app flow.</Text></View></> : null}{authError ? <Text accessibilityRole="alert" style={styles.errorText}>{authError}</Text> : null}</AuthScreen>;
+  return <AuthScreen showBack title="Reset your password" detail={sent ? "Paste the reset token from your email and choose a new password." : "Enter the email address connected to your customer account."} primaryLabel={sent ? "Save new password" : "Email me a reset link"} onPrimary={sent ? submitNewPassword : requestReset} primaryDisabled={sent ? token.trim().length < 8 || password.length < 8 : !isValidEmailInput(identifier)} secondaryLabel="Back to sign in" onSecondary={() => router.replace("/auth/phone" as Href)}><AuthTextInput label="Email address" placeholder="name@email.com" value={identifier} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" autoFocus={!sent} editable={!sent} onChangeText={setIdentifier} />{sent ? <><AuthTextInput label="Reset token" placeholder="Paste the token from your email" value={token} autoCapitalize="none" autoCorrect={false} onChangeText={setToken} /><AuthPasswordInput label="New password" placeholder="At least 8 characters" value={password} autoComplete="new-password" textContentType="newPassword" onChangeText={setPassword} /><View style={styles.notice}><Text style={styles.noticeTitle}>Check your email</Text><Text style={styles.noticeDetail}>For now, Laravel sends a password reset token by email. Paste that token here to set a new password.</Text></View></> : null}{authError ? <Text accessibilityRole="alert" style={styles.errorText}>{authError}</Text> : null}</AuthScreen>;
 }
 
 const styles = StyleSheet.create({
