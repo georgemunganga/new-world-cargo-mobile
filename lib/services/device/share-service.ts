@@ -1,3 +1,5 @@
+import { nativeSuccess, nativeUnavailable, type NativeServiceResult } from "./native-service-result";
+
 export type ShareDocumentInput = {
   title: string;
   filename: string;
@@ -6,11 +8,11 @@ export type ShareDocumentInput = {
 };
 
 export const shareService = {
-  async shareDocument(input: ShareDocumentInput) {
+  async shareDocument(input: ShareDocumentInput): Promise<NativeServiceResult<{ shared: boolean }>> {
     if (typeof navigator !== "undefined" && "share" in navigator && input.url) {
       await navigator.share({ title: input.title, text: input.text, url: input.url });
-      return { shared: true };
+      return nativeSuccess({ shared: true });
     }
-    return { shared: false };
+    return nativeUnavailable("browser-preview", "Native sharing is not available here. The app can still show a copy or download option.");
   },
 };

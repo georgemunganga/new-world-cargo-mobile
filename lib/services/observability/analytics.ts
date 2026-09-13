@@ -1,4 +1,5 @@
 import { featureFlags } from "@/lib/config/feature-flags";
+import { redactSensitiveProperties, type RedactableProperties } from "./redaction";
 
 export type AnalyticsEventName =
   | "app_opened"
@@ -16,17 +17,11 @@ export type AnalyticsEventName =
   | "api_error_occurred"
   | "native_permission_denied";
 
-export type AnalyticsProperties = Record<string, string | number | boolean | null | undefined>;
-
-function sanitizeProperties(properties: AnalyticsProperties = {}) {
-  return Object.fromEntries(
-    Object.entries(properties).filter(([key]) => !/token|password|phone|email|address/i.test(key)),
-  );
-}
+export type AnalyticsProperties = RedactableProperties;
 
 export const analytics = {
   track(name: AnalyticsEventName, properties: AnalyticsProperties = {}) {
     if (!featureFlags.enableObservability) return;
-    console.info("[analytics]", name, sanitizeProperties(properties));
+    console.info("[analytics]", name, redactSensitiveProperties(properties));
   },
 };

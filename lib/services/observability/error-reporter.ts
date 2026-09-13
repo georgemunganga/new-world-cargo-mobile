@@ -1,19 +1,15 @@
 import { featureFlags } from "@/lib/config/feature-flags";
 import { MobileApiError } from "@/lib/api/errors";
+import { redactSensitiveProperties, redactSensitiveText, type RedactableProperties } from "./redaction";
 
-export type ErrorContext = Record<string, string | number | boolean | null | undefined>;
-
-function safeContext(context: ErrorContext = {}) {
-  return Object.fromEntries(
-    Object.entries(context).filter(([key]) => !/token|password|phone|email|address/i.test(key)),
-  );
-}
+export type ErrorContext = RedactableProperties;
 
 export const errorReporter = {
   capture(error: unknown, context: ErrorContext = {}) {
     if (!featureFlags.enableObservability) return;
-    const message = error instanceof Error ? error.message : "Unknown error";
+    const message = redactSensitiveText(error instanceof Error ? error.message : "Unknown error");
     const code = error instanceof MobileApiError ? error.code : "UNKNOWN";
-    console.error("[error]", { message, code, context: safeContext(context) });
+    const requestId = error instanceof MobileApiError ? error.options.requestId : undefined;
+    console.error("[error]", { message, code, requestId, context: redactSensitiveProperties(context) });
   },
 };

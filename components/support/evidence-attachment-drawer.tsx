@@ -5,6 +5,7 @@ import { FullScreenFormDrawer } from "@/components/account/full-screen-form-draw
 import { AppIcon } from "@/components/ui/app-icon";
 import { Card, SecondaryButton } from "@/components/ui/nwc-ui";
 import { nwcColors } from "@/lib/nwc-theme";
+import { fileService } from "@/lib/services/device/file-service";
 
 type EvidenceAttachmentDrawerProps = { visible: boolean; caseTitle: string; onDismiss: () => void; onAttached: (name: string) => void };
 const mockEvidence = ["delivery-photo.jpg", "receipt-screenshot.png", "cargo-label.jpg"];
@@ -12,9 +13,20 @@ const mockEvidence = ["delivery-photo.jpg", "receipt-screenshot.png", "cargo-lab
 export function EvidenceAttachmentDrawer({ visible, caseTitle, onDismiss, onAttached }: EvidenceAttachmentDrawerProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const [attached, setAttached] = useState(false);
+  const [deviceMessage, setDeviceMessage] = useState("");
   useEffect(() => { if (visible) { setSelected(null); setAttached(false); } }, [visible]);
   const approve = () => { if (!selected) return; setAttached(true); onAttached(selected); };
-  return <FullScreenFormDrawer visible={visible} overline="Support evidence" title="Attach evidence" detail={`Add one mock file to ${caseTitle}. A native file picker can connect here later.`} approveLabel={attached ? "Evidence attached" : "Attach evidence"} approveDisabled={!selected || attached} onDismiss={onDismiss} onApprove={approve} footerNote={attached ? <Text style={styles.success}>Evidence added to this mock case.</Text> : <Text style={styles.note}>No device files are accessed in browser preview.</Text>}><Card style={styles.explainer}><View style={styles.explainerIcon}><AppIcon name="paperclip" size={22} color={nwcColors.primaryInk} /></View><View style={styles.explainerCopy}><Text style={styles.explainerTitle}>Choose a file</Text><Text style={styles.explainerDetail}>Photos, delivery labels, or payment evidence can be attached in the full service.</Text></View></Card><View style={styles.files}>{mockEvidence.map((file) => <TouchableOpacity key={file} accessibilityRole="button" accessibilityState={{ selected: selected === file }} accessibilityLabel={`Choose ${file}`} onPress={() => { setSelected(file); setAttached(false); }} style={[styles.file, selected === file && styles.fileSelected]}><View style={styles.fileIcon}><AppIcon name={file.endsWith("png") ? "image-outline" : "file-image-outline"} size={20} color={nwcColors.brandNavy} /></View><View style={styles.fileCopy}><Text style={styles.fileName}>{file}</Text><Text style={styles.fileDetail}>{selected === file ? attached ? "Attached · 100%" : "Ready to attach · 0%" : "Mock attachment"}</Text></View>{selected === file ? <AppIcon name={attached ? "check-circle" : "circle-outline"} size={20} color={attached ? nwcColors.success : nwcColors.info} /> : null}</TouchableOpacity>)}</View>{selected && !attached ? <SecondaryButton label="Remove selected file" icon="close" onPress={() => setSelected(null)} /> : null}</FullScreenFormDrawer>;
+  const chooseDeviceFile = async () => {
+    const result = await fileService.pickDocument();
+    if (result.ok) {
+      setSelected(result.value.name);
+      setAttached(false);
+      setDeviceMessage("Device file selected.");
+      return;
+    }
+    setDeviceMessage(result.message);
+  };
+  return <FullScreenFormDrawer visible={visible} overline="Support evidence" title="Attach evidence" detail={`Add one file to ${caseTitle}.`} approveLabel={attached ? "Evidence attached" : "Attach evidence"} approveDisabled={!selected || attached} onDismiss={onDismiss} onApprove={approve} footerNote={attached ? <Text style={styles.success}>Evidence added to this case.</Text> : <Text style={styles.note}>{deviceMessage || "Browser preview uses sample files; native builds can connect the picker here."}</Text>}><Card style={styles.explainer}><View style={styles.explainerIcon}><AppIcon name="paperclip" size={22} color={nwcColors.primaryInk} /></View><View style={styles.explainerCopy}><Text style={styles.explainerTitle}>Choose a file</Text><Text style={styles.explainerDetail}>Photos, delivery labels, or payment evidence can be attached through the file-service adapter.</Text></View></Card><SecondaryButton label="Choose from device" icon="file-upload-outline" onPress={chooseDeviceFile} /><View style={styles.files}>{mockEvidence.map((file) => <TouchableOpacity key={file} accessibilityRole="button" accessibilityState={{ selected: selected === file }} accessibilityLabel={`Choose ${file}`} onPress={() => { setSelected(file); setAttached(false); setDeviceMessage(""); }} style={[styles.file, selected === file && styles.fileSelected]}><View style={styles.fileIcon}><AppIcon name={file.endsWith("png") ? "image-outline" : "file-image-outline"} size={20} color={nwcColors.brandNavy} /></View><View style={styles.fileCopy}><Text style={styles.fileName}>{file}</Text><Text style={styles.fileDetail}>{selected === file ? attached ? "Attached · 100%" : "Ready to attach · 0%" : "Sample attachment"}</Text></View>{selected === file ? <AppIcon name={attached ? "check-circle" : "circle-outline"} size={20} color={attached ? nwcColors.success : nwcColors.info} /> : null}</TouchableOpacity>)}</View>{selected && !attached ? <SecondaryButton label="Remove selected file" icon="close" onPress={() => setSelected(null)} /> : null}</FullScreenFormDrawer>;
 }
 
 const styles = StyleSheet.create({

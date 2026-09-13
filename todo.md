@@ -265,6 +265,12 @@
 - [x] Add stale-cache fallback for shipment and billing reads so saved snapshots remain visible during temporary API/network failures.
 - [x] Add keyed public-tracking cache fallback for previously found tracking codes.
 - [x] Add saved-place and recipient cache fallback so booking/contact workflows can recover from temporary address-book API failures.
+- [x] Replace thin native-service stubs with structured browser-safe adapter contracts for camera/QR, photo picking, file picking, location, maps, notifications, sharing, haptics, and biometrics.
+- [x] Route QR scan, profile-photo selection, support evidence attachment, tracking share, and tab haptics through native-service seams instead of direct UI-native calls.
+- [x] Add deterministic native-service adapter tests and validate the native-readiness milestone slice.
+- [x] Add shared observability redaction for tokens, passwords, authorization values, emails, phones, and addresses.
+- [x] Remove legacy auth-core debug logs that exposed token fragments or full user objects.
+- [x] Add deterministic redaction tests and validate the security/observability slice.
 - [x] Add deterministic tests, validate, checkpoint, and preserve the Home tracking control and public tracking workflow.
 - [x] Make the Home tracking control open a reusable full-screen translucent blurred overlay with one tracking-code search field and submit action, rather than navigating directly to results.
 - [x] Close the tracking overlay only after a successful deterministic lookup, then navigate to the correct existing dedicated live-tracking or completed-delivery screen.

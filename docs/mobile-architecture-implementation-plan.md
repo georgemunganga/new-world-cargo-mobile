@@ -998,6 +998,8 @@ Status:
 
 Partially implemented on the architecture spine. Customer permission education and status labels now live in the mobile permission domain. Permission list/detail screens and address search consume a shared customer-permission provider, which keeps browser-preview behavior stable while routing future camera, location, notification, photo, contact, and biometric requests through the native permission-service boundary.
 
+Native services now return structured `NativeServiceResult` values across camera/QR, photo picking, document picking, file saving, current location, map route preview, push/local notifications, native sharing, haptics, and biometric unlock. QR scan, profile-photo selection, support evidence attachment, tracking share, and tab haptics now call those service seams, so browser preview remains safe while native modules can be attached later without rewriting screens.
+
 Done when:
 
 - Screens use service adapters, not raw native APIs.
@@ -1028,6 +1030,10 @@ Done when:
 
 - We can understand failures without exposing private customer data.
 - Production logging behavior is deliberate.
+
+Status:
+
+Partially implemented on the architecture spine. Analytics and error reporting now share a redaction utility that masks sensitive keys and sensitive text values before anything is logged. Mobile API errors carry request IDs where the backend provides them, and the error reporter includes that request ID without exposing request payloads. Legacy auth-core debug logs that printed token fragments and full user objects have been removed.
 
 ### Milestone 11: Testing And Quality Gate
 
