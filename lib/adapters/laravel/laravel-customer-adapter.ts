@@ -17,6 +17,7 @@ export const laravelCustomerRepository: CustomerRepository = {
       payload.lastName = name.lastName;
     }
     if (input.phone !== undefined) payload.phone = input.phone;
+    if ("avatarUrl" in input) payload.avatarFileId = input.avatarUrl || null;
     const response = await apiClient.patch<PortalEnvelope<PortalAuthUser>>("/api/v1/profile", payload);
     return mapPortalCustomer(response.data);
   },

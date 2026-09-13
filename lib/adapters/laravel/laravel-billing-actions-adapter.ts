@@ -1,63 +1,75 @@
 import { apiClient } from "@/lib/api/client";
-import type { ConfirmInvoicePaymentResult, CustomerInvoice, PaymentMethod, SavedPaymentMethod, WalletActivity, WalletSnapshot } from "@/lib/domain/billing";
+import type { PaymentMethod, WalletActivity, WalletSnapshot } from "@/lib/domain/billing";
 import type { BillingActionsRepository } from "@/lib/repositories/types";
+import { missingPortalContract } from "./portal-contract-gap";
 
-type LaravelPaymentMethodResponse = Partial<SavedPaymentMethod> & { type?: PaymentMethod; is_default?: boolean };
-type LaravelWalletResponse = { balance?: number | string; activity?: WalletActivity[] };
-
-function mapPaymentMethod(raw: LaravelPaymentMethodResponse): SavedPaymentMethod {
-  const method = raw.method ?? raw.type ?? "mobile";
-  return {
-    id: String(raw.id ?? method),
-    method,
-    label: raw.label ?? (method === "wallet" ? "Cargo Wallet" : method === "card" ? "Bank card" : "Mobile money"),
-    detail: raw.detail ?? "Payment method",
-    isDefault: raw.isDefault ?? raw.is_default,
-  };
-}
+type PortalMoney = { currency?: string; amountMinor?: number | string };
+type LaravelWalletResponse = { balance?: number | string; activity?: WalletActivity[]; availableBalance?: PortalMoney; pendingBalance?: PortalMoney };
+type LaravelWalletLedgerResponse = { id?: string | number; type?: string; status?: string; amount?: PortalMoney; createdAt?: string | null };
+type LaravelPaymentIntentResponse = { id?: string; status?: string; clientToken?: string | null; providerReference?: string | null };
 
 function mapWallet(raw: LaravelWalletResponse): WalletSnapshot {
-  const balance = typeof raw.balance === "number" ? raw.balance : Number(raw.balance ?? 0);
+  const balance = raw.availableBalance ? Number(raw.availableBalance.amountMinor ?? 0) / 100 : typeof raw.balance === "number" ? raw.balance : Number(raw.balance ?? 0);
   return { balance: Number.isFinite(balance) ? balance : 0, activity: raw.activity ?? [] };
+}
+
+function mapWalletActivity(raw: LaravelWalletLedgerResponse): WalletActivity {
+  const amount = Number(raw.amount?.amountMinor ?? 0) / 100;
+  return {
+    id: String(raw.id ?? raw.createdAt ?? Date.now()),
+    label: raw.type === "payment" ? "Wallet payment" : "Wallet activity",
+    detail: raw.status ?? "Posted",
+    amount: Number.isFinite(amount) ? amount : 0,
+    type: raw.type === "payment" ? "payment" : "topup",
+    time: raw.createdAt ?? "Recently",
+  };
 }
 
 export const laravelBillingActionsRepository: BillingActionsRepository = {
   async listPaymentMethods() {
-    const response = await apiClient.get<{ data: LaravelPaymentMethodResponse[] }>("/api/customer/payment-methods");
-    return response.data.map(mapPaymentMethod);
+    missingPortalContract("Saved payment methods");
   },
   async savePaymentMethod(method: Exclude<PaymentMethod, "wallet">) {
-    const response = await apiClient.post<{ data: LaravelPaymentMethodResponse }>("/api/customer/payment-methods", { method });
-    return mapPaymentMethod(response.data);
+    void method;
+    missingPortalContract("Saving payment methods");
   },
   async removePaymentMethod(methodId) {
-    await apiClient.delete(`/api/customer/payment-methods/${encodeURIComponent(methodId)}`);
+    void methodId;
+    missingPortalContract("Removing payment methods");
   },
   async setDefaultPaymentMethod(methodId) {
-    const response = await apiClient.patch<{ data: LaravelPaymentMethodResponse[] }>(`/api/customer/payment-methods/${encodeURIComponent(methodId)}/default`);
-    return response.data.map(mapPaymentMethod);
+    void methodId;
+    missingPortalContract("Default payment method selection");
   },
   async getWallet() {
-    const response = await apiClient.get<{ data: LaravelWalletResponse }>("/api/customer/wallet");
-    return mapWallet(response.data);
+    const [wallet, activity] = await Promise.all([
+      apiClient.get<{ data: LaravelWalletResponse }>("/api/v1/wallet"),
+      apiClient.get<{ data: LaravelWalletLedgerResponse[] }>("/api/v1/wallet/transactions"),
+    ]);
+    return { ...mapWallet(wallet.data), activity: activity.data.map(mapWalletActivity) };
   },
   async topUpWallet(amount) {
-    const response = await apiClient.post<{ data: LaravelWalletResponse }>("/api/customer/wallet/top-ups", { amount });
-    return mapWallet(response.data);
+    void amount;
+    missingPortalContract("Wallet top-ups");
   },
   async confirmInvoicePayment(input) {
-    const response = await apiClient.post<{ data: ConfirmInvoicePaymentResult }>(`/api/customer/invoices/${encodeURIComponent(input.invoice.id)}/payments`, {
-      method: input.method,
-      amount: input.invoice.amount.amount,
-      currency: input.invoice.amount.currencyCode,
+    const method = input.method === "card" ? "card" : "mobile-money";
+    const response = await apiClient.post<{ data: LaravelPaymentIntentResponse }>("/api/v1/payments/intents", {
+      invoiceId: Number(input.invoice.id),
+      method,
     });
-    return response.data;
+    return {
+      state: response.data.status === "requires_action" ? "delayed" : "confirmed",
+      paymentMethodLabel: input.method === "card" ? "Bank card" : "Mobile money",
+    };
   },
   async setInvoiceReminder(invoiceId, enabled) {
-    await apiClient.patch(`/api/customer/invoices/${encodeURIComponent(invoiceId)}/reminder`, { enabled });
+    void invoiceId;
+    void enabled;
+    missingPortalContract("Invoice payment reminders");
   },
   async disputeInvoice(invoiceId) {
-    const response = await apiClient.post<{ data: CustomerInvoice["resolution"] }>(`/api/customer/invoices/${encodeURIComponent(invoiceId)}/disputes`);
-    return response.data;
+    void invoiceId;
+    missingPortalContract("Invoice disputes");
   },
 };

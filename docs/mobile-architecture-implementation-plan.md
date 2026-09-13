@@ -1135,36 +1135,74 @@ These contracts describe what the mobile app needs. Laravel can implement these 
 
 The mobile app should not weaken the customer experience just because one backend route is not ready yet.
 
-## Laravel Contract Needed
+## Laravel CustomerPortalApi Contract
 
-The mobile app should request or confirm these Laravel API contracts:
+The shared web customer portal and mobile app should use Laravel `Modules/CustomerPortalApi` under `/api/v1`.
 
-- `POST /api/customer/auth/login`
-- `POST /api/customer/auth/register`
-- `GET /api/customer/auth/me`
-- `POST /api/customer/auth/logout`
-- `POST /api/customer/auth/refresh`
-- `GET /api/customer/shipments`
-- `GET /api/customer/shipments/{id}`
-- `GET /api/customer/tracking/{code}`
-- `GET /api/customer/invoices`
-- `GET /api/customer/invoices/{id}`
-- `GET /api/customer/receipts/{id}`
-- `GET /api/customer/recipients`
-- `POST /api/customer/recipients`
-- `PUT /api/customer/recipients/{id}`
-- `DELETE /api/customer/recipients/{id}`
-- `GET /api/customer/saved-places`
-- `POST /api/customer/saved-places`
-- `PUT /api/customer/saved-places/{id}`
-- `DELETE /api/customer/saved-places/{id}`
-- `POST /api/customer/bookings`
-- `GET /api/customer/bookings/drafts`
-- `POST /api/customer/bookings/drafts`
-- `PUT /api/customer/bookings/drafts/{id}`
-- `DELETE /api/customer/bookings/drafts/{id}`
+Confirmed current contracts:
 
-Endpoint names can change to match Laravel, but the mobile architecture should keep these capabilities separated.
+- `POST /api/v1/auth/login`
+- `POST /api/v1/auth/register`
+- `POST /api/v1/auth/verify`
+- `POST /api/v1/auth/verify/resend`
+- `POST /api/v1/auth/password/forgot`
+- `POST /api/v1/auth/password/reset`
+- `POST /api/v1/auth/password/change`
+- `GET /api/v1/session`
+- `POST /api/v1/auth/logout`
+- `GET /api/v1/profile`
+- `PATCH /api/v1/profile`
+- `GET /api/v1/public/tracking/{trackingNumber}`
+- `GET /api/v1/shipments`
+- `GET /api/v1/shipments/{shipment}`
+- `GET /api/v1/invoices`
+- `GET /api/v1/invoices/{invoice}`
+- `GET /api/v1/wallet`
+- `GET /api/v1/wallet/transactions`
+- `POST /api/v1/payments/intents`
+- `GET /api/v1/payments/intents/{intent}`
+- `GET /api/v1/recipients`
+- `POST /api/v1/recipients`
+- `PATCH /api/v1/recipients/{recipient}`
+- `DELETE /api/v1/recipients/{recipient}`
+- `GET /api/v1/addresses`
+- `POST /api/v1/addresses`
+- `PATCH /api/v1/addresses/{address}`
+- `DELETE /api/v1/addresses/{address}`
+- `GET /api/v1/shipment-drafts`
+- `POST /api/v1/shipment-drafts`
+- `PUT /api/v1/shipment-drafts/{draft}`
+- `DELETE /api/v1/shipment-drafts/{draft}`
+- `POST /api/v1/shipment-drafts/{draft}/submit`
+- `GET /api/v1/support/cases`
+- `POST /api/v1/support/cases`
+- `GET /api/v1/returns`
+- `POST /api/v1/returns`
+- `POST /api/v1/returns/{return}/cancel`
+- `GET /api/v1/pickups/current`
+- `POST /api/v1/pickups`
+- `POST /api/v1/pickups/{pickup}/cancel`
+- `POST /api/v1/files/upload-intents`
+- `PUT /api/v1/files/{fileId}/content`
+- `POST /api/v1/files/{fileId}/complete`
+
+Backend contract gaps still required for full mobile UI parity:
+
+- native mobile access/refresh token or BFF session exchange;
+- SMS/phone password reset if we want reset-by-code instead of email reset token;
+- Google sign-in provider completion for live customer portal;
+- saved places contract that accepts the mobile simple place shape or mobile must collect Laravel's full address shape;
+- saved payment methods;
+- wallet top-ups;
+- invoice reminders;
+- invoice disputes;
+- customer account settings snapshot;
+- recognized device listing/revocation/trust;
+- marketing preference updates;
+- customer data export request;
+- customer account deletion request;
+- pickup reschedule by shipment ID or mobile pickup IDs in the domain model;
+- pickup help/restore actions.
 
 ## Data Rules To Preserve
 

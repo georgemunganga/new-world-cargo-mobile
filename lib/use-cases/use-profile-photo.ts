@@ -15,7 +15,7 @@ export function useProfilePhoto() {
       const uploaded = await repositories.uploads.uploadProfilePhoto(file);
       setDocument(uploaded);
       setStatus("success");
-      await repositories.customer.updateProfile({ avatarUrl: uploaded.url });
+      await repositories.customer.updateProfile({ avatarUrl: uploaded.id });
       return uploaded;
     } catch (error) {
       setErrorMessage(customerSafeMessageFor(error));

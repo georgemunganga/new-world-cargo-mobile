@@ -1,8 +1,10 @@
 import { apiClient } from "@/lib/api/client";
 import type { Pickup, PickupStatus } from "@/lib/domain/pickup";
 import type { PickupRepository } from "@/lib/repositories/types";
+import { missingPortalContract } from "./portal-contract-gap";
 
 type LaravelPickupResponse = {
+  id?: string | number;
   shipmentId?: string;
   shipment_id?: string | number;
   shipmentReference?: string;
@@ -28,23 +30,24 @@ function mapPickup(raw: LaravelPickupResponse): Pickup {
 
 export const laravelPickupRepository: PickupRepository = {
   async listPickups() {
-    const response = await apiClient.get<{ data: LaravelPickupResponse[] }>("/api/customer/pickups");
-    return response.data.map(mapPickup);
+    const response = await apiClient.get<{ data: LaravelPickupResponse | null }>("/api/v1/pickups/current");
+    return response.data ? [mapPickup(response.data)] : [];
   },
   async reschedulePickup(shipmentId, slotId) {
-    const response = await apiClient.patch<{ data: LaravelPickupResponse }>(`/api/customer/pickups/${encodeURIComponent(shipmentId)}/reschedule`, { slot_id: slotId });
-    return mapPickup(response.data);
+    void shipmentId;
+    void slotId;
+    missingPortalContract("Pickup reschedule by shipment ID");
   },
   async cancelPickup(shipmentId) {
-    const response = await apiClient.patch<{ data: LaravelPickupResponse }>(`/api/customer/pickups/${encodeURIComponent(shipmentId)}/cancel`);
-    return mapPickup(response.data);
+    void shipmentId;
+    missingPortalContract("Pickup cancel by shipment ID");
   },
   async requestPickupHelp(shipmentId) {
-    const response = await apiClient.patch<{ data: LaravelPickupResponse }>(`/api/customer/pickups/${encodeURIComponent(shipmentId)}/help`);
-    return mapPickup(response.data);
+    void shipmentId;
+    missingPortalContract("Pickup help request");
   },
   async restorePickup(shipmentId) {
-    const response = await apiClient.patch<{ data: LaravelPickupResponse }>(`/api/customer/pickups/${encodeURIComponent(shipmentId)}/restore`);
-    return mapPickup(response.data);
+    void shipmentId;
+    missingPortalContract("Pickup restore");
   },
 };

@@ -13,6 +13,7 @@ export type MobileApiErrorCode =
   | "CURRENT_PASSWORD_INVALID"
   | "PASSWORD_RESET_INVALID"
   | "DEPENDENCY_UNAVAILABLE"
+  | "CONTRACT_MISSING"
   | "RATE_LIMITED"
   | "SERVER_ERROR"
   | "NETWORK_UNAVAILABLE"
@@ -61,6 +62,7 @@ export function apiCodeFromServer(code?: string): MobileApiErrorCode | null {
     "CURRENT_PASSWORD_INVALID",
     "PASSWORD_RESET_INVALID",
     "DEPENDENCY_UNAVAILABLE",
+    "CONTRACT_MISSING",
     "RATE_LIMITED",
     "SERVER_ERROR",
     "NETWORK_UNAVAILABLE",

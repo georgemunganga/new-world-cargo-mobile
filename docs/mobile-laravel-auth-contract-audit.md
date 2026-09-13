@@ -130,24 +130,28 @@ These are not reasons to create a new module. They are reasons to extend `Custom
    }
    ```
 
-   The mobile UI currently looks like an OTP reset flow. Either:
+   The mobile UI has been aligned to the current email reset-token flow. If SMS reset is required, Laravel should add phone/email OTP password reset endpoints in `CustomerPortalApi`.
 
-   - backend adds phone/email OTP password reset endpoints; or
-   - mobile UI changes copy to “paste reset token from email” / handles deep links from the email reset link.
+3. Remaining full mobile UI parity gaps
 
-3. Feature endpoint parity
+   The mobile Laravel adapters no longer point at placeholder `/api/customer/*` paths. Supported routes are mapped to `/api/v1/*`.
 
-   The old mobile Laravel adapters still contain placeholder `/api/customer/*` paths for several non-auth areas. They should be migrated feature-by-feature to `/api/v1/*` contract paths and DTOs:
+   Missing backend contracts are now explicit `CONTRACT_MISSING` failures:
 
-   - shipments;
-   - tracking;
-   - invoices and wallet;
-   - payment intents;
-   - shipment drafts and quotes;
-   - addresses and recipients;
-   - support cases;
-   - returns and pickups;
-   - upload intents.
+   - saved places compatible with the mobile simple place UI;
+   - saved payment methods;
+   - wallet top-ups;
+   - invoice reminders;
+   - invoice disputes;
+   - customer account settings snapshot;
+   - recognized device listing/revocation/trust;
+   - marketing preference updates;
+   - customer data export request;
+   - customer account deletion request;
+   - pickup reschedule/cancel by shipment ID, or mobile must carry pickup IDs;
+   - pickup help/restore actions;
+   - Google sign-in provider completion;
+   - native mobile access/refresh-token or BFF session exchange.
 
 ## Rule going forward
 

@@ -8,37 +8,48 @@ type LaravelReturnRequestResponse = {
   shipment_id?: string | number;
   shipmentReference?: string;
   shipment_reference?: string;
+  trackingNumber?: string | null;
   reason?: ReturnReason;
-  handover?: ReturnHandover;
-  status?: ReturnRequestStatus;
+  handover?: ReturnHandover | "pickup" | "drop_off";
+  status?: ReturnRequestStatus | "requested" | "cancelled" | "in_transit";
+  displayStatus?: string;
   createdLabel?: string;
   created_label?: string;
   created_at?: string;
 };
 
+function mapHandover(value?: LaravelReturnRequestResponse["handover"]): ReturnHandover {
+  return value === "pickup" || value === "courier-pickup" ? "courier-pickup" : "collection-point";
+}
+
+function mapStatus(value?: LaravelReturnRequestResponse["status"]): ReturnRequestStatus {
+  if (value === "approved" || value === "in_transit") return "approved";
+  if (value === "reviewing") return "reviewing";
+  return "submitted";
+}
+
 function mapReturnRequest(raw: LaravelReturnRequestResponse): ReturnRequest {
   return {
     id: String(raw.id ?? raw.shipment_id ?? raw.shipmentId ?? ""),
     shipmentId: String(raw.shipmentId ?? raw.shipment_id ?? ""),
-    shipmentReference: raw.shipmentReference ?? raw.shipment_reference ?? "Shipment",
+    shipmentReference: raw.shipmentReference ?? raw.shipment_reference ?? raw.trackingNumber ?? "Shipment",
     reason: raw.reason ?? "other",
-    handover: raw.handover ?? "collection-point",
-    status: raw.status ?? "submitted",
+    handover: mapHandover(raw.handover),
+    status: mapStatus(raw.status),
     createdLabel: raw.createdLabel ?? raw.created_label ?? raw.created_at ?? "Recently",
   };
 }
 
 export const laravelReturnRequestRepository: ReturnRequestRepository = {
   async listRequests() {
-    const response = await apiClient.get<{ data: LaravelReturnRequestResponse[] }>("/api/customer/returns");
+    const response = await apiClient.get<{ data: LaravelReturnRequestResponse[] }>("/api/v1/returns");
     return response.data.map(mapReturnRequest);
   },
   async submitReturn(input) {
-    const response = await apiClient.post<{ data: LaravelReturnRequestResponse }>("/api/customer/returns", {
-      shipment_id: input.shipment.id,
-      shipment_reference: input.shipment.reference,
+    const response = await apiClient.post<{ data: LaravelReturnRequestResponse }>("/api/v1/returns", {
+      shipmentId: Number(input.shipment.id),
       reason: input.reason,
-      handover: input.handover,
+      handover: input.handover === "courier-pickup" ? "pickup" : "drop_off",
     });
     return mapReturnRequest(response.data);
   },

@@ -4,14 +4,19 @@ import type { Money } from "@/lib/domain/money";
 import type { BillingRepository } from "@/lib/repositories/types";
 
 type LaravelInvoiceLineItemResponse = {
+  description?: string;
   label?: string;
   detail?: string;
+  total?: PortalMoney | Money | string | number;
   amount?: Money | string | number;
   amount_value?: number | string;
 };
 
+type PortalMoney = { currency?: string; amountMinor?: number | string };
+
 type LaravelInvoiceResponse = {
   id?: string | number;
+  invoiceNumber?: string;
   reference?: string;
   shipmentCode?: string;
   shipment_code?: string;
@@ -19,9 +24,10 @@ type LaravelInvoiceResponse = {
   description?: string;
   shipmentLabel?: string;
   shipment_label?: string;
-  route?: string;
+  route?: string | { origin?: string | null; destination?: string | null };
   route_label?: string;
   status?: CustomerInvoice["status"];
+  total?: PortalMoney;
   amount?: Money | string | number;
   amount_value?: number | string;
   currency?: string;
@@ -41,7 +47,16 @@ type LaravelInvoiceResponse = {
   resolution?: CustomerInvoice["resolution"];
 };
 
-function moneyFrom(value: LaravelInvoiceResponse["amount"], fallbackValue?: string | number, currency = "ZMW"): Money {
+function moneyFrom(value: PortalMoney | Money | string | number | undefined, fallbackValue?: string | number, currency = "ZMW"): Money {
+  if (value && typeof value === "object" && "amountMinor" in value) {
+    const amount = Number(value.amountMinor ?? 0) / 100;
+    const currencyCode = "currency" in value && value.currency ? value.currency : currency;
+    return {
+      amount,
+      currencyCode,
+      formatted: `${currencyCode} ${amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    };
+  }
   if (value && typeof value === "object" && "amount" in value) return value as Money;
   const formatted = typeof value === "string" ? value : undefined;
   const raw = fallbackValue ?? value ?? 0;
@@ -54,16 +69,24 @@ function moneyFrom(value: LaravelInvoiceResponse["amount"], fallbackValue?: stri
   };
 }
 
+function routeLabel(route: LaravelInvoiceResponse["route"], fallback?: string) {
+  if (typeof route === "string") return route;
+  if (route && typeof route === "object") {
+    return [route.origin, route.destination].filter(Boolean).join(" → ") || fallback || "Route to confirm";
+  }
+  return fallback || "Route to confirm";
+}
+
 function mapInvoice(raw: LaravelInvoiceResponse): CustomerInvoice {
-  const currency = raw.currency_code ?? raw.currency ?? (typeof raw.amount === "object" ? raw.amount.currencyCode : undefined) ?? "ZMW";
-  const amount = moneyFrom(raw.amount ?? raw.formatted_amount, raw.amount_value, currency);
+  const currency = raw.currency_code ?? raw.currency ?? raw.total?.currency ?? (typeof raw.amount === "object" && "currencyCode" in raw.amount ? raw.amount.currencyCode : undefined) ?? "ZMW";
+  const amount = moneyFrom(raw.total ?? raw.amount ?? raw.formatted_amount, raw.amount_value, currency);
   return {
     id: String(raw.id ?? raw.reference ?? ""),
-    reference: String(raw.reference ?? raw.id ?? "Invoice"),
+    reference: String(raw.reference ?? raw.invoiceNumber ?? raw.id ?? "Invoice"),
     shipmentCode: raw.shipmentCode ?? raw.shipment_code ?? raw.shipment_reference,
     description: raw.description ?? "Cargo invoice",
     shipmentLabel: raw.shipmentLabel ?? raw.shipment_label ?? raw.shipmentCode ?? raw.shipment_code ?? "Cargo shipment",
-    route: raw.route ?? raw.route_label ?? "Route to confirm",
+    route: routeLabel(raw.route, raw.route_label),
     status: raw.status ?? "unpaid",
     amount,
     currencyDetail: raw.currencyDetail,
@@ -72,9 +95,9 @@ function mapInvoice(raw: LaravelInvoiceResponse): CustomerInvoice {
     paidAt: raw.paidAt ?? raw.paid_at,
     paymentMethod: raw.paymentMethod ?? raw.payment_method,
     lineItems: (raw.lineItems ?? raw.line_items ?? []).map((item) => ({
-      label: item.label ?? "Cargo charge",
+      label: item.label ?? item.description ?? "Cargo charge",
       ...(item.detail ? { detail: item.detail } : {}),
-      amount: moneyFrom(item.amount, item.amount_value, currency),
+      amount: moneyFrom(item.total ?? item.amount, item.amount_value, currency),
     })),
     ...(raw.resolution ? { resolution: raw.resolution } : {}),
   };
@@ -82,11 +105,11 @@ function mapInvoice(raw: LaravelInvoiceResponse): CustomerInvoice {
 
 export const laravelBillingRepository: BillingRepository = {
   async listInvoices() {
-    const response = await apiClient.get<{ data: LaravelInvoiceResponse[] }>("/api/customer/invoices");
+    const response = await apiClient.get<{ data: LaravelInvoiceResponse[] }>("/api/v1/invoices");
     return response.data.map(mapInvoice);
   },
   async getInvoice(id) {
-    const response = await apiClient.get<{ data: LaravelInvoiceResponse }>(`/api/customer/invoices/${encodeURIComponent(id)}`);
+    const response = await apiClient.get<{ data: LaravelInvoiceResponse }>(`/api/v1/invoices/${encodeURIComponent(id)}`);
     return mapInvoice(response.data);
   },
 };
