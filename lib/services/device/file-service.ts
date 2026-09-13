@@ -1,4 +1,6 @@
 import { Platform } from "react-native";
+import * as DocumentPicker from "expo-document-picker";
+import * as ImagePicker from "expo-image-picker";
 import { nativeSuccess, nativeUnavailable, type NativeServiceResult } from "./native-service-result";
 
 export type PickedDocument = {
@@ -7,6 +9,8 @@ export type PickedDocument = {
   type?: string;
   size?: number;
 };
+
+export type PickedImage = PickedDocument;
 
 export type SaveTextFileInput = {
   filename: string;
@@ -21,7 +25,28 @@ export function safeDownloadFilename(filename: string) {
 
 export const fileService = {
   async pickDocument(): Promise<NativeServiceResult<PickedDocument>> {
-    return nativeUnavailable("missing-native-module", "Document picking is ready at the app seam. Add the native document picker module before production builds.");
+    const result = await DocumentPicker.getDocumentAsync({
+      copyToCacheDirectory: true,
+      multiple: false,
+      type: ["application/pdf", "image/*", "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"],
+    });
+    if (result.canceled) return nativeUnavailable("cancelled", "No document selected.");
+    const asset = result.assets[0];
+    if (!asset?.uri) return nativeUnavailable("unknown", "We could not read that document. Please choose another file.");
+    return nativeSuccess({ uri: asset.uri, name: asset.name ?? "Supporting document", type: asset.mimeType, size: asset.size });
+  },
+  async pickImage(): Promise<NativeServiceResult<PickedImage>> {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) return nativeUnavailable("permission-denied", "Photo access is needed to choose a cargo image.");
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: false,
+      quality: 0.82,
+    });
+    if (result.canceled) return nativeUnavailable("cancelled", "No photo selected.");
+    const asset = result.assets[0];
+    if (!asset?.uri) return nativeUnavailable("unknown", "We could not read that photo. Please choose another image.");
+    return nativeSuccess({ uri: asset.uri, name: asset.fileName ?? `Cargo photo.${asset.uri.split(".").pop() || "jpg"}`, type: asset.mimeType, size: asset.fileSize });
   },
   async saveTextFile(input: SaveTextFileInput): Promise<NativeServiceResult<{ filename: string }>> {
     const filename = safeDownloadFilename(input.filename);

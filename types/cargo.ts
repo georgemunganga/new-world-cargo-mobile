@@ -32,6 +32,9 @@ export type BookingCargoAttachment = {
   id: string;
   name: string;
   kind: "photo" | "supporting_document";
+  uri?: string;
+  type?: string;
+  size?: number;
 };
 
 export type TrackingContact = {
