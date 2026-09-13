@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
 import { canPayWithMockWallet, getDefaultPaymentMethod, mockInvoices, mockSavedPaymentMethods, mockWalletStartingBalance, paymentMethodLabel, type MockInvoice, type MockPaymentMethod, type MockPaymentState, type MockSavedPaymentMethod, type MockWalletActivity } from "@/lib/mock-billing";
 import type { CustomerInvoice } from "@/lib/domain/billing";
+import { featureFlags } from "@/lib/config/feature-flags";
 import { repositories } from "@/lib/repositories";
 import { readCache, writeCache } from "@/lib/storage/cache-storage";
 import { storageKeys } from "@/lib/storage/storage-keys";
@@ -56,20 +57,24 @@ function mockInvoiceFromCustomerInvoice(invoice: CustomerInvoice): MockInvoice {
 }
 
 export function CustomerBillingAccountProvider({ children }: PropsWithChildren) {
+  const useLiveBilling = featureFlags.useLaravelBilling;
+  const useLiveBillingActions = featureFlags.useLaravelBillingActions;
+  const seededInvoices = useLiveBilling ? [] : mockInvoices;
+  const seededPaymentMethods = useLiveBillingActions ? [] : mockSavedPaymentMethods;
   const [paymentState, setPaymentState] = useState<MockPaymentState>("ready");
-  const [invoices, setInvoices] = useState<MockInvoice[]>(mockInvoices);
-  const [selectedInvoiceId, selectInvoice] = useState<string | undefined>(mockInvoices.find((invoice) => invoice.status === "unpaid")?.id);
+  const [invoices, setInvoices] = useState<MockInvoice[]>(seededInvoices);
+  const [selectedInvoiceId, selectInvoice] = useState<string | undefined>(seededInvoices.find((invoice) => invoice.status === "unpaid")?.id);
   const [lastPaidInvoiceId, setLastPaidInvoiceId] = useState<string | undefined>();
-  const [paymentMethods, setPaymentMethods] = useState<MockSavedPaymentMethod[]>(mockSavedPaymentMethods);
-  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string | undefined>(getDefaultPaymentMethod(mockSavedPaymentMethods)?.id);
-  const [walletBalance, setWalletBalance] = useState(mockWalletStartingBalance);
-  const [walletActivity, setWalletActivity] = useState<MockWalletActivity[]>([{ id: "wallet-opening", label: "Wallet balance", detail: "Opening mock balance", amount: mockWalletStartingBalance, type: "topup", time: "1 Sep" }]);
-  const [reminders, setReminders] = useState<Record<string, boolean>>(() => Object.fromEntries(mockInvoices.filter((invoice) => invoice.status === "unpaid").map((invoice) => [invoice.id, true])));
+  const [paymentMethods, setPaymentMethods] = useState<MockSavedPaymentMethod[]>(seededPaymentMethods);
+  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string | undefined>(getDefaultPaymentMethod(seededPaymentMethods)?.id);
+  const [walletBalance, setWalletBalance] = useState(useLiveBillingActions ? 0 : mockWalletStartingBalance);
+  const [walletActivity, setWalletActivity] = useState<MockWalletActivity[]>(useLiveBillingActions ? [] : [{ id: "wallet-opening", label: "Wallet balance", detail: "Opening balance", amount: mockWalletStartingBalance, type: "topup", time: "1 Sep" }]);
+  const [reminders, setReminders] = useState<Record<string, boolean>>(() => Object.fromEntries(seededInvoices.filter((invoice) => invoice.status === "unpaid").map((invoice) => [invoice.id, true])));
 
   useEffect(() => {
     let active = true;
     void repositories.billing.listInvoices().then((records) => {
-      if (!active || !records.length) return;
+      if (!active) return;
       void writeCache(storageKeys.billingCache, records);
       const nextInvoices = records.map(mockInvoiceFromCustomerInvoice);
       setInvoices(nextInvoices);
@@ -107,12 +112,17 @@ export function CustomerBillingAccountProvider({ children }: PropsWithChildren) 
       setWalletBalance(wallet.balance);
       setWalletActivity(wallet.activity);
     }).catch(() => {
-      // Keep local deterministic payment methods and wallet when live money actions are not connected.
+      if (useLiveBillingActions) {
+        setPaymentMethods([]);
+        setSelectedPaymentMethodId(undefined);
+        setWalletBalance(0);
+        setWalletActivity([]);
+      }
     });
     return () => {
       active = false;
     };
-  }, []);
+  }, [useLiveBillingActions]);
 
   const selectedInvoice = invoices.find((invoice) => invoice.id === selectedInvoiceId);
   const selectedSavedPaymentMethod = paymentMethods.find((item) => item.id === selectedPaymentMethodId) ?? getDefaultPaymentMethod(paymentMethods);
@@ -125,6 +135,7 @@ export function CustomerBillingAccountProvider({ children }: PropsWithChildren) 
   };
   const addPaymentMethod = (method: Exclude<MockPaymentMethod, "wallet">) => {
     void repositories.billingActions.savePaymentMethod(method).then((saved) => setPaymentMethods((current) => current.some((item) => item.id === saved.id) ? current : [...current, saved])).catch(() => {
+      if (useLiveBillingActions) return;
       setPaymentMethods((current) => [...current, { id: `${method}-${current.length + 1}`, method, label: method === "mobile" ? "Mobile money" : "Bank card", detail: method === "mobile" ? "Airtel · 097 555 0124" : "Visa ·•••• 6620" }]);
     });
   };
@@ -146,8 +157,12 @@ export function CustomerBillingAccountProvider({ children }: PropsWithChildren) 
   };
   const topUpWallet = (amount: number) => {
     void repositories.billingActions.topUpWallet(amount).then((wallet) => { setWalletBalance(wallet.balance); setWalletActivity(wallet.activity); }).catch(() => {
+      if (useLiveBillingActions) {
+        setPaymentState("failed");
+        return;
+      }
       setWalletBalance((balance) => balance + amount);
-      setWalletActivity((current) => [{ id: `wallet-topup-${Date.now()}`, label: "Wallet top-up", detail: "Mock top-up confirmed", amount, type: "topup", time: "Just now" }, ...current]);
+      setWalletActivity((current) => [{ id: `wallet-topup-${Date.now()}`, label: "Wallet top-up", detail: "Top-up confirmed", amount, type: "topup", time: "Just now" }, ...current]);
     });
   };
   const toggleInvoiceReminder = (invoiceId: string) => setReminders((current) => { const enabled = !current[invoiceId]; void repositories.billingActions.setInvoiceReminder(invoiceId, enabled).catch(() => undefined); return { ...current, [invoiceId]: enabled }; });
