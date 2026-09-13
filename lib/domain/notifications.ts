@@ -4,6 +4,20 @@ export type NotificationPreferences = {
   marketing: boolean;
 };
 
+export type CustomerNotificationTone = "info" | "success" | "warning" | "error";
+
+export type CustomerNotification = {
+  id: string;
+  title: string;
+  detail: string;
+  type: "progress" | "arrival" | "payment" | "exception" | "general";
+  tone: CustomerNotificationTone;
+  icon: string;
+  route?: string;
+  displayTime?: string;
+  unread: boolean;
+};
+
 export type NotificationPreferenceSnapshot = NotificationPreferences & {
   pushRegistered?: boolean;
 };

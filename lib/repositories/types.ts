@@ -10,7 +10,7 @@ import type { CreateSupportCaseInput, SupportCase } from "@/lib/domain/support";
 import type { TrackingResult } from "@/lib/domain/tracking";
 import type { UploadedDocument, UploadFile } from "@/lib/domain/upload";
 import type { AddressBookItem, AddressBookKind } from "@/lib/domain/address-book";
-import type { NotificationPreferenceSnapshot, NotificationPreferences } from "@/lib/domain/notifications";
+import type { CustomerNotification, NotificationPreferenceSnapshot, NotificationPreferences } from "@/lib/domain/notifications";
 
 export type AuthRepository = {
   signIn(input: SignInInput): Promise<AuthSession>;
@@ -57,6 +57,7 @@ export type BillingActionsRepository = {
 
 export type BookingRepository = {
   listDrafts(): Promise<BookingDraftSummary[]>;
+  deleteDraft?(id: string): Promise<void>;
   submitBooking(input: BookingSubmissionInput): Promise<BookingSubmissionResult>;
 };
 
@@ -98,6 +99,12 @@ export type NotificationPreferencesRepository = {
   updatePreferences(input: Partial<NotificationPreferences>): Promise<NotificationPreferenceSnapshot>;
   registerPushToken(): Promise<NotificationPreferenceSnapshot>;
   revokePushToken(): Promise<void>;
+};
+
+export type NotificationsRepository = {
+  listNotifications(): Promise<CustomerNotification[]>;
+  markRead(id: string): Promise<CustomerNotification | null>;
+  markAllRead(): Promise<void>;
 };
 
 export type UploadRepository = {

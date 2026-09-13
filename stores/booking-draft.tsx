@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
 import type { BookingStep, CustomRequestDraft, ImportBookingDraft, IntercityBookingDraft, LocalDeliveryDraft } from "@/types/cargo";
-import { mockBookingDraftRecords, type MockBookingDraftRecord } from "@/lib/mock-booking-drafts";
+import { type MockBookingDraftRecord } from "@/lib/mock-booking-drafts";
 import { repositories } from "@/lib/repositories";
 import { readStoredDraftSummaries, writeStoredDraftSummaries } from "@/lib/storage/draft-storage";
 
@@ -35,12 +35,12 @@ export function BookingDraftProvider({ children }: PropsWithChildren) {
   const [importDraft, setImportDraft] = useState<ImportBookingDraft>(freshImportDraft);
   const [intercityDraft, setIntercityDraft] = useState<IntercityBookingDraft>(freshIntercityDraft);
   const [customDraft, setCustomDraft] = useState<CustomRequestDraft>(freshCustomDraft);
-  const [savedDrafts, setSavedDrafts] = useState(mockBookingDraftRecords);
+  const [savedDrafts, setSavedDrafts] = useState<MockBookingDraftRecord[]>([]);
   useEffect(() => {
     let active = true;
-    void readStoredDraftSummaries()
-      .then(async (stored) => {
-        const summaries = stored.length ? stored : await repositories.bookings.listDrafts();
+    void repositories.bookings.listDrafts()
+      .catch(() => readStoredDraftSummaries())
+      .then((summaries) => {
         if (!active) return;
         setSavedDrafts(summaries.map((draft) => ({
           id: draft.id,
@@ -66,6 +66,10 @@ export function BookingDraftProvider({ children }: PropsWithChildren) {
       updatedAt: draft.updatedAt,
     })));
   }, [savedDrafts]);
+  const removeSavedDraft = (id: string) => {
+    setSavedDrafts((drafts) => drafts.filter((draft) => draft.id !== id));
+    void repositories.bookings.deleteDraft?.(id).catch(() => undefined);
+  };
   const value = useMemo<BookingDraftContextValue>(() => ({
     localDraft,
     updateLocalDraft: (patch) => setLocalDraft((draft) => ({ ...draft, ...patch })),
@@ -90,7 +94,7 @@ export function BookingDraftProvider({ children }: PropsWithChildren) {
       if (saved.service === "custom") setCustomDraft({ ...freshCustomDraft(), pickup: { city: "Lusaka", area: "Woodlands", detail: "Chindo Road", label: "Woodlands" }, destination: { city: "Ndola", area: "Town Centre", detail: "Broadway", label: "Ndola" } });
       return saved.resumeHref;
     },
-    deleteSavedDraft: (id) => setSavedDrafts((drafts) => drafts.filter((draft) => draft.id !== id)),
+    deleteSavedDraft: removeSavedDraft,
   }), [localDraft, importDraft, intercityDraft, customDraft, savedDrafts]);
   return <BookingDraftContext.Provider value={value}>{children}</BookingDraftContext.Provider>;
 }

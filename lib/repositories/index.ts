@@ -9,6 +9,7 @@ import { mockBookingRepository } from "@/lib/adapters/mock/mock-booking-adapter"
 import { mockCustomerRepository } from "@/lib/adapters/mock/mock-customer-adapter";
 import { mockPickupRepository } from "@/lib/adapters/mock/mock-pickup-adapter";
 import { mockNotificationPreferencesRepository } from "@/lib/adapters/mock/mock-notification-preferences-adapter";
+import { mockNotificationsRepository } from "@/lib/adapters/mock/mock-notifications-adapter";
 import { mockReturnRequestRepository } from "@/lib/adapters/mock/mock-return-request-adapter";
 import { mockShipmentRepository } from "@/lib/adapters/mock/mock-shipment-adapter";
 import { mockSupportRepository } from "@/lib/adapters/mock/mock-support-adapter";
@@ -23,6 +24,7 @@ import { laravelBookingRepository } from "@/lib/adapters/laravel/laravel-booking
 import { laravelCustomerRepository } from "@/lib/adapters/laravel/laravel-customer-adapter";
 import { laravelPickupRepository } from "@/lib/adapters/laravel/laravel-pickup-adapter";
 import { laravelNotificationPreferencesRepository } from "@/lib/adapters/laravel/laravel-notification-preferences-adapter";
+import { laravelNotificationsRepository } from "@/lib/adapters/laravel/laravel-notifications-adapter";
 import { laravelReturnRequestRepository } from "@/lib/adapters/laravel/laravel-return-request-adapter";
 import { laravelShipmentRepository } from "@/lib/adapters/laravel/laravel-shipment-adapter";
 import { laravelSupportRepository } from "@/lib/adapters/laravel/laravel-support-adapter";
@@ -44,5 +46,6 @@ export const repositories = {
   pickups: shouldUseLaravel(featureFlags.useLaravelPickups) ? laravelPickupRepository : mockPickupRepository,
   accountSettings: shouldUseLaravel(featureFlags.useLaravelAccountSettings) ? laravelAccountSettingsRepository : mockAccountSettingsRepository,
   notificationPreferences: shouldUseLaravel(featureFlags.useLaravelAccountSettings) ? laravelNotificationPreferencesRepository : mockNotificationPreferencesRepository,
+  notifications: shouldUseLaravel(featureFlags.useLaravelAccountSettings) ? laravelNotificationsRepository : mockNotificationsRepository,
   uploads: shouldUseLaravel(featureFlags.useLaravelAuth) ? laravelUploadRepository : mockUploadRepository,
 };

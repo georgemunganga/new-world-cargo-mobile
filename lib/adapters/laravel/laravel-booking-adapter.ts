@@ -29,6 +29,9 @@ export const laravelBookingRepository: BookingRepository = {
     const response = await apiClient.get<{ data: LaravelDraftResponse[] }>("/api/v1/shipment-drafts");
     return response.data.map(mapDraft);
   },
+  async deleteDraft(id) {
+    await apiClient.delete(`/api/v1/shipment-drafts/${encodeURIComponent(id)}`);
+  },
   async submitBooking(input) {
     const draft = await apiClient.post<{ data: LaravelDraftResponse }>("/api/v1/shipment-drafts", {
       payload: {
