@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { AppIcon, type AppIconName } from "@/components/ui/app-icon";
-import { searchRouteSuggestions, type RouteSearchScope, type RouteSuggestion } from "@/lib/route-autocomplete";
+import { loadRouteReferenceData, searchRouteSuggestions, type RouteSearchScope, type RouteSuggestion } from "@/lib/route-autocomplete";
 import { nwcColors } from "@/lib/nwc-theme";
 
 type RoutePoint = { value: string; detail: string };
@@ -10,7 +10,17 @@ type RouteTarget = "from" | "to";
 export function RouteEntryCard({ from, to, scope, onSuggestionSelect, onManualEntryPress, onActiveTargetChange, accessibilityHint, fromLabel = "From where?", toLabel = "To where?" }: { from: RoutePoint; to: RoutePoint; scope: RouteSearchScope; onSuggestionSelect: (target: RouteTarget, suggestion: RouteSuggestion) => void; onManualEntryPress?: (target: RouteTarget) => void; onActiveTargetChange?: (target: RouteTarget | null) => void; accessibilityHint?: string; fromLabel?: string; toLabel?: string }) {
   const [active, setActive] = useState<RouteTarget | null>(null);
   const [query, setQuery] = useState("");
-  const results = useMemo(() => active ? searchRouteSuggestions(scope, query) : [], [active, query, scope]);
+  const [referenceVersion, setReferenceVersion] = useState(0);
+  useEffect(() => {
+    let mounted = true;
+    void loadRouteReferenceData().then(() => {
+      if (mounted) setReferenceVersion((value) => value + 1);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+  const results = useMemo(() => active ? searchRouteSuggestions(scope, query) : [], [active, query, scope, referenceVersion]);
   const open = (target: RouteTarget) => { setActive(target); setQuery(""); onActiveTargetChange?.(target); };
   const select = (suggestion: RouteSuggestion) => { if (!active) return; const next = active === "from" ? "to" : null; onSuggestionSelect(active, suggestion); setQuery(""); setActive(next); onActiveTargetChange?.(next); };
   const openManualEntry = (target: RouteTarget) => { setActive(null); setQuery(""); onActiveTargetChange?.(null); onManualEntryPress?.(target); };

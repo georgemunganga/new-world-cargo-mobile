@@ -1,4 +1,6 @@
 import type { Address } from "@/types/cargo";
+import { apiClient } from "@/lib/api/client";
+import { featureFlags } from "@/lib/config/feature-flags";
 
 export type RouteSearchScope = "local" | "intercity" | "import" | "custom";
 export type RouteSuggestion = {
@@ -42,9 +44,53 @@ const suggestions: Record<RouteSearchScope, RouteSuggestion[]> = {
   ],
 };
 
+let liveBranchSuggestions: RouteSuggestion[] = [];
+let liveReferenceDataPromise: Promise<RouteSuggestion[]> | null = null;
+
+type PortalReferenceData = {
+  offices?: Array<{ id?: string | number; name?: string; address?: string | null; detail?: string | null }>;
+};
+
+function inferCity(value: string) {
+  const text = value.toLowerCase();
+  if (text.includes("kitwe")) return "Kitwe";
+  if (text.includes("zimbabwe") || text.includes("harare")) return "Harare";
+  if (text.includes("china") || text.includes("guangzhou")) return "Guangzhou";
+  if (text.includes("dubai") || text.includes("emirates")) return "Dubai";
+  return "Lusaka";
+}
+
+function mapOfficeToSuggestion(office: NonNullable<PortalReferenceData["offices"]>[number]): RouteSuggestion {
+  const label = office.name || "New WorldCargo branch";
+  const detail = office.detail || office.address || "New WorldCargo branch";
+  const city = inferCity(`${label} ${detail}`);
+  return {
+    id: `branch-${office.id ?? label}`,
+    label,
+    detail,
+    city,
+    area: city,
+    country: city === "Harare" ? "Zimbabwe" : city === "Guangzhou" ? "China" : city === "Dubai" ? "United Arab Emirates" : "Zambia",
+    kind: "branch",
+  };
+}
+
+export function loadRouteReferenceData() {
+  if (!featureFlags.useLaravelBookings && !featureFlags.useLaravelAddressBook) return Promise.resolve(liveBranchSuggestions);
+  if (liveReferenceDataPromise) return liveReferenceDataPromise;
+  liveReferenceDataPromise = apiClient.get<{ data: PortalReferenceData }>("/api/v1/reference-data", { auth: false })
+    .then((response) => {
+      liveBranchSuggestions = (response.data.offices ?? []).map(mapOfficeToSuggestion);
+      return liveBranchSuggestions;
+    })
+    .catch(() => liveBranchSuggestions);
+  return liveReferenceDataPromise;
+}
+
 export function searchRouteSuggestions(scope: RouteSearchScope, query: string) {
   const normalized = query.trim().toLowerCase();
-  const pool = suggestions[scope];
+  const branchPool = scope === "import" ? liveBranchSuggestions : liveBranchSuggestions.filter((item) => item.city !== "Guangzhou" && item.city !== "Dubai");
+  const pool = [...branchPool, ...suggestions[scope]].filter((item, index, list) => index === list.findIndex((candidate) => candidate.id === item.id || candidate.label.toLowerCase() === item.label.toLowerCase()));
   if (!normalized) return pool.slice(0, 5);
   return pool.filter((item) => [item.label, item.detail, item.city, item.area, item.country].filter(Boolean).join(" ").toLowerCase().includes(normalized)).slice(0, 6);
 }
