@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MobileApiError, apiCodeFromStatus, customerSafeMessageFor } from "../lib/api/errors";
+import { MobileApiError, apiCodeFromServer, apiCodeFromStatus, customerSafeMessageFor } from "../lib/api/errors";
 
 describe("mobile API errors", () => {
   it("maps Laravel-style HTTP statuses into mobile error codes", () => {
@@ -7,6 +7,12 @@ describe("mobile API errors", () => {
     expect(apiCodeFromStatus(403)).toBe("FORBIDDEN");
     expect(apiCodeFromStatus(422)).toBe("VALIDATION_FAILED");
     expect(apiCodeFromStatus(500)).toBe("SERVER_ERROR");
+  });
+
+  it("preserves Laravel portal API error codes that carry product meaning", () => {
+    expect(apiCodeFromServer("CONTACT_UNVERIFIED")).toBe("CONTACT_UNVERIFIED");
+    expect(apiCodeFromServer("CURRENT_PASSWORD_INVALID")).toBe("CURRENT_PASSWORD_INVALID");
+    expect(apiCodeFromServer("SOMETHING_NEW")).toBeNull();
   });
 
   it("keeps customer-safe messages available for UI states", () => {

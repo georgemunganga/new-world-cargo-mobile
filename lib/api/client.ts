@@ -1,6 +1,6 @@
 import { mobileEnv } from "@/lib/config/env";
 import { getSessionToken } from "@/lib/_core/auth";
-import { MobileApiError, apiCodeFromStatus, type FieldErrors } from "./errors";
+import { MobileApiError, apiCodeFromServer, apiCodeFromStatus, type FieldErrors } from "./errors";
 
 export type ApiClientOptions = {
   baseUrl?: string;
@@ -14,12 +14,27 @@ export type ApiRequestOptions = RequestInit & {
 };
 
 const DEFAULT_TIMEOUT_MS = 15000;
+const CSRF_COOKIE_NAME = "nwc_csrf";
+const CSRF_HEADER_NAME = "X-CSRF-Token";
 
 function joinUrl(baseUrl: string, endpoint: string) {
   if (!baseUrl) return endpoint;
   const cleanBase = baseUrl.replace(/\/$/, "");
   const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
   return `${cleanBase}${cleanEndpoint}`;
+}
+
+function readCookie(name: string) {
+  if (typeof document === "undefined") return "";
+  const cookies = document.cookie ? document.cookie.split(";") : [];
+  const prefix = `${name}=`;
+  const match = cookies.map((cookie) => cookie.trim()).find((cookie) => cookie.startsWith(prefix));
+  return match ? decodeURIComponent(match.slice(prefix.length)) : "";
+}
+
+function isUnsafeMethod(method?: string) {
+  const value = (method ?? "GET").toUpperCase();
+  return value !== "GET" && value !== "HEAD" && value !== "OPTIONS";
 }
 
 async function parseErrorResponse(response: Response) {
@@ -37,6 +52,7 @@ async function parseErrorResponse(response: Response) {
     const nested = typeof json.error === "object" ? json.error : undefined;
     return {
       message: nested?.message ?? json.message ?? (typeof json.error === "string" ? json.error : response.statusText),
+      code: nested?.code,
       fieldErrors: nested?.fieldErrors ?? json.errors,
       requestId: nested ? json.requestId ?? requestId : json.requestId ?? requestId,
       retryable: nested?.retryable,
@@ -65,16 +81,22 @@ export function createApiClient(options: ApiClientOptions = {}) {
       if (token) headers.Authorization = `Bearer ${token}`;
     }
 
+    if (isUnsafeMethod(requestOptions.method) && !headers[CSRF_HEADER_NAME]) {
+      const csrf = readCookie(CSRF_COOKIE_NAME);
+      if (csrf) headers[CSRF_HEADER_NAME] = csrf;
+    }
+
     try {
       const response = await fetch(joinUrl(baseUrl, endpoint), {
         ...requestOptions,
         headers,
+        credentials: requestOptions.credentials ?? "include",
         signal: requestOptions.signal ?? controller.signal,
       });
 
       if (!response.ok) {
         const details = await parseErrorResponse(response);
-        throw new MobileApiError(apiCodeFromStatus(response.status), details.message || "Request failed.", {
+        throw new MobileApiError(apiCodeFromServer(details.code) ?? apiCodeFromStatus(response.status), details.message || "Request failed.", {
           status: response.status,
           fieldErrors: details.fieldErrors,
           requestId: details.requestId,

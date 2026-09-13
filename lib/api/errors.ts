@@ -2,9 +2,17 @@ export type MobileApiErrorCode =
   | "BAD_REQUEST"
   | "UNAUTHENTICATED"
   | "FORBIDDEN"
+  | "CONTACT_UNVERIFIED"
   | "NOT_FOUND"
   | "CONFLICT"
   | "VALIDATION_FAILED"
+  | "CSRF_TOKEN_MISMATCH"
+  | "OTP_INVALID"
+  | "OTP_EXPIRED"
+  | "OTP_ATTEMPTS_EXCEEDED"
+  | "CURRENT_PASSWORD_INVALID"
+  | "PASSWORD_RESET_INVALID"
+  | "DEPENDENCY_UNAVAILABLE"
   | "RATE_LIMITED"
   | "SERVER_ERROR"
   | "NETWORK_UNAVAILABLE"
@@ -34,6 +42,32 @@ export function apiCodeFromStatus(status: number): MobileApiErrorCode {
   if (status === 429) return "RATE_LIMITED";
   if (status >= 500) return "SERVER_ERROR";
   return "UNKNOWN";
+}
+
+export function apiCodeFromServer(code?: string): MobileApiErrorCode | null {
+  if (!code) return null;
+  const supported: MobileApiErrorCode[] = [
+    "BAD_REQUEST",
+    "UNAUTHENTICATED",
+    "FORBIDDEN",
+    "CONTACT_UNVERIFIED",
+    "NOT_FOUND",
+    "CONFLICT",
+    "VALIDATION_FAILED",
+    "CSRF_TOKEN_MISMATCH",
+    "OTP_INVALID",
+    "OTP_EXPIRED",
+    "OTP_ATTEMPTS_EXCEEDED",
+    "CURRENT_PASSWORD_INVALID",
+    "PASSWORD_RESET_INVALID",
+    "DEPENDENCY_UNAVAILABLE",
+    "RATE_LIMITED",
+    "SERVER_ERROR",
+    "NETWORK_UNAVAILABLE",
+    "TIMEOUT",
+    "UNKNOWN",
+  ];
+  return supported.includes(code as MobileApiErrorCode) ? (code as MobileApiErrorCode) : null;
 }
 
 export function customerSafeMessageFor(error: unknown) {
