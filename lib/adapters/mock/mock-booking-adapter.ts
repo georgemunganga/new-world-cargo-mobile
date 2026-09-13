@@ -9,6 +9,7 @@ export const mockBookingRepository: BookingRepository = {
       title: draft.title,
       progressLabel: `${draft.stepLabel} · ${draft.progress}`,
       updatedAt: draft.updatedAt,
+      payload: draft.payload,
     }));
   },
   async submitBooking(input) {

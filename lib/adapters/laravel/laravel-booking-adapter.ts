@@ -9,7 +9,7 @@ import type { PortalShipment } from "./portal-shipment-contract";
 type LaravelDraftResponse = {
   id: string | number;
   status?: string;
-  payload?: { service?: BookingDraftSummary["service"]; title?: string; progressLabel?: string; form?: Record<string, unknown> };
+  payload?: { service?: BookingDraftSummary["service"]; title?: string; progressLabel?: string; form?: Record<string, unknown>; draft?: unknown; cargoRows?: unknown[] };
   updatedAt?: string;
   createdAt?: string;
   revision?: number;
@@ -17,12 +17,15 @@ type LaravelDraftResponse = {
 
 function mapDraft(raw: LaravelDraftResponse): BookingDraftSummary {
   const service = raw.payload?.service ?? "custom";
+  const form = raw.payload?.form ?? {};
+  const route = [form.pickup, form.destination].filter(Boolean).join(" → ");
   return {
     id: String(raw.id),
     service,
-    title: raw.payload?.title ?? `${service[0].toUpperCase()}${service.slice(1)} shipment draft`,
+    title: raw.payload?.title ?? (route || `${service[0].toUpperCase()}${service.slice(1)} shipment draft`),
     progressLabel: raw.payload?.progressLabel ?? (raw.status === "quoted" ? "Quote ready" : "Draft in progress"),
     updatedAt: raw.updatedAt ?? raw.createdAt ?? "Recently",
+    payload: raw.payload,
   };
 }
 

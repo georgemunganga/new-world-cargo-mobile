@@ -1,7 +1,7 @@
 import type { ServiceType } from "@/types/cargo";
 
 export type BookingDraftService = ServiceType | "custom";
-export type MockBookingDraftRecord = { id: string; service: BookingDraftService; title: string; route: string; stepLabel: string; progress: string; updatedAt: string; resumeHref: string };
+export type MockBookingDraftRecord = { id: string; service: BookingDraftService; title: string; route: string; stepLabel: string; progress: string; updatedAt: string; resumeHref: string; payload?: unknown };
 
 export const mockBookingDraftRecords: MockBookingDraftRecord[] = [
   { id: "draft-local", service: "local", title: "Local Delivery", route: "Manda Hill → Kabulonga", stepLabel: "Add receiver", progress: "2 of 5", updatedAt: "Updated 12 min ago", resumeHref: "/local-delivery/contacts" },

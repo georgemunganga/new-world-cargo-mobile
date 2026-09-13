@@ -6,6 +6,7 @@ export type BookingDraftSummary = {
   title: string;
   progressLabel: string;
   updatedAt: string;
+  payload?: unknown;
 };
 
 export type BookingSubmissionInput = {

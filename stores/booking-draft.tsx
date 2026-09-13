@@ -9,6 +9,45 @@ const freshImportDraft = (): ImportBookingDraft => ({ service: "import", quantit
 const freshIntercityDraft = (): IntercityBookingDraft => ({ service: "intercity", quantity: 1, fulfilment: "collection", schedule: "next_available" });
 const freshCustomDraft = (): CustomRequestDraft => ({ service: "custom" });
 
+function objectValue(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" ? value as Record<string, unknown> : null;
+}
+
+function draftFromPayload<T>(payload: unknown): Partial<T> | null {
+  const record = objectValue(payload);
+  const draft = objectValue(record?.draft);
+  return draft ? draft as Partial<T> : null;
+}
+
+function progressParts(progressLabel: string) {
+  const [stepLabel, progress] = progressLabel.split(" · ");
+  return { stepLabel: stepLabel || "Draft in progress", progress: progress || "Saved" };
+}
+
+function resumeHrefFor(service: MockBookingDraftRecord["service"], draft: Record<string, unknown> | null) {
+  if (service === "local") {
+    if (!draft?.pickup || !draft?.destination) return "/local-delivery/route";
+    if (!draft?.cargoItems && !draft?.parcelDescription && !draft?.cargoDescription) return "/local-delivery/parcel";
+    if (!draft?.sender || !draft?.receiver) return "/local-delivery/contacts";
+    return "/local-delivery/review";
+  }
+  if (service === "import") {
+    if (!draft?.originCity || !draft?.destinationCity) return "/import/route";
+    if (!draft?.cargoItems && !draft?.cargoDescription && !draft?.cargoCategory) return "/import/cargo";
+    if (!draft?.consignee) return "/import/consignee";
+    return "/import/review";
+  }
+  if (service === "intercity") {
+    if (!draft?.originCity || !draft?.destinationCity) return "/intercity/route";
+    if (!draft?.cargoItems && !draft?.cargoDescription && !draft?.cargoCategory) return "/intercity/cargo";
+    if (!draft?.sender || !draft?.receiver) return "/intercity/contacts";
+    return "/intercity/review";
+  }
+  if (!draft?.pickup || !draft?.destination) return "/custom/route";
+  if (!draft?.cargoItems && !draft?.cargoDescription && !draft?.requestType) return "/custom/details";
+  return "/custom/review";
+}
+
 type BookingDraftContextValue = {
   localDraft: LocalDeliveryDraft;
   updateLocalDraft: (patch: Partial<LocalDeliveryDraft>) => void;
@@ -42,16 +81,23 @@ export function BookingDraftProvider({ children }: PropsWithChildren) {
       .catch(() => readStoredDraftSummaries())
       .then((summaries) => {
         if (!active) return;
-        setSavedDrafts(summaries.map((draft) => ({
-          id: draft.id,
-          service: draft.service,
-          title: draft.title,
-          route: "Route to confirm",
-          stepLabel: draft.progressLabel,
-          progress: draft.progressLabel,
-          updatedAt: draft.updatedAt,
-          resumeHref: draft.service === "local" ? "/local-delivery/contacts" : draft.service === "import" ? "/import/cargo" : draft.service === "intercity" ? "/intercity/cargo" : "/custom/details",
-        })));
+        setSavedDrafts(summaries.map((draft) => {
+          const payload = objectValue(draft.payload);
+          const form = objectValue(payload?.form);
+          const savedDraft = objectValue(payload?.draft);
+          const progress = progressParts(draft.progressLabel);
+          return {
+            id: draft.id,
+            service: draft.service,
+            title: draft.title,
+            route: [form?.pickup, form?.destination].filter(Boolean).join(" → ") || "Route to confirm",
+            stepLabel: progress.stepLabel,
+            progress: progress.progress,
+            updatedAt: draft.updatedAt,
+            resumeHref: resumeHrefFor(draft.service, savedDraft),
+            payload: draft.payload,
+          };
+        }));
       });
     return () => {
       active = false;
@@ -88,10 +134,10 @@ export function BookingDraftProvider({ children }: PropsWithChildren) {
     resumeSavedDraft: (id) => {
       const saved = savedDrafts.find((draft) => draft.id === id);
       if (!saved) return undefined;
-      if (saved.service === "local") setLocalDraft({ ...freshDraft(), step: "contacts", pickup: { city: "Lusaka", area: "Olympia", detail: "Manda Hill Road", label: "Manda Hill" }, destination: { city: "Lusaka", area: "Kabulonga", detail: "Bishop Road", label: "Kabulonga" }, parcelCategory: "Parcel", parcelDescription: "Small cargo parcel", quantity: 1, vehicle: "scooter" });
-      if (saved.service === "import") setImportDraft({ ...freshImportDraft(), method: "air", originCountry: "China", originCity: "Guangzhou", destinationCity: "Lusaka", cargoCategory: "General cargo", quantity: 1 });
-      if (saved.service === "intercity") setIntercityDraft({ ...freshIntercityDraft(), originCity: "Lusaka", destinationCity: "Kitwe", cargoCategory: "Parcel", quantity: 1 });
-      if (saved.service === "custom") setCustomDraft({ ...freshCustomDraft(), pickup: { city: "Lusaka", area: "Woodlands", detail: "Chindo Road", label: "Woodlands" }, destination: { city: "Ndola", area: "Town Centre", detail: "Broadway", label: "Ndola" } });
+      if (saved.service === "local") setLocalDraft({ ...freshDraft(), ...(draftFromPayload<LocalDeliveryDraft>(saved.payload) ?? { step: "contacts", pickup: { city: "Lusaka", area: "Olympia", detail: "Manda Hill Road", label: "Manda Hill" }, destination: { city: "Lusaka", area: "Kabulonga", detail: "Bishop Road", label: "Kabulonga" }, parcelCategory: "Parcel", parcelDescription: "Small cargo parcel", quantity: 1, vehicle: "scooter" }) });
+      if (saved.service === "import") setImportDraft({ ...freshImportDraft(), ...(draftFromPayload<ImportBookingDraft>(saved.payload) ?? { method: "air", originCountry: "China", originCity: "Guangzhou", destinationCity: "Lusaka", cargoCategory: "General cargo", quantity: 1 }) });
+      if (saved.service === "intercity") setIntercityDraft({ ...freshIntercityDraft(), ...(draftFromPayload<IntercityBookingDraft>(saved.payload) ?? { originCity: "Lusaka", destinationCity: "Kitwe", cargoCategory: "Parcel", quantity: 1 }) });
+      if (saved.service === "custom") setCustomDraft({ ...freshCustomDraft(), ...(draftFromPayload<CustomRequestDraft>(saved.payload) ?? { pickup: { city: "Lusaka", area: "Woodlands", detail: "Chindo Road", label: "Woodlands" }, destination: { city: "Ndola", area: "Town Centre", detail: "Broadway", label: "Ndola" } }) });
       return saved.resumeHref;
     },
     deleteSavedDraft: removeSavedDraft,
