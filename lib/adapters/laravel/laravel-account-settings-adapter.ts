@@ -1,22 +1,40 @@
+import { apiClient } from "@/lib/api/client";
+import type { AccountSettingsSnapshot } from "@/lib/domain/account-settings";
 import type { AccountSettingsRepository } from "@/lib/repositories/types";
-import { missingPortalContract } from "./portal-contract-gap";
+
+type LaravelAccountSettingsResponse = AccountSettingsSnapshot & {
+  customerId?: string;
+  revision?: number;
+};
+
+function mapSettings(raw: LaravelAccountSettingsResponse): AccountSettingsSnapshot {
+  return {
+    devices: raw.devices ?? [],
+    marketingEnabled: Boolean(raw.marketingEnabled),
+    dataExportRequested: Boolean(raw.dataExportRequested),
+    deletionRequested: Boolean(raw.deletionRequested),
+  };
+}
 
 export const laravelAccountSettingsRepository: AccountSettingsRepository = {
   async getSettings() {
-    missingPortalContract("Account settings snapshot");
+    const response = await apiClient.get<{ data: LaravelAccountSettingsResponse }>("/api/v1/account/settings");
+    return mapSettings(response.data);
   },
   async revokeDevice(id) {
-    void id;
-    missingPortalContract("Recognized device revocation");
+    const response = await apiClient.delete<{ data: LaravelAccountSettingsResponse }>(`/api/v1/account/devices/${encodeURIComponent(id)}`);
+    return mapSettings(response.data);
   },
   async setMarketingEnabled(enabled) {
-    void enabled;
-    missingPortalContract("Marketing preference updates");
+    const response = await apiClient.patch<{ data: LaravelAccountSettingsResponse }>("/api/v1/account/marketing", { enabled });
+    return mapSettings(response.data);
   },
   async requestDataExport() {
-    missingPortalContract("Customer data export request");
+    const response = await apiClient.post<{ data: LaravelAccountSettingsResponse }>("/api/v1/account/data-export");
+    return mapSettings(response.data);
   },
   async requestAccountDeletion() {
-    missingPortalContract("Customer account deletion request");
+    const response = await apiClient.post<{ data: LaravelAccountSettingsResponse }>("/api/v1/account/deletion-request");
+    return mapSettings(response.data);
   },
 };

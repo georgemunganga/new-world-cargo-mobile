@@ -1,7 +1,6 @@
 import { apiClient } from "@/lib/api/client";
 import type { Pickup, PickupStatus } from "@/lib/domain/pickup";
 import type { PickupRepository } from "@/lib/repositories/types";
-import { missingPortalContract } from "./portal-contract-gap";
 
 type LaravelPickupResponse = {
   id?: string | number;
@@ -34,20 +33,19 @@ export const laravelPickupRepository: PickupRepository = {
     return response.data ? [mapPickup(response.data)] : [];
   },
   async reschedulePickup(shipmentId, slotId) {
-    void shipmentId;
-    void slotId;
-    missingPortalContract("Pickup reschedule by shipment ID");
+    const response = await apiClient.patch<{ data: LaravelPickupResponse }>(`/api/v1/pickups/by-shipment/${encodeURIComponent(shipmentId)}/reschedule`, { slotId });
+    return mapPickup(response.data);
   },
   async cancelPickup(shipmentId) {
-    void shipmentId;
-    missingPortalContract("Pickup cancel by shipment ID");
+    const response = await apiClient.patch<{ data: LaravelPickupResponse }>(`/api/v1/pickups/by-shipment/${encodeURIComponent(shipmentId)}/cancel`);
+    return mapPickup(response.data);
   },
   async requestPickupHelp(shipmentId) {
-    void shipmentId;
-    missingPortalContract("Pickup help request");
+    const response = await apiClient.patch<{ data: LaravelPickupResponse }>(`/api/v1/pickups/by-shipment/${encodeURIComponent(shipmentId)}/help`);
+    return mapPickup(response.data);
   },
   async restorePickup(shipmentId) {
-    void shipmentId;
-    missingPortalContract("Pickup restore");
+    const response = await apiClient.patch<{ data: LaravelPickupResponse }>(`/api/v1/pickups/by-shipment/${encodeURIComponent(shipmentId)}/restore`);
+    return mapPickup(response.data);
   },
 };

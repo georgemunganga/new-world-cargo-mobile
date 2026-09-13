@@ -1,14 +1,14 @@
 import { apiClient } from "@/lib/api/client";
 import type { AddressBookItem, AddressBookKind } from "@/lib/domain/address-book";
 import type { AddressBookRepository } from "@/lib/repositories/types";
-import { missingPortalContract } from "./portal-contract-gap";
 
 function endpointFor(kind: AddressBookKind, id?: string) {
-  const base = kind === "places" ? "/api/v1/addresses" : "/api/v1/recipients";
+  const base = kind === "places" ? "/api/v1/saved-places" : "/api/v1/recipients";
   return id ? `${base}/${encodeURIComponent(id)}` : base;
 }
 
 type LaravelRecipientResponse = { id: string | number; name?: string; address?: string; phone?: string; countryCode?: string | null };
+type LaravelSavedPlaceResponse = { id: string | number; label?: string; detail?: string; address?: string };
 
 function mapRecipient(raw: LaravelRecipientResponse): AddressBookItem {
   return {
@@ -27,24 +27,34 @@ function recipientPayload(item: Omit<AddressBookItem, "id"> & { id?: string }) {
   };
 }
 
+function mapSavedPlace(raw: LaravelSavedPlaceResponse): AddressBookItem {
+  return {
+    id: String(raw.id),
+    label: raw.label ?? "Saved place",
+    detail: raw.detail ?? raw.address ?? "Saved location",
+  };
+}
+
 export const laravelAddressBookRepository: AddressBookRepository = {
   async listRecipients() {
     const response = await apiClient.get<{ data: LaravelRecipientResponse[] }>("/api/v1/recipients");
     return response.data.map(mapRecipient);
   },
   async listSavedPlaces() {
-    missingPortalContract("Saved places list compatible with the mobile simple address-book UI");
+    const response = await apiClient.get<{ data: LaravelSavedPlaceResponse[] }>("/api/v1/saved-places");
+    return response.data.map(mapSavedPlace);
   },
   async saveDirectoryItem(kind, item) {
-    if (kind === "places") missingPortalContract("Saved places create/update compatible with the mobile simple address-book UI");
     const endpoint = endpointFor(kind, item.id);
-    const response = item.id
-      ? await apiClient.patch<{ data: LaravelRecipientResponse }>(endpoint, recipientPayload(item))
-      : await apiClient.post<{ data: LaravelRecipientResponse }>(endpoint, recipientPayload(item));
+    if (kind === "places") {
+      const payload = { label: item.label, detail: item.detail };
+      const response = item.id ? await apiClient.patch<{ data: LaravelSavedPlaceResponse }>(endpoint, payload) : await apiClient.post<{ data: LaravelSavedPlaceResponse }>(endpoint, payload);
+      return mapSavedPlace(response.data);
+    }
+    const response = item.id ? await apiClient.patch<{ data: LaravelRecipientResponse }>(endpoint, recipientPayload(item)) : await apiClient.post<{ data: LaravelRecipientResponse }>(endpoint, recipientPayload(item));
     return mapRecipient(response.data);
   },
   async removeDirectoryItem(kind, id) {
-    if (kind === "places") missingPortalContract("Saved places delete compatible with the mobile simple address-book UI");
     await apiClient.delete(endpointFor(kind, id));
   },
 };
