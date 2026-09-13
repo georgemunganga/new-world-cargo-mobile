@@ -28,14 +28,13 @@ async function fileBlob(file: UploadFile) {
   return response.blob();
 }
 
-export const laravelUploadRepository: UploadRepository = {
-  async uploadProfilePhoto(file: UploadFile) {
+async function uploadFile(file: UploadFile, purpose = "attachment") {
     const blob = await fileBlob(file);
     const intent = await apiClient.post<{ data: UploadIntentResponse }>("/api/v1/files/upload-intents", {
       fileName: file.name,
       contentType: file.type,
       sizeBytes: file.size ?? blob.size,
-      purpose: "profile-photo",
+      purpose,
     });
     const upload = await fetch(absoluteUploadUrl(intent.data.uploadUrl), {
       method: "PUT",
@@ -46,7 +45,7 @@ export const laravelUploadRepository: UploadRepository = {
       credentials: intent.data.requiresPortalAuth ? "include" : "same-origin",
       body: blob,
     });
-    if (!upload.ok) throw new Error("Profile photo upload failed. Please try again.");
+    if (!upload.ok) throw new Error("File upload failed. Please try again.");
 
     const completed = await apiClient.post<{ data: PortalFileResponse }>(`/api/v1/files/${encodeURIComponent(intent.data.fileId)}/complete`);
     return {
@@ -55,5 +54,11 @@ export const laravelUploadRepository: UploadRepository = {
       filename: file.name,
       contentType: completed.data.contentType ?? file.type,
     };
+}
+
+export const laravelUploadRepository: UploadRepository = {
+  uploadFile,
+  async uploadProfilePhoto(file: UploadFile) {
+    return uploadFile(file, "profile-photo");
   },
 };

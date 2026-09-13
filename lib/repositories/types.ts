@@ -108,5 +108,6 @@ export type NotificationsRepository = {
 };
 
 export type UploadRepository = {
+  uploadFile(file: UploadFile, purpose?: string): Promise<UploadedDocument>;
   uploadProfilePhoto(file: UploadFile): Promise<UploadedDocument>;
 };
