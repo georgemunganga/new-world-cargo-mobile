@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { describeMockRoute, searchMockAddresses } from "../lib/mock-addresses";
 import { mockPaymentPresentation } from "../lib/mock-billing";
 import { permissionStatusLabel } from "../lib/mock-permissions";
-import { defaultNotificationPreferences } from "../stores/notification-preferences";
+import { defaultNotificationPreferences } from "../lib/domain/notifications";
 
 describe("permission, route, payment, and notification experience expansion", () => {
   it("uses customer-readable permission states", () => {

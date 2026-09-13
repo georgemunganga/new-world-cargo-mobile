@@ -18,6 +18,7 @@ export const mobileEnv = {
   apiMode: normalizeApiMode(readPublicEnv("EXPO_PUBLIC_API_MODE")),
   apiBaseUrl: readPublicEnv("EXPO_PUBLIC_API_BASE_URL").replace(/\/$/, ""),
   publicTrackingBaseUrl: readPublicEnv("EXPO_PUBLIC_PUBLIC_TRACKING_BASE_URL").replace(/\/$/, ""),
+  expoProjectId: readPublicEnv("EXPO_PUBLIC_EXPO_PROJECT_ID"),
   observabilityDsn: readPublicEnv("EXPO_PUBLIC_OBSERVABILITY_DSN"),
   mapsProvider: readPublicEnv("EXPO_PUBLIC_MAPS_PROVIDER") || "mock",
   paymentsProvider: readPublicEnv("EXPO_PUBLIC_PAYMENTS_PROVIDER") || "mock",

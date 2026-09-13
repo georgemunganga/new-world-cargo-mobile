@@ -19,6 +19,7 @@ const env = {
   androidVersionCode: Number(process.env.EXPO_PUBLIC_ANDROID_VERSION_CODE ?? "1"),
   iosBundleId: bundleId,
   androidPackage: bundleId,
+  expoProjectId: process.env.EXPO_PUBLIC_EXPO_PROJECT_ID,
 };
 
 const config: ExpoConfig = {
@@ -68,6 +69,9 @@ const config: ExpoConfig = {
     bundler: "metro",
     output: "static",
     favicon: "./assets/images/favicon.png",
+  },
+  extra: {
+    eas: env.expoProjectId ? { projectId: env.expoProjectId } : undefined,
   },
   plugins: [
     "expo-router",

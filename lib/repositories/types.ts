@@ -10,6 +10,7 @@ import type { CreateSupportCaseInput, SupportCase } from "@/lib/domain/support";
 import type { TrackingResult } from "@/lib/domain/tracking";
 import type { UploadedDocument, UploadFile } from "@/lib/domain/upload";
 import type { AddressBookItem, AddressBookKind } from "@/lib/domain/address-book";
+import type { NotificationPreferenceSnapshot, NotificationPreferences } from "@/lib/domain/notifications";
 
 export type AuthRepository = {
   signIn(input: SignInInput): Promise<AuthSession>;
@@ -90,6 +91,13 @@ export type AccountSettingsRepository = {
   setMarketingEnabled(enabled: boolean): Promise<AccountSettingsSnapshot>;
   requestDataExport(): Promise<AccountSettingsSnapshot>;
   requestAccountDeletion(): Promise<AccountSettingsSnapshot>;
+};
+
+export type NotificationPreferencesRepository = {
+  getPreferences(): Promise<NotificationPreferenceSnapshot>;
+  updatePreferences(input: Partial<NotificationPreferences>): Promise<NotificationPreferenceSnapshot>;
+  registerPushToken(): Promise<NotificationPreferenceSnapshot>;
+  revokePushToken(): Promise<void>;
 };
 
 export type UploadRepository = {

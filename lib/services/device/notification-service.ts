@@ -1,5 +1,7 @@
 import { Platform } from "react-native";
+import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
+import { mobileEnv } from "@/lib/config/env";
 import { nativeSuccess, nativeUnavailable, type NativeServiceResult } from "./native-service-result";
 
 export type PushRegistration = {
@@ -19,7 +21,8 @@ export const notificationService = {
     const permission = await Notifications.requestPermissionsAsync();
     if (!permission.granted) return nativeUnavailable("permission-denied", "Notifications are turned off. You can still see updates inside the app.");
     try {
-      const token = await Notifications.getExpoPushTokenAsync();
+      const projectId = mobileEnv.expoProjectId || Constants.expoConfig?.extra?.eas?.projectId || Constants.easConfig?.projectId;
+      const token = await Notifications.getExpoPushTokenAsync(projectId ? { projectId } : undefined);
       return nativeSuccess({ token: token.data, provider: "expo" });
     } catch {
       return nativeUnavailable("not-configured", "Push notifications need an Expo project ID before production registration.");
