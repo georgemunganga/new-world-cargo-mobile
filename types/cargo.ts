@@ -27,6 +27,8 @@ export type BookingCargoItem = {
   id: string;
   name: string;
   quantity: number;
+  weight?: number;
+  amount?: number;
 };
 
 export type BookingCargoAttachment = {

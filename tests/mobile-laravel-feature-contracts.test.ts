@@ -45,7 +45,7 @@ describe("mobile Laravel feature contracts", () => {
       destinationCity: "Lusaka",
       destinationBranchId: "1",
       consignee: { name: "George Munganga", phone: "+260971000000" },
-      cargoItems: [{ id: "item-1", name: "Shoes", quantity: 2 }],
+      cargoItems: [{ id: "item-1", name: "Shoes", quantity: 2, weight: 3.5, amount: 42.5 }],
     })).toMatchObject({
       form: {
         pickup: "Guangzhou, China",
@@ -53,7 +53,7 @@ describe("mobile Laravel feature contracts", () => {
         pickupBranchId: "1",
         destinationBranchId: "1",
       },
-      cargoRows: [{ name: "Shoes", quantity: 2 }],
+      cargoRows: [{ name: "Shoes", quantity: 2, weight: 3.5, amount: 42.5 }],
     });
   });
 });

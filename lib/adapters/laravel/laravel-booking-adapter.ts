@@ -69,7 +69,12 @@ function addressText(address?: Address, fallback = "") {
 }
 
 function cargoRowsFrom(items?: BookingCargoItem[], fallback?: string, quantity?: number) {
-  const rows = (items ?? []).filter((item) => item.name.trim()).map((item) => ({ name: item.name.trim(), quantity: item.quantity || 1 }));
+  const rows = (items ?? []).filter((item) => item.name.trim()).map((item) => ({
+    name: item.name.trim(),
+    quantity: item.quantity || 1,
+    ...(item.weight ? { weight: item.weight } : {}),
+    ...(item.amount ? { amount: item.amount } : {}),
+  }));
   if (rows.length) return rows;
   return fallback?.trim() ? [{ name: fallback.trim(), quantity: quantity || 1 }] : [];
 }
