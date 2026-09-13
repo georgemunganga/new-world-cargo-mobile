@@ -271,6 +271,10 @@
 - [x] Add shared observability redaction for tokens, passwords, authorization values, emails, phones, and addresses.
 - [x] Remove legacy auth-core debug logs that exposed token fragments or full user objects.
 - [x] Add deterministic redaction tests and validate the security/observability slice.
+- [x] Add a local `pnpm quality` gate that runs TypeScript and deterministic tests together while GitHub workflow publishing waits for OAuth workflow scope.
+- [x] Replace temporary mobile app identifiers with product-ready New WorldCargo defaults and environment overrides.
+- [x] Add native camera, photo library, location, and Android permission declarations for app-store review readiness.
+- [x] Add deterministic release-config tests and validate the release-readiness slice through `pnpm quality`.
 - [x] Add deterministic tests, validate, checkpoint, and preserve the Home tracking control and public tracking workflow.
 - [x] Make the Home tracking control open a reusable full-screen translucent blurred overlay with one tracking-code search field and submit action, rather than navigating directly to results.
 - [x] Close the tracking overlay only after a successful deterministic lookup, then navigate to the correct existing dedicated live-tracking or completed-delivery screen.

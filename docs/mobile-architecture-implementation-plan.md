@@ -1061,6 +1061,10 @@ Done when:
 - Core customer flows have deterministic tests.
 - Release cannot skip quality checks.
 
+Status:
+
+Partially implemented on the architecture spine. The repo now has a local `pnpm quality` gate that runs TypeScript and the deterministic Vitest suite in one command. This provides a repeatable local release check while the GitHub Actions workflow remains blocked by the current GitHub OAuth token lacking `workflow` scope.
+
 ### Milestone 12: Build, Release, And Store Readiness
 
 Goal:
@@ -1089,6 +1093,10 @@ Done when:
 - We can produce a preview build.
 - We can produce a staging build.
 - We have a clear route to Android/iOS production release.
+
+Status:
+
+Partially implemented on the architecture spine. The Expo config now uses product-ready New WorldCargo defaults for app name, slug, scheme, iOS bundle ID, and Android package ID, with environment-variable overrides for future white-label or staging changes. Camera, photo-library, location, and Android permission declarations are present for native review readiness. EAS profiles remain separated for preview/mock, staging/hybrid, and production/Laravel modes, and deterministic release-config tests now protect those defaults.
 
 ## Suggested Milestone Order
 

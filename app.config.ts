@@ -1,7 +1,7 @@
 import "./scripts/load-env.js";
 import type { ExpoConfig } from "expo/config";
 
-const rawBundleId = "space.manus.new.world.cargo.mobile.t20260831052318";
+const rawBundleId = process.env.EXPO_PUBLIC_APP_ID ?? "com.newworldcargo.mobile";
 const bundleId = rawBundleId
   .replace(/[-_]/g, ".")
   .replace(/[^a-zA-Z0-9.]/g, "")
@@ -10,10 +10,9 @@ const bundleId = rawBundleId
   .toLowerCase();
 
 const env = {
-  appName: "New WorldCargo",
-  appSlug: "new-world-cargo-mobile",
-  logoUrl: "/manus-storage/new-world-cargo-mobile-icon_7e98ae7b.png",
-  scheme: "manus20260831052318",
+  appName: process.env.EXPO_PUBLIC_APP_NAME ?? "New WorldCargo",
+  appSlug: process.env.EXPO_PUBLIC_APP_SLUG ?? "new-world-cargo-mobile",
+  scheme: process.env.EXPO_PUBLIC_APP_SCHEME ?? "newworldcargo",
   iosBundleId: bundleId,
   androidPackage: bundleId,
 };
@@ -30,7 +29,12 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: env.iosBundleId,
-    infoPlist: { ITSAppUsesNonExemptEncryption: false },
+    infoPlist: {
+      ITSAppUsesNonExemptEncryption: false,
+      NSCameraUsageDescription: "Allow New WorldCargo to scan shipment labels and attach cargo evidence.",
+      NSPhotoLibraryUsageDescription: "Allow New WorldCargo to select profile photos and support evidence.",
+      NSLocationWhenInUseUsageDescription: "Allow New WorldCargo to help choose pickup and delivery locations.",
+    },
   },
   android: {
     adaptiveIcon: {
@@ -40,7 +44,7 @@ const config: ExpoConfig = {
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
     package: env.androidPackage,
-    permissions: ["POST_NOTIFICATIONS"],
+    permissions: ["POST_NOTIFICATIONS", "CAMERA", "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"],
   },
   web: {
     bundler: "metro",
