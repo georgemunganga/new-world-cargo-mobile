@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { MobileApiError } from "../lib/api/errors";
 import { mapPortalShipment } from "../lib/adapters/laravel/portal-shipment-contract";
 import { missingPortalContract } from "../lib/adapters/laravel/portal-contract-gap";
+import { portalSubmissionPayload } from "../lib/adapters/laravel/laravel-booking-adapter";
 
 describe("mobile Laravel feature contracts", () => {
   it("maps CustomerPortalApi shipment DTOs without leaking Laravel field names to screens", () => {
@@ -35,5 +36,24 @@ describe("mobile Laravel feature contracts", () => {
       expect(error).toBeInstanceOf(MobileApiError);
       expect((error as MobileApiError).code).toBe("CONTRACT_MISSING");
     }
+  });
+
+  it("keeps branch ids in booking submissions while preserving route text compatibility", () => {
+    expect(portalSubmissionPayload("import", {
+      originCity: "Guangzhou",
+      originCountry: "China",
+      destinationCity: "Lusaka",
+      destinationBranchId: "1",
+      consignee: { name: "George Munganga", phone: "+260971000000" },
+      cargoItems: [{ id: "item-1", name: "Shoes", quantity: 2 }],
+    })).toMatchObject({
+      form: {
+        pickup: "Guangzhou, China",
+        destination: "Lusaka",
+        pickupBranchId: "1",
+        destinationBranchId: "1",
+      },
+      cargoRows: [{ name: "Shoes", quantity: 2 }],
+    });
   });
 });

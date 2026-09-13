@@ -75,7 +75,7 @@ function contactOrFallback(contact: PersonContact | undefined, fallbackName = "C
   return { name: contact?.name?.trim() || fallbackName, phone: contact?.phone?.trim() || fallbackPhone };
 }
 
-function portalSubmissionPayload(service: string, draft: unknown) {
+export function portalSubmissionPayload(service: string, draft: unknown) {
   const raw = (draft && typeof draft === "object" ? draft : {}) as Record<string, any>;
   const receiver = contactOrFallback(raw.receiver ?? raw.consignee ?? raw.contact, "Customer", raw.sender?.phone ?? "");
   const sender = contactOrFallback(raw.sender ?? raw.contact, "Customer", receiver.phone);
@@ -92,13 +92,17 @@ function portalSubmissionPayload(service: string, draft: unknown) {
       ? raw.destinationCity ?? ""
       : service === "intercity"
         ? raw.destinationCity ?? ""
-        : addressText(raw.destination);
+      : addressText(raw.destination);
+  const pickupBranchId = raw.pickup?.branchId ?? raw.originBranchId ?? raw.destinationBranchId;
+  const destinationBranchId = raw.destination?.branchId ?? raw.destinationBranchId;
   return {
     service,
     draft,
     form: {
       pickup,
       destination,
+      pickupBranchId,
+      destinationBranchId,
       recipient: receiver.name,
       phone: receiver.phone,
       sender: sender.name,

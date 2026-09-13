@@ -22,6 +22,6 @@ describe("service-aware inline route autocomplete", () => {
 
   it("converts a selected suggestion into the structured route model", () => {
     const suggestion = searchRouteSuggestions("import", "guangzhou")[0]!;
-    expect(routeSuggestionToAddress(suggestion)).toEqual({ label: "Guangzhou, China", city: "Guangzhou", area: "Baiyun", detail: "Guangzhou, China" });
+    expect(routeSuggestionToAddress(suggestion)).toEqual({ label: "Guangzhou, China", branchId: undefined, city: "Guangzhou", area: "Baiyun", detail: "Guangzhou, China" });
   });
 });

@@ -7,6 +7,7 @@ export type RouteSuggestion = {
   id: string;
   label: string;
   detail: string;
+  branchId?: string;
   city: string;
   area: string;
   country?: string;
@@ -68,6 +69,7 @@ function mapOfficeToSuggestion(office: NonNullable<PortalReferenceData["offices"
     id: `branch-${office.id ?? label}`,
     label,
     detail,
+    branchId: office.id == null ? undefined : String(office.id),
     city,
     area: city,
     country: city === "Harare" ? "Zimbabwe" : city === "Guangzhou" ? "China" : city === "Dubai" ? "United Arab Emirates" : "Zambia",
@@ -96,5 +98,5 @@ export function searchRouteSuggestions(scope: RouteSearchScope, query: string) {
 }
 
 export function routeSuggestionToAddress(suggestion: RouteSuggestion): Address {
-  return { label: suggestion.label, city: suggestion.city, area: suggestion.area, detail: suggestion.label };
+  return { label: suggestion.label, branchId: suggestion.branchId, city: suggestion.city, area: suggestion.area, detail: suggestion.label };
 }

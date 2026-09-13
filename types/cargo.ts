@@ -12,6 +12,7 @@ export type LocalDeliveryVehicle = "scooter" | "small_van" | "cargo_van";
 
 export type Address = {
   label?: string;
+  branchId?: string;
   city: string;
   area: string;
   detail: string;
@@ -94,7 +95,9 @@ export type ImportBookingDraft = {
   method?: ShippingMethod;
   originCountry?: string;
   originCity?: string;
+  originBranchId?: string;
   destinationCity?: string;
+  destinationBranchId?: string;
   cargoCategory?: string;
   cargoDescription?: string;
   quantity?: number;
@@ -107,7 +110,9 @@ export type ImportBookingDraft = {
 export type IntercityBookingDraft = {
   service: "intercity";
   originCity?: string;
+  originBranchId?: string;
   destinationCity?: string;
+  destinationBranchId?: string;
   cargoCategory?: string;
   quantity?: number;
   cargoItems?: BookingCargoItem[];
