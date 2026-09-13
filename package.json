@@ -17,7 +17,12 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "qr": "node scripts/generate_qr.mjs",
-    "quality": "node scripts/mobile-quality.mjs"
+    "quality": "node scripts/mobile-quality.mjs",
+    "release:audit": "node scripts/mobile-release-audit.mjs",
+    "build:preview:android": "eas build --profile preview --platform android",
+    "build:staging:android": "eas build --profile staging --platform android",
+    "build:production:android": "eas build --profile production --platform android",
+    "build:production:ios": "eas build --profile production --platform ios"
   },
   "dependencies": {
     "@expo-google-fonts/poppins": "^0.4.1",

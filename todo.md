@@ -275,6 +275,9 @@
 - [x] Replace temporary mobile app identifiers with product-ready New WorldCargo defaults and environment overrides.
 - [x] Add native camera, photo library, location, and Android permission declarations for app-store review readiness.
 - [x] Add deterministic release-config tests and validate the release-readiness slice through `pnpm quality`.
+- [x] Add standard EAS build scripts for preview Android, staging Android, production Android, and production iOS.
+- [x] Remove unused Expo template image assets from the mobile release package.
+- [x] Add `pnpm release:audit` to verify release files, assets, EAS profile modes, build scripts, and the full quality gate.
 - [x] Add deterministic tests, validate, checkpoint, and preserve the Home tracking control and public tracking workflow.
 - [x] Make the Home tracking control open a reusable full-screen translucent blurred overlay with one tracking-code search field and submit action, rather than navigating directly to results.
 - [x] Close the tracking overlay only after a successful deterministic lookup, then navigate to the correct existing dedicated live-tracking or completed-delivery screen.

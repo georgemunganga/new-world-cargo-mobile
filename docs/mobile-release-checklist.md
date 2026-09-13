@@ -4,10 +4,11 @@
 
 - Confirm the target environment: `preview`, `staging`, or `production`.
 - Confirm `EXPO_PUBLIC_API_MODE`: `mock`, `hybrid`, or `laravel`.
-- Run `corepack pnpm check`.
-- Run `corepack pnpm test`.
+- Run `corepack pnpm quality`.
+- Run `corepack pnpm release:audit` before any shared preview, staging, or production build.
 - Confirm no customer-facing screen shows mock-only copy in production mode.
 - Confirm no API logs include passwords, tokens, full phone numbers, emails, or addresses.
+- Confirm the GitHub token has `workflow` scope before adding or updating `.github/workflows/*`.
 
 ## Preview Build
 
@@ -20,7 +21,7 @@
 Command:
 
 ```bash
-eas build --profile preview --platform android
+corepack pnpm build:preview:android
 ```
 
 ## Staging Build
@@ -34,7 +35,7 @@ eas build --profile preview --platform android
 Command:
 
 ```bash
-eas build --profile staging --platform android
+corepack pnpm build:staging:android
 ```
 
 ## Production Build
@@ -49,8 +50,8 @@ eas build --profile staging --platform android
 Commands:
 
 ```bash
-eas build --profile production --platform android
-eas build --profile production --platform ios
+corepack pnpm build:production:android
+corepack pnpm build:production:ios
 ```
 
 ## Manual Device Smoke Test
@@ -86,6 +87,8 @@ eas build --profile production --platform ios
 - Android package ID.
 - iOS bundle ID.
 - Version and build number.
+- Runtime version.
+- Native app scheme and supported app links.
 - Push notification disclosure if enabled.
 - Location usage disclosure if enabled.
 - Camera usage disclosure if enabled.

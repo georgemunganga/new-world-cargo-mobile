@@ -13,6 +13,10 @@ const env = {
   appName: process.env.EXPO_PUBLIC_APP_NAME ?? "New WorldCargo",
   appSlug: process.env.EXPO_PUBLIC_APP_SLUG ?? "new-world-cargo-mobile",
   scheme: process.env.EXPO_PUBLIC_APP_SCHEME ?? "newworldcargo",
+  version: process.env.EXPO_PUBLIC_APP_VERSION ?? "1.0.0",
+  runtimeVersion: process.env.EXPO_PUBLIC_RUNTIME_VERSION ?? "1.0.0",
+  iosBuildNumber: process.env.EXPO_PUBLIC_IOS_BUILD_NUMBER ?? "1",
+  androidVersionCode: Number(process.env.EXPO_PUBLIC_ANDROID_VERSION_CODE ?? "1"),
   iosBundleId: bundleId,
   androidPackage: bundleId,
 };
@@ -20,7 +24,8 @@ const env = {
 const config: ExpoConfig = {
   name: env.appName,
   slug: env.appSlug,
-  version: "1.0.0",
+  version: env.version,
+  runtimeVersion: env.runtimeVersion,
   orientation: "portrait",
   icon: "./assets/images/icon.png",
   scheme: env.scheme,
@@ -29,6 +34,7 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: env.iosBundleId,
+    buildNumber: env.iosBuildNumber,
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
       NSCameraUsageDescription: "Allow New WorldCargo to scan shipment labels and attach cargo evidence.",
@@ -44,7 +50,19 @@ const config: ExpoConfig = {
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
     package: env.androidPackage,
+    versionCode: Number.isFinite(env.androidVersionCode) && env.androidVersionCode > 0 ? env.androidVersionCode : 1,
     permissions: ["POST_NOTIFICATIONS", "CAMERA", "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"],
+    intentFilters: [
+      {
+        action: "VIEW",
+        autoVerify: true,
+        data: [
+          { scheme: env.scheme },
+          { scheme: "https", host: "app.newworldcargo.com" },
+        ],
+        category: ["BROWSABLE", "DEFAULT"],
+      },
+    ],
   },
   web: {
     bundler: "metro",
