@@ -21,5 +21,5 @@ export const customerPermissions: Record<CustomerPermission, PermissionEducation
 };
 
 export function permissionStatusLabel(status: CustomerPermissionStatus) {
-  return { not_requested: "Not requested", granted: "Allowed for preview", denied: "Not allowed" }[status];
+  return { not_requested: "Not requested", granted: "Allowed", denied: "Not allowed" }[status];
 }

@@ -26,7 +26,7 @@ type CustomerBillingAccountContextValue = {
   addPaymentMethod: (method: Exclude<MockPaymentMethod, "wallet">) => void;
   removePaymentMethod: (methodId: string) => void;
   confirmSelectedInvoicePayment: () => void;
-  topUpWallet: (amount: number) => void;
+  topUpWallet: (amount: number) => Promise<boolean>;
   toggleInvoiceReminder: (invoiceId: string) => void;
   submitInvoiceDispute: (invoiceId: string) => void;
 };
@@ -155,15 +155,21 @@ export function CustomerBillingAccountProvider({ children }: PropsWithChildren) 
       setPaymentState("confirmed");
     }).catch(() => setPaymentState("failed"));
   };
-  const topUpWallet = (amount: number) => {
-    void repositories.billingActions.topUpWallet(amount).then((wallet) => { setWalletBalance(wallet.balance); setWalletActivity(wallet.activity); }).catch(() => {
+  const topUpWallet = async (amount: number) => {
+    try {
+      const wallet = await repositories.billingActions.topUpWallet(amount);
+      setWalletBalance(wallet.balance);
+      setWalletActivity(wallet.activity);
+      return true;
+    } catch {
       if (useLiveBillingActions) {
         setPaymentState("failed");
-        return;
+        return false;
       }
       setWalletBalance((balance) => balance + amount);
       setWalletActivity((current) => [{ id: `wallet-topup-${Date.now()}`, label: "Wallet top-up", detail: "Top-up confirmed", amount, type: "topup", time: "Just now" }, ...current]);
-    });
+      return true;
+    }
   };
   const toggleInvoiceReminder = (invoiceId: string) => setReminders((current) => { const enabled = !current[invoiceId]; void repositories.billingActions.setInvoiceReminder(invoiceId, enabled).catch(() => undefined); return { ...current, [invoiceId]: enabled }; });
   const submitInvoiceDispute = (invoiceId: string) => { void repositories.billingActions.disputeInvoice(invoiceId).then((resolution) => setInvoices((current) => current.map((invoice) => invoice.id === invoiceId ? { ...invoice, ...(resolution ? { resolution } : {}) } : invoice))).catch(() => undefined); };

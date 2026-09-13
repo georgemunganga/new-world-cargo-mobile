@@ -26,8 +26,8 @@ type CustomerMapProps = {
 };
 
 const modeCopy: Record<CustomerMapMode, { label: string; accessibility: string }> = {
-  "location-picker": { label: "Location picker", accessibility: "Location picker map. Use the zoom controls, drag the mock map, or pinch to inspect the route." },
-  "route-preview": { label: "Route preview", accessibility: "Route preview map. Use the zoom controls, drag the mock map, or pinch to inspect the route." },
+  "location-picker": { label: "Location picker", accessibility: "Location picker map. Use the zoom controls, drag the map, or pinch to inspect the route." },
+  "route-preview": { label: "Route preview", accessibility: "Route preview map. Use the zoom controls, drag the map, or pinch to inspect the route." },
   "live-local": { label: "Live local route", accessibility: "Live local delivery map with a moving vehicle marker and delivery route." },
   international: { label: "International transit", accessibility: "International shipment map showing origin, destination, and cargo position across regions." },
   completed: { label: "Delivered route", accessibility: "Completed delivery route map showing the confirmed delivery destination." },

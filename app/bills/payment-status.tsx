@@ -7,7 +7,7 @@ export default function PaymentStatusScreen() {
   const { paymentState, setPaymentState, confirmSelectedInvoicePayment } = useCustomerBillingAccount();
   const state = mockPaymentPresentation(paymentState);
   const goToBill = () => router.replace("/bills" as Href);
-  if (paymentState === "pending") return <AppStateScreen {...state} loading primaryLabel="Confirm payment for preview" onPrimary={confirmSelectedInvoicePayment} secondaryLabel="Cancel for preview" onSecondary={() => setPaymentState("cancelled")} />;
+  if (paymentState === "pending") return <AppStateScreen {...state} loading primaryLabel="Check payment status" onPrimary={confirmSelectedInvoicePayment} secondaryLabel="Cancel payment" onSecondary={() => setPaymentState("cancelled")} />;
   if (paymentState === "confirmed") return <AppStateScreen {...state} primaryLabel="View receipt" onPrimary={() => router.replace("/bills/receipt" as Href)} secondaryLabel="Back to Bills" onSecondary={goToBill} />;
   if (paymentState === "failed") return <AppStateScreen {...state} primaryLabel="Try payment again" onPrimary={() => { setPaymentState("ready"); router.replace("/bills/payment" as Href); }} secondaryLabel="Back to Bills" onSecondary={goToBill} />;
   if (paymentState === "cancelled") return <AppStateScreen {...state} primaryLabel="Return to invoice" onPrimary={() => { setPaymentState("ready"); router.replace("/bills/payment" as Href); }} secondaryLabel="Back to Bills" onSecondary={goToBill} />;

@@ -10,7 +10,7 @@ export async function copyTrackingNumber(reference: string): Promise<TrackingAct
     await navigator.clipboard.writeText(reference);
     return { status: "copied", message: "Tracking number copied." };
   }
-  return { status: "unavailable", message: "Copy is not available in this preview." };
+  return { status: "unavailable", message: "Copy is not available on this device." };
 }
 
 export async function shareTrackingNumber(reference: string): Promise<TrackingActionResult> {
@@ -26,5 +26,5 @@ export async function shareTrackingNumber(reference: string): Promise<TrackingAc
     await navigator.clipboard.writeText(reference);
     return { status: "copied", message: "Sharing is unavailable here. The tracking number was copied instead." };
   }
-  return { status: "unavailable", message: "Sharing is not available in this preview." };
+  return { status: "unavailable", message: "Sharing is not available on this device." };
 }
