@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
-import { router, type Href } from "expo-router";
+import { router, useLocalSearchParams, type Href } from "expo-router";
 import { AppIcon } from "@/components/ui/app-icon";
 import { Card, PrimaryButton, Screen, SecondaryButton } from "@/components/ui/nwc-ui";
 import { nwcColors } from "@/lib/nwc-theme";
@@ -7,8 +7,10 @@ import { useBookingDraft } from "@/stores/booking-draft";
 
 export default function LocalDeliveryConfirmationScreen() {
   const { localDraft, resetLocalDraft } = useBookingDraft();
+  const { shipmentId, reference } = useLocalSearchParams<{ shipmentId?: string; reference?: string }>();
   const goHome = () => { resetLocalDraft(); router.replace("/"); };
-  return <Screen><View style={styles.screen}><View style={styles.hero}><View style={styles.successIcon}><AppIcon name="check" size={36} color={nwcColors.primaryInk} /></View><Text style={styles.eyebrow}>Frontend booking preview</Text><Text style={styles.title}>Your Local Delivery request is ready.</Text><Text style={styles.detail}>In the connected app, New WorldCargo will confirm availability, price, and your official booking reference before collecting payment.</Text></View><Card style={styles.card}><Text style={styles.cardLabel}>Route summary</Text><Text style={styles.route}>{`${localDraft.pickup?.area || "Pickup"} → ${localDraft.destination?.area || "Delivery"}`}</Text><View style={styles.divider} /><Text style={styles.cardDetail}>{`${localDraft.receiver?.name || "Receiver"} · ${localDraft.schedule === "later_today" ? "Later today" : "Earliest available pickup"}`}</Text></Card><View style={styles.actions}><PrimaryButton label="View shipments" icon="package-variant-closed" onPress={() => router.replace("/shipments" as Href)} /><SecondaryButton label="Back to Home" onPress={goHome} /></View></View></Screen>;
+  const openShipment = () => { resetLocalDraft(); router.replace((shipmentId ? `/shipments/${shipmentId}` : "/shipments") as Href); };
+  return <Screen><View style={styles.screen}><View style={styles.hero}><View style={styles.successIcon}><AppIcon name="check" size={36} color={nwcColors.primaryInk} /></View><Text style={styles.eyebrow}>{reference ? `Booking reference ${reference}` : "Booking received"}</Text><Text style={styles.title}>Your Local Delivery request was received.</Text><Text style={styles.detail}>New WorldCargo will confirm availability, price, and the next step before collection.</Text></View><Card style={styles.card}><Text style={styles.cardLabel}>Route summary</Text><Text style={styles.route}>{`${localDraft.pickup?.area || "Pickup"} → ${localDraft.destination?.area || "Delivery"}`}</Text><View style={styles.divider} /><Text style={styles.cardDetail}>{`${localDraft.receiver?.name || "Receiver"} · ${localDraft.schedule === "later_today" ? "Later today" : "Earliest available pickup"}`}</Text></Card><View style={styles.actions}><PrimaryButton label={shipmentId ? "Open shipment" : "View shipments"} icon="package-variant-closed" onPress={openShipment} /><SecondaryButton label="Back to Home" onPress={goHome} /></View></View></Screen>;
 }
 
 const styles = StyleSheet.create({
