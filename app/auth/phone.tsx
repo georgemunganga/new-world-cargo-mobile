@@ -5,6 +5,7 @@ import { router, type Href } from "expo-router";
 import { AuthPasswordInput, AuthScreen, AuthTextInput } from "@/components/auth/auth-shell";
 import { AppIcon } from "@/components/ui/app-icon";
 import { isValidAuthIdentifier } from "@/lib/auth-flow";
+import { featureFlags } from "@/lib/config/feature-flags";
 import { nwcColors } from "@/lib/nwc-theme";
 import { useCustomerAuth } from "@/stores/customer-auth";
 
@@ -14,6 +15,7 @@ export default function SignInScreen() {
   const [remember, setRemember] = useState(true);
   const { authError, completeCredentialSignIn, completeGoogleSignIn } = useCustomerAuth();
   const valid = isValidAuthIdentifier(identifier) && password.length >= 6;
+  const showGoogleSignIn = !featureFlags.useLaravelAuth;
 
   const signIn = async () => {
     if (!valid) return;
@@ -27,7 +29,7 @@ export default function SignInScreen() {
     if (signedIn) router.replace("/(tabs)" as Href);
   };
 
-  const footer = <View style={styles.footer}><View style={styles.accountPrompt}><Text style={styles.promptText}>Don’t have an account?</Text><TouchableOpacity accessibilityRole="link" onPress={() => router.push("/auth/register" as Href)}><Text style={styles.linkText}>Sign up</Text></TouchableOpacity></View><TouchableOpacity accessibilityRole="link" onPress={() => router.push("/auth/forgot-password" as Href)}><Text style={styles.linkText}>Forgot password?</Text></TouchableOpacity><View style={styles.divider}><View style={styles.line} /><Text style={styles.or}>OR</Text><View style={styles.line} /></View><TouchableOpacity accessibilityRole="button" accessibilityLabel="Sign in with Google" activeOpacity={0.78} onPress={signInWithGoogle} style={styles.googleButton}><AppIcon name="google" size={21} color="#4285F4" /><Text style={styles.googleText}>Sign in with Google</Text></TouchableOpacity></View>;
+  const footer = <View style={styles.footer}><View style={styles.accountPrompt}><Text style={styles.promptText}>Don’t have an account?</Text><TouchableOpacity accessibilityRole="link" onPress={() => router.push("/auth/register" as Href)}><Text style={styles.linkText}>Sign up</Text></TouchableOpacity></View><TouchableOpacity accessibilityRole="link" onPress={() => router.push("/auth/forgot-password" as Href)}><Text style={styles.linkText}>Forgot password?</Text></TouchableOpacity>{showGoogleSignIn ? <><View style={styles.divider}><View style={styles.line} /><Text style={styles.or}>OR</Text><View style={styles.line} /></View><TouchableOpacity accessibilityRole="button" accessibilityLabel="Sign in with Google" activeOpacity={0.78} onPress={signInWithGoogle} style={styles.googleButton}><AppIcon name="google" size={21} color="#4285F4" /><Text style={styles.googleText}>Sign in with Google</Text></TouchableOpacity></> : null}</View>;
 
   return <AuthScreen title="Sign in to your account" detail="Welcome back. Enter your details to continue managing your cargo." primaryLabel="Sign in" onPrimary={signIn} primaryDisabled={!valid} afterActions={footer}><AuthTextInput label="Email address or phone" placeholder="name@email.com or +260 97 123 4567" value={identifier} autoCapitalize="none" autoCorrect={false} autoComplete="username" keyboardType="email-address" autoFocus onChangeText={setIdentifier} /><AuthPasswordInput value={password} placeholder="Enter your password" autoComplete="current-password" textContentType="password" onChangeText={setPassword} onSubmitEditing={signIn} returnKeyType="go" />{authError ? <Text accessibilityRole="alert" style={styles.errorText}>{authError}</Text> : null}<TouchableOpacity accessibilityRole="checkbox" accessibilityState={{ checked: remember }} accessibilityLabel="Remember me" onPress={() => setRemember((current) => !current)} style={styles.rememberRow}><View style={[styles.checkbox, remember && styles.checkboxChecked]}>{remember ? <AppIcon name="check" size={14} color={nwcColors.white} /> : null}</View><Text style={styles.rememberText}>Remember me</Text></TouchableOpacity></AuthScreen>;
 }
