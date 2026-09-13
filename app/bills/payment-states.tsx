@@ -4,12 +4,12 @@ import { AppIcon } from "@/components/ui/app-icon";
 import { Card, IconButton, Screen, SectionHeader, StatusBadge } from "@/components/ui/nwc-ui";
 import { mockPaymentPresentation, type MockPaymentState } from "@/lib/mock-billing";
 import { nwcColors } from "@/lib/nwc-theme";
-import { useMockBilling } from "@/stores/mock-billing";
+import { useCustomerBillingAccount } from "@/stores/customer-billing-account";
 
 const states: MockPaymentState[] = ["ready", "pending", "confirmed", "failed", "cancelled", "delayed", "refunded"];
 
 export default function PaymentStatesScreen() {
-  const { paymentState, setPaymentState } = useMockBilling();
+  const { paymentState, setPaymentState } = useCustomerBillingAccount();
   const choose = (state: MockPaymentState) => { setPaymentState(state); router.replace("/bills/payment-status" as Href); };
   return <Screen><View style={styles.page}><View style={styles.header}><View><Text style={styles.eyebrow}>Development controls</Text><SectionHeader title="Payment states" /></View><IconButton label="Go back" icon="arrow-left" onPress={() => router.back()} /></View><ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}><View style={styles.banner}><AppIcon name="flask-outline" size={20} color={nwcColors.primaryInk} /><Text style={styles.bannerText}>Set a payment outcome to review the customer language and recovery path. No money or external provider is involved.</Text></View>{states.map((state) => { const item = mockPaymentPresentation(state); return <TouchableOpacity key={state} accessibilityRole="button" accessibilityLabel={`Preview ${item.eyebrow}`} onPress={() => choose(state)} activeOpacity={0.76}><Card style={[styles.card, paymentState === state && styles.selected]}><View style={styles.cardCopy}><Text style={styles.cardTitle}>{item.eyebrow}</Text><Text style={styles.cardDetail}>{item.title}</Text></View>{paymentState === state ? <StatusBadge label="Selected" tone="success" icon="check" /> : <AppIcon name="chevron-right" size={21} color={nwcColors.muted} />}</Card></TouchableOpacity>; })}</ScrollView></View></Screen>;
 }

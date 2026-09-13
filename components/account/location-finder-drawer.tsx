@@ -5,11 +5,11 @@ import { CustomerMap } from "@/components/map/customer-map";
 import { CustomerBottomDrawer } from "@/components/ui/customer-bottom-drawer";
 import { AppIcon } from "@/components/ui/app-icon";
 import { PrimaryButton, SecondaryButton } from "@/components/ui/nwc-ui";
-import type { MockDirectoryItem } from "@/lib/mock-account-directory";
+import type { AddressBookItem } from "@/lib/domain/address-book";
 import { routeSuggestionToAddress, searchRouteSuggestions, type RouteSuggestion } from "@/lib/route-autocomplete";
 import { nwcColors } from "@/lib/nwc-theme";
 
-type LocationFinderDrawerProps = { visible: boolean; item: MockDirectoryItem | null; onDismiss: () => void; onSave: (item: { id?: string; label: string; detail: string }) => void };
+type LocationFinderDrawerProps = { visible: boolean; item: AddressBookItem | null; onDismiss: () => void; onSave: (item: { id?: string; label: string; detail: string }) => void };
 
 export function LocationFinderDrawer({ visible, item, onDismiss, onSave }: LocationFinderDrawerProps) {
   const [label, setLabel] = useState("");

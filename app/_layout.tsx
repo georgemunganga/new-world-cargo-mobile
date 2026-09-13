@@ -9,14 +9,9 @@ import { ThemeProvider } from "@/lib/theme-provider";
 import { BookingDraftProvider } from "@/stores/booking-draft";
 import { CustomerAuthProvider } from "@/stores/customer-auth";
 import { AppStartupProvider } from "@/stores/app-startup";
-import { MockPermissionProvider } from "@/stores/mock-permissions";
-import { MockBillingProvider } from "@/stores/mock-billing";
+import { CustomerPermissionProvider } from "@/lib/use-cases/use-customer-permissions";
+import { CustomerBillingAccountProvider } from "@/stores/customer-billing-account";
 import { NotificationPreferenceProvider } from "@/stores/notification-preferences";
-import { MockAccountDirectoryProvider } from "@/stores/mock-account-directory";
-import { MockSupportProvider } from "@/stores/mock-support";
-import { MockPickupManagementProvider } from "@/stores/mock-pickup-management";
-import { MockAccountSettingsProvider } from "@/stores/mock-account-settings";
-import { MockReturnsProvider } from "@/stores/mock-returns";
 import { shouldLoadBundledPoppins } from "@/lib/startup-font-policy";
 
 const poppinsFonts = { Poppins_500Medium, Poppins_600SemiBold, Poppins_700Bold, Poppins_800ExtraBold };
@@ -40,7 +35,7 @@ function AppRoot() {
     return () => clearTimeout(timer);
   }, []);
 
-  return <GestureHandlerRootView style={{ flex: 1 }}><SafeAreaProvider><ThemeProvider><AppStartupProvider><CustomerAuthProvider><MockPermissionProvider><MockBillingProvider><MockAccountDirectoryProvider><MockSupportProvider><MockPickupManagementProvider><MockAccountSettingsProvider><MockReturnsProvider><NotificationPreferenceProvider><BookingDraftProvider><StatusBar style={showSplash ? "light" : "dark"} /><Stack screenOptions={{ headerShown: false, animation: "fade" }} /></BookingDraftProvider></NotificationPreferenceProvider></MockReturnsProvider></MockAccountSettingsProvider></MockPickupManagementProvider></MockSupportProvider></MockAccountDirectoryProvider></MockBillingProvider></MockPermissionProvider></CustomerAuthProvider></AppStartupProvider></ThemeProvider></SafeAreaProvider>{showSplash ? <LaunchSplash /> : null}</GestureHandlerRootView>;
+  return <GestureHandlerRootView style={{ flex: 1 }}><SafeAreaProvider><ThemeProvider><AppStartupProvider><CustomerAuthProvider><CustomerPermissionProvider><CustomerBillingAccountProvider><NotificationPreferenceProvider><BookingDraftProvider><StatusBar style={showSplash ? "light" : "dark"} /><Stack screenOptions={{ headerShown: false, animation: "fade" }} /></BookingDraftProvider></NotificationPreferenceProvider></CustomerBillingAccountProvider></CustomerPermissionProvider></CustomerAuthProvider></AppStartupProvider></ThemeProvider></SafeAreaProvider>{showSplash ? <LaunchSplash /> : null}</GestureHandlerRootView>;
 }
 
 function LaunchSplash() {

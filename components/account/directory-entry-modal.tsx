@@ -3,10 +3,10 @@ import { StyleSheet, TextInput, View } from "react-native";
 
 import { CustomerBottomDrawer } from "@/components/ui/customer-bottom-drawer";
 import { PrimaryButton, SecondaryButton } from "@/components/ui/nwc-ui";
-import type { MockDirectoryItem } from "@/lib/mock-account-directory";
+import type { AddressBookItem } from "@/lib/domain/address-book";
 import { nwcColors } from "@/lib/nwc-theme";
 
-type DirectoryEntryModalProps = { visible: boolean; item: MockDirectoryItem | null; itemLabel: string; itemDetail: string; onDismiss: () => void; onSave: (item: { id?: string; label: string; detail: string }) => void };
+type DirectoryEntryModalProps = { visible: boolean; item: AddressBookItem | null; itemLabel: string; itemDetail: string; onDismiss: () => void; onSave: (item: { id?: string; label: string; detail: string }) => void };
 
 export function DirectoryEntryModal({ visible, item, itemLabel, itemDetail, onDismiss, onSave }: DirectoryEntryModalProps) {
   const [label, setLabel] = useState("");

@@ -1,6 +1,6 @@
 import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View, type GestureResponderEvent, type ImageSourcePropType } from "react-native";
 import { AppIcon, type AppIconName } from "@/components/ui/app-icon";
-import { statusPresentation } from "@/lib/mock-cargo-data";
+import { statusPresentation } from "@/lib/shipment-status-presentation";
 import { nwcColors } from "@/lib/nwc-theme";
 import type { ServiceType, Shipment } from "@/types/cargo";
 

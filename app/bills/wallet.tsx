@@ -6,12 +6,12 @@ import { AppIcon } from "@/components/ui/app-icon";
 import { Card, IconButton, PrimaryButton, Screen } from "@/components/ui/nwc-ui";
 import { formatMockKwacha } from "@/lib/mock-billing";
 import { nwcColors } from "@/lib/nwc-theme";
-import { useMockBilling } from "@/stores/mock-billing";
+import { useCustomerBillingAccount } from "@/stores/customer-billing-account";
 
 const topUpOptions = [100, 250, 500];
 
 export default function WalletScreen() {
-  const { walletBalance, walletActivity, topUpWallet } = useMockBilling();
+  const { walletBalance, walletActivity, topUpWallet } = useCustomerBillingAccount();
   const [amount, setAmount] = useState(250);
   const [confirmed, setConfirmed] = useState(false);
   const topUp = () => { topUpWallet(amount); setConfirmed(true); };

@@ -4,11 +4,13 @@ import { Redirect, router, useLocalSearchParams } from "expo-router";
 import { AppIcon } from "@/components/ui/app-icon";
 import { ProofOfDeliveryCard, TrackingReferenceActions } from "@/components/tracking/tracking-cards";
 import { IconButton, PrimaryButton, Screen } from "@/components/ui/nwc-ui";
-import { shipments, statusPresentation } from "@/lib/mock-cargo-data";
+import { toUiShipment } from "@/lib/mappers/shipment-ui-mapper";
+import { statusPresentation } from "@/lib/shipment-status-presentation";
 import { isActiveShipment } from "@/lib/shipment-navigation";
 import { exportProofOfDelivery } from "@/lib/customer-document-export";
 import { nwcColors } from "@/lib/nwc-theme";
-import { isReturnEligible } from "@/lib/mock-returns";
+import { isReturnEligible } from "@/lib/domain/return-request";
+import { useCustomerShipment } from "@/lib/use-cases/use-customer-shipment";
 
 const timeline = [
   { label: "Out for delivery", detail: "Courier has your parcel.", time: "Today · 14:05" },
@@ -19,7 +21,9 @@ const timeline = [
 export default function ShipmentDetailScreen() {
   const { shipmentId } = useLocalSearchParams<{ shipmentId: string }>();
   const [historyOpen, setHistoryOpen] = useState(false);
-  const shipment = shipments.find((item) => item.id === shipmentId) ?? shipments[0];
+  const shipmentState = useCustomerShipment(shipmentId);
+  const shipment = shipmentState.shipment ? toUiShipment(shipmentState.shipment) : null;
+  if (!shipment) return <ShipmentStateScreen status={shipmentState.status} message={shipmentState.errorMessage} onRetry={shipmentState.refresh} />;
   const status = statusPresentation[shipment.status];
   const latest = timeline[0];
   if (isActiveShipment(shipment)) return <Redirect href={`/tracking/${shipment.id}` as never} />;
@@ -29,6 +33,13 @@ export default function ShipmentDetailScreen() {
   const vehicleArtwork = shipment.service === "local" ? require("../../assets/images/services/new-world-scooter.png") : require("../../assets/images/services/new-world-truck.png");
   const downloadProof = () => { const result = exportProofOfDelivery(shipment); Alert.alert(result.status === "downloaded" ? "Proof downloaded" : "Proof ready", result.status === "downloaded" ? `${result.filename} was downloaded to your browser.` : "This preview can download proof records in a browser. Native save/share will be connected later."); };
   return <Screen><View style={styles.page}><View style={styles.header}><IconButton label="Go back" icon="arrow-left" onPress={() => router.back()} /><Text style={styles.headerTitle}>Tracking</Text><View style={styles.headerSpacer} /></View><ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}><View style={styles.lead}><Text style={styles.reference}>{shipment.reference}</Text><Text style={styles.title}>{shipment.title}</Text></View><View style={[styles.routeHero, isImport ? styles.routeHeroImport : styles.routeHeroNavy]}><View pointerEvents="none" style={[styles.heroHalo, isImport ? styles.heroHaloImport : styles.heroHaloNavy]} /><View style={styles.heroHeader}><View style={[styles.statusChip, isImport ? styles.statusChipImport : styles.statusChipNavy]}><AppIcon name={status.icon as any} size={14} color={isImport ? nwcColors.white : nwcColors.primaryInk} /><Text style={[styles.statusText, { color: isImport ? nwcColors.white : nwcColors.primaryInk }]}>{status.label}</Text></View><AppIcon name={shipment.service === "local" ? "bike-fast" : shipment.service === "intercity" ? "truck-fast-outline" : "airplane"} size={23} color={isImport ? nwcColors.primaryInk : nwcColors.primary} /></View><View style={styles.routeTop}><View style={styles.routePoint}><Text style={[styles.routeLabel, { color: muted }]}>From</Text><Text numberOfLines={1} style={[styles.routeValue, { color: foreground }]}>{shipment.pickup.area}</Text><Text numberOfLines={1} style={[styles.routeCity, { color: muted }]}>{shipment.pickup.city}</Text></View><View style={styles.routeConnector}><View style={[styles.routeLine, { backgroundColor: isImport ? "#6E5926" : "#527086" }]} /><AppIcon name="arrow-right" size={19} color={isImport ? nwcColors.primaryInk : "#AFC2CC"} /></View><View style={[styles.routePoint, styles.routePointEnd]}><Text style={[styles.routeLabel, { color: muted }]}>To</Text><Text numberOfLines={1} style={[styles.routeValue, { color: foreground }]}>{shipment.destination.area}</Text><Text numberOfLines={1} style={[styles.routeCity, { color: muted }]}>{shipment.destination.city}</Text></View></View><View style={[styles.eta, { borderTopColor: isImport ? "#D6A72D" : "#28465C" }]}><View style={[styles.etaIcon, isImport ? styles.etaIconImport : styles.etaIconNavy]}><AppIcon name="clock-time-four-outline" size={21} color={nwcColors.primaryInk} /></View><View><Text style={[styles.etaLabel, { color: muted }]}>Estimated arrival</Text><Text style={[styles.etaValue, { color: foreground }]}>{shipment.eta}</Text></View></View></View><TrackingReferenceActions reference={shipment.reference} />{shipment.status === "out_for_delivery" ? <View style={styles.deliveryNote}><View style={styles.deliveryNoteCopy}><AppIcon name="phone-outline" size={18} color={nwcColors.warning} /><Text style={styles.deliveryNoteText}>Keep your phone nearby for the courier.</Text></View><Image source={vehicleArtwork} resizeMode="contain" style={styles.deliveryVehicle} /></View> : null}{shipment.status === "delivered" ? <><ProofOfDeliveryCard shipment={shipment} onDownload={downloadProof} />{isReturnEligible(shipment) ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Start a return" activeOpacity={0.74} onPress={() => router.push(`/returns/${shipment.id}` as never)} style={styles.returnAction}><AppIcon name="undo-variant" size={19} color={nwcColors.brandNavy} /><Text style={styles.returnActionText}>Start a return</Text><AppIcon name="chevron-right" size={20} color={nwcColors.info} /></TouchableOpacity> : null}</> : null}<View style={styles.updateCard}><View style={styles.updateMark}><AppIcon name="check" size={17} color={nwcColors.white} /></View><View style={styles.updateCopy}><Text style={styles.updateEyebrow}>Latest update</Text><Text style={styles.updateTitle}>{latest.label}</Text><Text style={styles.updateTime}>{latest.time}</Text></View></View><TouchableOpacity accessibilityRole="button" accessibilityLabel={historyOpen ? "Hide tracking history" : "View tracking history"} accessibilityState={{ expanded: historyOpen }} activeOpacity={0.74} onPress={() => setHistoryOpen((open) => !open)} style={styles.historyToggle}><Text style={styles.historyToggleText}>{historyOpen ? "Hide tracking history" : `View tracking history · ${timeline.length} updates`}</Text><AppIcon name={historyOpen ? "chevron-up" : "chevron-down"} size={20} color={nwcColors.brandNavy} /></TouchableOpacity>{historyOpen ? <View style={styles.timeline}>{timeline.slice(1).map((event, index) => <View key={event.label} style={styles.timelineItem}><View style={styles.timelineRail}><View style={styles.timelineDot} />{index === 0 ? <View style={styles.timelineLine} /> : null}</View><View style={styles.timelineCopy}><Text style={styles.timelineTitle}>{event.label}</Text><Text style={styles.timelineDetail}>{event.detail}</Text><Text style={styles.timelineTime}>{event.time}</Text></View></View>)}</View> : null}<PrimaryButton label="Need help?" icon="headset" onPress={() => router.push("/account")} /></ScrollView></View></Screen>;
+}
+
+function ShipmentStateScreen({ status, message, onRetry }: { status: "idle" | "loading" | "success" | "not-found" | "error"; message?: string; onRetry: () => void }) {
+  const isError = status === "error";
+  const title = status === "loading" || status === "idle" ? "Loading shipment" : isError ? "Shipment could not load" : "Shipment not found";
+  const detail = status === "loading" || status === "idle" ? "Getting the shipment record." : isError ? message || "Try again when your connection is stable." : "Check the shipment reference and try again.";
+  return <Screen><View style={styles.statePage}><View style={styles.stateIcon}><AppIcon name={isError ? "alert-circle-outline" : "package-variant"} size={30} color={nwcColors.primaryInk} /></View><Text style={styles.stateTitle}>{title}</Text><Text style={styles.stateDetail}>{detail}</Text>{isError ? <PrimaryButton label="Try again" onPress={onRetry} /> : null}</View></Screen>;
 }
 
 const styles = StyleSheet.create({
@@ -88,4 +99,8 @@ const styles = StyleSheet.create({
   timelineTime: { color: nwcColors.muted, fontSize: 10, lineHeight: 14, fontFamily: "Poppins_600SemiBold", marginTop: 2 },
   returnAction: { minHeight: 58, paddingHorizontal: 14, borderRadius: 20, flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: nwcColors.surfaceNavyTint, borderWidth: 1, borderColor: "#DCE8EC" },
   returnActionText: { flex: 1, color: nwcColors.brandNavy, fontSize: 13, lineHeight: 18, fontFamily: "Poppins_800ExtraBold" },
+  statePage: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 30, gap: 9, backgroundColor: nwcColors.background },
+  stateIcon: { width: 68, height: 68, borderRadius: 24, alignItems: "center", justifyContent: "center", backgroundColor: nwcColors.primary, marginBottom: 6 },
+  stateTitle: { color: nwcColors.foreground, fontSize: 23, lineHeight: 29, fontFamily: "Poppins_800ExtraBold", textAlign: "center" },
+  stateDetail: { color: nwcColors.muted, fontSize: 13, lineHeight: 19, fontFamily: "Poppins_500Medium", textAlign: "center" },
 });

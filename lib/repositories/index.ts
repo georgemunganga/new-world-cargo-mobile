@@ -1,0 +1,45 @@
+import { featureFlags } from "@/lib/config/feature-flags";
+import { shouldUseLaravel } from "./repository-mode";
+import { mockAccountSettingsRepository } from "@/lib/adapters/mock/mock-account-settings-adapter";
+import { mockAddressBookRepository } from "@/lib/adapters/mock/mock-address-book-adapter";
+import { mockBillingActionsRepository } from "@/lib/adapters/mock/mock-billing-actions-adapter";
+import { mockAuthRepository } from "@/lib/adapters/mock/mock-auth-adapter";
+import { mockBillingRepository } from "@/lib/adapters/mock/mock-billing-adapter";
+import { mockBookingRepository } from "@/lib/adapters/mock/mock-booking-adapter";
+import { mockCustomerRepository } from "@/lib/adapters/mock/mock-customer-adapter";
+import { mockPickupRepository } from "@/lib/adapters/mock/mock-pickup-adapter";
+import { mockReturnRequestRepository } from "@/lib/adapters/mock/mock-return-request-adapter";
+import { mockShipmentRepository } from "@/lib/adapters/mock/mock-shipment-adapter";
+import { mockSupportRepository } from "@/lib/adapters/mock/mock-support-adapter";
+import { mockTrackingRepository } from "@/lib/adapters/mock/mock-tracking-adapter";
+import { mockUploadRepository } from "@/lib/adapters/mock/mock-upload-adapter";
+import { laravelAccountSettingsRepository } from "@/lib/adapters/laravel/laravel-account-settings-adapter";
+import { laravelAddressBookRepository } from "@/lib/adapters/laravel/laravel-address-book-adapter";
+import { laravelAuthRepository } from "@/lib/adapters/laravel/laravel-auth-adapter";
+import { laravelBillingActionsRepository } from "@/lib/adapters/laravel/laravel-billing-actions-adapter";
+import { laravelBillingRepository } from "@/lib/adapters/laravel/laravel-billing-adapter";
+import { laravelBookingRepository } from "@/lib/adapters/laravel/laravel-booking-adapter";
+import { laravelCustomerRepository } from "@/lib/adapters/laravel/laravel-customer-adapter";
+import { laravelPickupRepository } from "@/lib/adapters/laravel/laravel-pickup-adapter";
+import { laravelReturnRequestRepository } from "@/lib/adapters/laravel/laravel-return-request-adapter";
+import { laravelShipmentRepository } from "@/lib/adapters/laravel/laravel-shipment-adapter";
+import { laravelSupportRepository } from "@/lib/adapters/laravel/laravel-support-adapter";
+import { laravelTrackingRepository } from "@/lib/adapters/laravel/laravel-tracking-adapter";
+import { laravelUploadRepository } from "@/lib/adapters/laravel/laravel-upload-adapter";
+
+// Laravel adapters will plug into this factory as each backend contract becomes available.
+export const repositories = {
+  auth: shouldUseLaravel(featureFlags.useLaravelAuth) ? laravelAuthRepository : mockAuthRepository,
+  customer: shouldUseLaravel(featureFlags.useLaravelAuth) ? laravelCustomerRepository : mockCustomerRepository,
+  shipments: shouldUseLaravel(featureFlags.useLaravelShipments) ? laravelShipmentRepository : mockShipmentRepository,
+  tracking: shouldUseLaravel(featureFlags.useLaravelTracking) ? laravelTrackingRepository : mockTrackingRepository,
+  billing: shouldUseLaravel(featureFlags.useLaravelBilling) ? laravelBillingRepository : mockBillingRepository,
+  billingActions: shouldUseLaravel(featureFlags.useLaravelBillingActions) ? laravelBillingActionsRepository : mockBillingActionsRepository,
+  bookings: shouldUseLaravel(featureFlags.useLaravelBookings) ? laravelBookingRepository : mockBookingRepository,
+  addressBook: shouldUseLaravel(featureFlags.useLaravelAddressBook) ? laravelAddressBookRepository : mockAddressBookRepository,
+  support: shouldUseLaravel(featureFlags.useLaravelSupport) ? laravelSupportRepository : mockSupportRepository,
+  returns: shouldUseLaravel(featureFlags.useLaravelReturns) ? laravelReturnRequestRepository : mockReturnRequestRepository,
+  pickups: shouldUseLaravel(featureFlags.useLaravelPickups) ? laravelPickupRepository : mockPickupRepository,
+  accountSettings: shouldUseLaravel(featureFlags.useLaravelAccountSettings) ? laravelAccountSettingsRepository : mockAccountSettingsRepository,
+  uploads: shouldUseLaravel(featureFlags.useLaravelAuth) ? laravelUploadRepository : mockUploadRepository,
+};

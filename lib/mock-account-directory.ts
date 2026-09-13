@@ -1,5 +1,7 @@
-export type MockDirectoryKind = "places" | "recipients";
-export type MockDirectoryItem = { id: string; label: string; detail: string };
+import type { AddressBookItem, AddressBookKind } from "@/lib/domain/address-book";
+
+export type MockDirectoryKind = AddressBookKind;
+export type MockDirectoryItem = AddressBookItem;
 
 export const mockSavedPlaces: MockDirectoryItem[] = [
   { id: "place-home", label: "Home", detail: "Roma, Lusaka" },

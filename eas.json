@@ -1,0 +1,36 @@
+{
+  "cli": {
+    "version": ">= 13.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_APP_ENV": "development",
+        "EXPO_PUBLIC_API_MODE": "mock",
+        "EXPO_PUBLIC_MAPS_PROVIDER": "mock",
+        "EXPO_PUBLIC_PAYMENTS_PROVIDER": "mock"
+      }
+    },
+    "staging": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_APP_ENV": "staging",
+        "EXPO_PUBLIC_API_MODE": "hybrid",
+        "EXPO_PUBLIC_MAPS_PROVIDER": "mock",
+        "EXPO_PUBLIC_PAYMENTS_PROVIDER": "mock"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_APP_ENV": "production",
+        "EXPO_PUBLIC_API_MODE": "laravel"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

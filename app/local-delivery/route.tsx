@@ -14,14 +14,14 @@ import { savedPlaceToAddress } from "@/lib/account-directory-booking";
 import { nwcColors } from "@/lib/nwc-theme";
 import { routeSuggestionToAddress } from "@/lib/route-autocomplete";
 import { useBookingDraft } from "@/stores/booking-draft";
-import { useMockAccountDirectory } from "@/stores/mock-account-directory";
+import { useAddressBook } from "@/lib/use-cases/use-address-book";
 import type { LocalDeliveryVehicle } from "@/types/cargo";
 
 export default function LocalDeliveryRouteScreen() {
   const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const { localDraft, updateLocalDraft, setBookingStep } = useBookingDraft();
-  const { savedPlaces } = useMockAccountDirectory();
+  const { savedPlaces } = useAddressBook();
   const [activeTarget, setActiveTarget] = useState<LocalDeliveryRouteTarget | null>(null);
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [adjustingTarget, setAdjustingTarget] = useState<"pickup" | "destination" | null>(null);

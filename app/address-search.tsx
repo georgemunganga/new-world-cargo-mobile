@@ -7,7 +7,7 @@ import { Card, IconButton, PrimaryButton, Screen, SectionHeader, StatusBadge } f
 import { searchMockAddresses, type AddressSearchResult } from "@/lib/mock-addresses";
 import { nwcColors } from "@/lib/nwc-theme";
 import { useBookingDraft } from "@/stores/booking-draft";
-import { useMockPermissions } from "@/stores/mock-permissions";
+import { useCustomerPermissions } from "@/lib/use-cases/use-customer-permissions";
 
 type PlaceTarget = "pickup" | "destination";
 
@@ -15,7 +15,7 @@ export default function AddressSearchScreen() {
   const [target, setTarget] = useState<PlaceTarget>("pickup");
   const [query, setQuery] = useState("");
   const { localDraft, updateLocalDraft } = useBookingDraft();
-  const { statuses } = useMockPermissions();
+  const { statuses } = useCustomerPermissions();
   const results = useMemo(() => searchMockAddresses(query), [query]);
   const selectAddress = (address: AddressSearchResult) => {
     updateLocalDraft({ [target]: { label: address.label, city: address.city, area: address.area, detail: address.detail } });

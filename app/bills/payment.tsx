@@ -4,10 +4,10 @@ import { AppIcon } from "@/components/ui/app-icon";
 import { Card, IconButton, PrimaryButton, Screen, SecondaryButton, StatusBadge } from "@/components/ui/nwc-ui";
 import { canPayWithMockWallet, formatMockKwacha, paymentMethodLabel } from "@/lib/mock-billing";
 import { nwcColors } from "@/lib/nwc-theme";
-import { useMockBilling } from "@/stores/mock-billing";
+import { useCustomerBillingAccount } from "@/stores/customer-billing-account";
 
 export default function PaymentScreen() {
-  const { selectedInvoice, setPaymentState, selectedPaymentMethod, setSelectedPaymentMethod, walletBalance } = useMockBilling();
+  const { selectedInvoice, setPaymentState, selectedPaymentMethod, setSelectedPaymentMethod, walletBalance } = useCustomerBillingAccount();
   const invoice = selectedInvoice;
   const method = selectedPaymentMethod;
   const beginPayment = () => { setPaymentState("pending"); router.push("/bills/payment-status" as Href); };

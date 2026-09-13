@@ -2,14 +2,14 @@ import { router, type Href } from "expo-router";
 import { BookingScreen, BookingSection, FormField, OptionalDetails } from "@/components/booking/booking-ui";
 import { useBookingDraft } from "@/stores/booking-draft";
 import { recipientToBookingContact } from "@/lib/account-directory-booking";
-import { useMockAccountDirectory } from "@/stores/mock-account-directory";
+import { useAddressBook } from "@/lib/use-cases/use-address-book";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { nwcColors } from "@/lib/nwc-theme";
 import { isContactsReady } from "@/lib/booking-progress";
 
 export default function LocalDeliveryContactsScreen() {
   const { localDraft, updateLocalDraft, setBookingStep } = useBookingDraft();
-  const { recipients } = useMockAccountDirectory();
+  const { recipients } = useAddressBook();
   const sender = localDraft.sender ?? { name: "", phone: "" };
   const receiver = localDraft.receiver ?? { name: "", phone: "" };
   const ready = isContactsReady({ ...localDraft, sender, receiver });

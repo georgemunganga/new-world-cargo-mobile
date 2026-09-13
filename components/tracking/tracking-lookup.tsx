@@ -4,27 +4,30 @@ import { router, type Href } from "expo-router";
 
 import { AppIcon } from "@/components/ui/app-icon";
 import { PrimaryButton, SecondaryButton } from "@/components/ui/nwc-ui";
-import { shipments } from "@/lib/mock-cargo-data";
+import { toUiShipment } from "@/lib/mappers/shipment-ui-mapper";
 import { shipmentDestination } from "@/lib/shipment-navigation";
 import { nwcColors } from "@/lib/nwc-theme";
-import { resolvePublicTrackingLookup } from "@/lib/public-tracking-lookup";
+import { useCustomerShipments } from "@/lib/use-cases/use-customer-shipments";
+import { usePublicTracking } from "@/lib/use-cases/use-public-tracking";
 
 type TrackingLookupContentProps = { onDismiss?: () => void; mode: "overlay" | "screen" };
 
 function TrackingLookupContent({ onDismiss, mode }: TrackingLookupContentProps) {
   const [code, setCode] = useState("");
   const [state, setState] = useState<"idle" | "loading" | "not-found" | "unavailable">("idle");
-  const search = () => {
+  const tracking = usePublicTracking();
+  const customerShipments = useCustomerShipments();
+  const demoCode = customerShipments.shipments[0]?.code ?? "NWC-784512";
+  const search = async () => {
     setState("loading");
-    setTimeout(() => {
-      const result = resolvePublicTrackingLookup(code, shipments);
-      if (result.kind === "found") { onDismiss?.(); router.push(shipmentDestination(result.shipment) as Href); return; }
-      setState(result.kind);
-    }, 420);
+    const result = await tracking.track(code);
+    if (result?.kind === "found") { onDismiss?.(); router.push(shipmentDestination(toUiShipment(result.shipment)) as Href); return; }
+    setState(result?.kind === "unavailable" ? "unavailable" : "not-found");
   };
-  const useDemo = () => { setCode(shipments[0].reference); setState("idle"); };
-  const alert = state === "unavailable" ? "Tracking is temporarily unavailable. Please try again." : state === "not-found" ? (code.trim() ? "Shipment not found. Check the code and try again." : "Enter a tracking number to continue.") : undefined;
-  return <View style={[styles.panel, mode === "screen" && styles.panelScreen]}><View style={styles.headingRow}><View style={styles.brandIcon}><AppIcon name="package-variant-closed" size={22} color={nwcColors.primaryInk} /></View>{onDismiss ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Close tracking search" onPress={onDismiss} style={styles.close}><AppIcon name="close" size={20} color={nwcColors.muted} /></TouchableOpacity> : null}</View><View style={styles.copy}><Text style={styles.overline}>New WorldCargo</Text><Text style={styles.title}>Track a shipment</Text><Text style={styles.detail}>Enter your cargo tracking number to see its latest move.</Text></View><View style={styles.form}><Text style={styles.label}>Tracking number</Text><View style={[styles.inputFrame, (state === "not-found" || state === "unavailable") && styles.inputError]}><AppIcon name="barcode-scan" size={20} color={nwcColors.info} /><TextInput autoFocus editable={state !== "loading"} accessibilityLabel="Tracking number" accessibilityHint={alert ?? "Enter a tracking number, then activate Track shipment."} value={code} onChangeText={(value) => { setCode(value); setState("idle"); }} autoCapitalize="characters" placeholder="e.g. NW-784512" placeholderTextColor="#91A0AE" returnKeyType="go" onSubmitEditing={search} style={styles.input} /></View>{alert ? <Text accessibilityRole="alert" style={styles.error}>{alert}</Text> : null}<PrimaryButton label={state === "loading" ? "Looking up shipment" : state === "unavailable" ? "Try again" : "Track shipment"} icon="arrow-right" disabled={state === "loading"} onPress={search} /></View><View style={styles.secondaryActions}><SecondaryButton label="Scan tracking QR" icon="qrcode-scan" onPress={() => { onDismiss?.(); router.push("/tracking/scan" as Href); }} /><TouchableOpacity accessibilityRole="button" accessibilityLabel="Use demo tracking code" onPress={useDemo} style={styles.demo}><Text style={styles.demoText}>Use demo code: {shipments[0].reference}</Text><AppIcon name="chevron-right" size={17} color={nwcColors.info} /></TouchableOpacity></View>{state === "loading" ? <View style={styles.loading}><ActivityIndicator color={nwcColors.info} size="small" /><Text style={styles.loadingText}>Looking up your shipment…</Text></View> : null}<Text style={styles.support}>Need help? Open Support from Account to start a request.</Text></View>;
+  const useDemo = () => { setCode(demoCode); setState("idle"); };
+  const resultMessage = tracking.result && tracking.result.kind !== "found" ? tracking.result.message : undefined;
+  const alert = state === "unavailable" ? resultMessage ?? "Tracking is temporarily unavailable. Please try again." : state === "not-found" ? (resultMessage ?? (code.trim() ? "Shipment not found. Check the code and try again." : "Enter a tracking number to continue.")) : undefined;
+  return <View style={[styles.panel, mode === "screen" && styles.panelScreen]}><View style={styles.headingRow}><View style={styles.brandIcon}><AppIcon name="package-variant-closed" size={22} color={nwcColors.primaryInk} /></View>{onDismiss ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Close tracking search" onPress={onDismiss} style={styles.close}><AppIcon name="close" size={20} color={nwcColors.muted} /></TouchableOpacity> : null}</View><View style={styles.copy}><Text style={styles.overline}>New WorldCargo</Text><Text style={styles.title}>Track a shipment</Text><Text style={styles.detail}>Enter your cargo tracking number to see its latest move.</Text></View><View style={styles.form}><Text style={styles.label}>Tracking number</Text><View style={[styles.inputFrame, (state === "not-found" || state === "unavailable") && styles.inputError]}><AppIcon name="barcode-scan" size={20} color={nwcColors.info} /><TextInput autoFocus editable={state !== "loading"} accessibilityLabel="Tracking number" accessibilityHint={alert ?? "Enter a tracking number, then activate Track shipment."} value={code} onChangeText={(value) => { setCode(value); setState("idle"); }} autoCapitalize="characters" placeholder="e.g. NW-784512" placeholderTextColor="#91A0AE" returnKeyType="go" onSubmitEditing={search} style={styles.input} /></View>{alert ? <Text accessibilityRole="alert" style={styles.error}>{alert}</Text> : null}<PrimaryButton label={state === "loading" ? "Looking up shipment" : state === "unavailable" ? "Try again" : "Track shipment"} icon="arrow-right" disabled={state === "loading"} onPress={search} /></View><View style={styles.secondaryActions}><SecondaryButton label="Scan tracking QR" icon="qrcode-scan" onPress={() => { onDismiss?.(); router.push("/tracking/scan" as Href); }} /><TouchableOpacity accessibilityRole="button" accessibilityLabel="Use demo tracking code" onPress={useDemo} style={styles.demo}><Text style={styles.demoText}>Use demo code: {demoCode}</Text><AppIcon name="chevron-right" size={17} color={nwcColors.info} /></TouchableOpacity></View>{state === "loading" ? <View style={styles.loading}><ActivityIndicator color={nwcColors.info} size="small" /><Text style={styles.loadingText}>Looking up your shipment...</Text></View> : null}<Text style={styles.support}>Need help? Open Support from Account to start a request.</Text></View>;
 }
 
 export function TrackingLookupOverlay({ visible, onDismiss }: { visible: boolean; onDismiss: () => void }) {

@@ -1,6 +1,8 @@
-import { createContext, useContext, useMemo, useState, type PropsWithChildren } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
 import type { BookingStep, CustomRequestDraft, ImportBookingDraft, IntercityBookingDraft, LocalDeliveryDraft } from "@/types/cargo";
 import { mockBookingDraftRecords, type MockBookingDraftRecord } from "@/lib/mock-booking-drafts";
+import { repositories } from "@/lib/repositories";
+import { readStoredDraftSummaries, writeStoredDraftSummaries } from "@/lib/storage/draft-storage";
 
 const freshDraft = (): LocalDeliveryDraft => ({ service: "local", step: "route", quantity: 1, handling: "standard", schedule: "as_soon_as_possible", vehicle: "scooter" });
 const freshImportDraft = (): ImportBookingDraft => ({ service: "import", quantity: 1 });
@@ -34,6 +36,36 @@ export function BookingDraftProvider({ children }: PropsWithChildren) {
   const [intercityDraft, setIntercityDraft] = useState<IntercityBookingDraft>(freshIntercityDraft);
   const [customDraft, setCustomDraft] = useState<CustomRequestDraft>(freshCustomDraft);
   const [savedDrafts, setSavedDrafts] = useState(mockBookingDraftRecords);
+  useEffect(() => {
+    let active = true;
+    void readStoredDraftSummaries()
+      .then(async (stored) => {
+        const summaries = stored.length ? stored : await repositories.bookings.listDrafts();
+        if (!active) return;
+        setSavedDrafts(summaries.map((draft) => ({
+          id: draft.id,
+          service: draft.service,
+          title: draft.title,
+          route: "Route to confirm",
+          stepLabel: draft.progressLabel,
+          progress: draft.progressLabel,
+          updatedAt: draft.updatedAt,
+          resumeHref: draft.service === "local" ? "/local-delivery/contacts" : draft.service === "import" ? "/import/cargo" : draft.service === "intercity" ? "/intercity/cargo" : "/custom/details",
+        })));
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+  useEffect(() => {
+    void writeStoredDraftSummaries(savedDrafts.map((draft) => ({
+      id: draft.id,
+      service: draft.service,
+      title: draft.title,
+      progressLabel: `${draft.stepLabel} · ${draft.progress}`,
+      updatedAt: draft.updatedAt,
+    })));
+  }, [savedDrafts]);
   const value = useMemo<BookingDraftContextValue>(() => ({
     localDraft,
     updateLocalDraft: (patch) => setLocalDraft((draft) => ({ ...draft, ...patch })),

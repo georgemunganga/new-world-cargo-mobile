@@ -2,7 +2,7 @@ import { useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { AppIcon, type AppIconName } from "@/components/ui/app-icon";
 import { nwcColors } from "@/lib/nwc-theme";
-import { statusPresentation } from "@/lib/mock-cargo-data";
+import { statusPresentation } from "@/lib/shipment-status-presentation";
 import type { LiveTrackingHistoryEvent } from "@/lib/live-tracking-history";
 import { copyTrackingNumber, shareTrackingNumber } from "@/lib/customer-tracking-actions";
 import type { Shipment, TrackingContact } from "@/types/cargo";

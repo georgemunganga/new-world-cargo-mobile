@@ -1,0 +1,13 @@
+export type Money = {
+  amount: number;
+  currencyCode: string;
+  formatted: string;
+};
+
+export function formatMoney(amount: number, currencyCode: string) {
+  try {
+    return new Intl.NumberFormat(undefined, { style: "currency", currency: currencyCode }).format(amount);
+  } catch {
+    return `${currencyCode} ${amount.toFixed(2)}`;
+  }
+}

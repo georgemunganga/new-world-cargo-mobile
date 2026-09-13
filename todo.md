@@ -218,6 +218,53 @@
 - [x] Add a compact Track shipment icon control in the Home command bar immediately before Notifications.
 - [x] Build a minimalist public tracking entry screen based on the public web tracking workflow, with code input, browser-safe scan entry, recent-code context, empty/error feedback, and direct shipment lookup.
 - [x] Route found tracking codes to the correct existing live-tracking or completed-delivery detail screen using deterministic mock data.
+- [x] Start the product-first mobile architecture spine with typed config, API mode selection, normalized API errors, domain models, repository contracts, mock/Laravel adapters, storage helpers, observability stubs, native-service stubs, and first use-case hooks.
+- [x] Begin migrating live customer screens and stores onto the architecture spine: auth sign-in, shipments, public tracking, address-book hydration, and draft persistence.
+- [x] Add mobile release scaffolding with EAS build profiles, GitHub Actions quality workflow, and a release checklist.
+- [x] Start Milestone 1 auth identity work: expand auth contracts for registration, OTP verification/resend, password reset, session restore, logout, and wire existing auth screens through the repository boundary.
+- [x] Add customer profile and profile-photo repository/use-case boundaries with mock and Laravel adapters for account identity completion.
+- [x] Complete Milestone 1 auth identity hardening with secure session snapshots, native API-token persistence, backend-aware logout cleanup, account-disabled/session-expired states, profile-photo settings, and signed-in password-change support.
+- [x] Add deterministic auth/session tests for optional customer metadata and signed-in password changes.
+- [x] Expand the mobile billing domain to include detail-page charges, payment method, resolution timeline, and currency display fields.
+- [x] Hydrate the existing Bills/payment store through the billing repository once, preserving local payment mutations while making Laravel invoice data pluggable.
+- [x] Move Home active/recent shipment data from direct mock imports onto the customer shipment use-case with customer-safe loading, empty, and retry states.
+- [x] Add deterministic billing-domain tests and validate the repository-backed billing/Home migration.
+- [x] Move tracking scan/manual lookup onto the public tracking use-case and remove its direct shipment mock search.
+- [x] Move active tracking and completed shipment detail pages onto the single-shipment repository/use-case boundary with explicit loading, not-found, error, and retry states.
+- [x] Extract shipment status presentation away from bundled mock shipment data for reusable UI status rendering.
+- [x] Move Order details, Manage delivery, and Return request onto the single-shipment use-case and remove silent fallback to the first bundled shipment.
+- [x] Add booking submission repository/use-case contracts with mock and Laravel adapters.
+- [x] Wire Local Delivery, International Import, City-to-City, and Custom Request review screens through the booking submission use-case before showing confirmation.
+- [x] Add deterministic booking repository tests and validate the booking submission seam.
+- [x] Add repository-backed saved-place and recipient create/update/delete contracts with mock and Laravel adapters.
+- [x] Move Account directory save/remove, Local Delivery saved recipients, and Local Delivery saved places through the address-book use-case.
+- [x] Add deterministic address-book repository tests and validate the account-directory integration seam.
+- [x] Add repository-backed support-case domain contracts with mock and Laravel adapters.
+- [x] Move Support list/create and invoice charge-review support entry through the support use-case.
+- [x] Add deterministic support repository tests and validate the support integration seam.
+- [x] Move customer permission education/status into a mobile permission domain and shared permission provider.
+- [x] Wire permission list/detail screens and address search through the native-service-ready permission use-case.
+- [x] Add deterministic permission-domain tests and validate the permission migration.
+- [x] Add repository-backed return-request domain contracts with mock and Laravel adapters.
+- [x] Move the customer return-request journey through the return-request use-case and remove the root mock returns provider.
+- [x] Add deterministic return-request repository tests and validate the return migration.
+- [x] Add repository-backed pickup-management domain contracts with mock and Laravel adapters.
+- [x] Move pickup reschedule, cancel, help, and restore actions through the pickup-management use-case.
+- [x] Remove silent fallback to another shipment’s pickup and validate explicit pickup loading/unavailable states.
+- [x] Add deterministic pickup repository tests and validate the pickup migration.
+- [x] Add repository-backed billing action contracts with mock and Laravel adapters for payment methods, wallet, payment confirmation, reminders, and disputes.
+- [x] Route billing store write-actions through the billing-actions repository while preserving existing customer payment UI behavior.
+- [x] Add deterministic billing-actions repository tests and validate the billing write-action migration.
+- [x] Rename the billing provider/hook from mock billing to customer billing account after repository-backed money actions landed.
+- [x] Add repository-backed account-settings contracts with mock and Laravel adapters for devices, marketing, data export, and deletion requests.
+- [x] Move Account settings through the account-settings use-case and remove the root mock settings provider.
+- [x] Add deterministic account-settings repository tests and validate the settings migration.
+- [x] Move address-book item/kind types into the mobile address-book domain while keeping bundled directory records as mock adapter sample data.
+- [x] Move shipment return eligibility checks onto the return-request domain helper instead of importing from mock return records.
+- [x] Extend JSON storage to use native AsyncStorage outside web, while secure items still use Expo SecureStore.
+- [x] Add stale-cache fallback for shipment and billing reads so saved snapshots remain visible during temporary API/network failures.
+- [x] Add keyed public-tracking cache fallback for previously found tracking codes.
+- [x] Add saved-place and recipient cache fallback so booking/contact workflows can recover from temporary address-book API failures.
 - [x] Add deterministic tests, validate, checkpoint, and preserve the Home tracking control and public tracking workflow.
 - [x] Make the Home tracking control open a reusable full-screen translucent blurred overlay with one tracking-code search field and submit action, rather than navigating directly to results.
 - [x] Close the tracking overlay only after a successful deterministic lookup, then navigate to the correct existing dedicated live-tracking or completed-delivery screen.

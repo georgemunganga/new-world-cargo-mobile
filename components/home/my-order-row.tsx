@@ -1,6 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { AppIcon, type AppIconName } from "@/components/ui/app-icon";
-import { statusPresentation } from "@/lib/mock-cargo-data";
+import { statusPresentation } from "@/lib/shipment-status-presentation";
 import { nwcColors } from "@/lib/nwc-theme";
 import type { Shipment } from "@/types/cargo";
 

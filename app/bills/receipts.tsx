@@ -4,10 +4,10 @@ import { AppIcon } from "@/components/ui/app-icon";
 import { Card, IconButton, Screen, StatusBadge } from "@/components/ui/nwc-ui";
 import { exportReceipt } from "@/lib/customer-document-export";
 import { nwcColors } from "@/lib/nwc-theme";
-import { useMockBilling } from "@/stores/mock-billing";
+import { useCustomerBillingAccount } from "@/stores/customer-billing-account";
 
 export default function ReceiptHistoryScreen() {
-  const { invoices, selectInvoice } = useMockBilling();
+  const { invoices, selectInvoice } = useCustomerBillingAccount();
   const paidInvoices = invoices.filter((invoice) => invoice.status === "paid");
   const openReceipt = (invoiceId: string) => { selectInvoice(invoiceId); router.push("/bills/receipt"); };
   const documentAction = (invoice: (typeof invoices)[number]) => { const result = exportReceipt(invoice); Alert.alert(result.status === "downloaded" ? "Receipt downloaded" : "Receipt ready", result.status === "downloaded" ? `${result.filename} was downloaded to your browser.` : "This preview can download receipts in a browser. Native save/share will be connected later."); };

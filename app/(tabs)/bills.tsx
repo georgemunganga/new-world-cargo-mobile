@@ -7,10 +7,10 @@ import { useFloatingNavigationClearance } from "@/components/navigation/use-floa
 import { Card, Screen, StatusBadge } from "@/components/ui/nwc-ui";
 import { calculateOutstandingBalance, filterMockInvoices, formatMockKwacha, mockReminderLabel, type MockInvoiceStatus } from "@/lib/mock-billing";
 import { nwcColors } from "@/lib/nwc-theme";
-import { useMockBilling } from "@/stores/mock-billing";
+import { useCustomerBillingAccount } from "@/stores/customer-billing-account";
 
 export default function BillsScreen() {
-  const { invoices, selectInvoice, walletBalance, reminders } = useMockBilling();
+  const { invoices, selectInvoice, walletBalance, reminders } = useCustomerBillingAccount();
   const floatingNavigationClearance = useFloatingNavigationClearance();
   const { state } = useLocalSearchParams<{ state?: "loading" | "error" }>();
   const [query, setQuery] = useState("");

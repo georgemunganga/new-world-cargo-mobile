@@ -1,10 +1,10 @@
 import { router, type Href } from "expo-router";
 import { AppStateScreen } from "@/components/system/app-state-screen";
 import { mockPaymentPresentation } from "@/lib/mock-billing";
-import { useMockBilling } from "@/stores/mock-billing";
+import { useCustomerBillingAccount } from "@/stores/customer-billing-account";
 
 export default function PaymentStatusScreen() {
-  const { paymentState, setPaymentState, confirmSelectedInvoicePayment } = useMockBilling();
+  const { paymentState, setPaymentState, confirmSelectedInvoicePayment } = useCustomerBillingAccount();
   const state = mockPaymentPresentation(paymentState);
   const goToBill = () => router.replace("/bills" as Href);
   if (paymentState === "pending") return <AppStateScreen {...state} loading primaryLabel="Confirm payment for preview" onPrimary={confirmSelectedInvoicePayment} secondaryLabel="Cancel for preview" onSecondary={() => setPaymentState("cancelled")} />;

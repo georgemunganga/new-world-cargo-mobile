@@ -1,6 +1,7 @@
 import type { Shipment } from "@/types/cargo";
+import { normaliseTrackingCode } from "@/lib/domain/tracking";
 
-export function normaliseTrackingCode(value: string) { return value.trim().toUpperCase().replace(/\s+/g, ""); }
+export { normaliseTrackingCode };
 
 export function findShipmentForTrackingCode(value: string, shipments: Shipment[]) {
   const code = normaliseTrackingCode(value);

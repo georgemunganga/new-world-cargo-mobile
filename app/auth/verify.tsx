@@ -11,7 +11,7 @@ export default function VerifyScreen() {
   const [code, setCode] = useState("");
   const [hasAttempted, setHasAttempted] = useState(false);
   const [seconds, setSeconds] = useState(30);
-  const { pendingAuth, completeVerification, clearPendingAuth } = useCustomerAuth();
+  const { pendingAuth, authChallenge, authError, completeVerification, clearPendingAuth, resendVerification } = useCustomerAuth();
   const isValid = isValidFrontendOtp(code);
 
   useEffect(() => {
@@ -27,8 +27,8 @@ export default function VerifyScreen() {
   const verify = async () => {
     setHasAttempted(true);
     if (!isValid) return;
-    await completeVerification();
-    router.replace("/(tabs)" as Href);
+    const verified = await completeVerification(code);
+    if (verified) router.replace("/(tabs)" as Href);
   };
 
   const changeDestination = () => {
@@ -41,12 +41,13 @@ export default function VerifyScreen() {
     setCode("");
     setHasAttempted(false);
     setSeconds(30);
+    void resendVerification();
   };
 
-  const destination = pendingAuth?.destination ?? "your account";
-  const channel = pendingAuth?.channel === "email" ? "email" : "mobile number";
+  const destination = authChallenge?.destination ?? pendingAuth?.destination ?? "your account";
+  const channel = (authChallenge?.channel ?? pendingAuth?.channel) === "email" ? "email" : "mobile number";
 
-  return <AuthScreen showBack title="Check your messages" detail={`Enter the six-digit code sent to your ${channel} ${destination}.`} primaryLabel="Verify and continue" onPrimary={verify} primaryDisabled={code.length < 6} secondaryLabel="Use a different phone or email" onSecondary={changeDestination}><OtpInput value={code} onChange={(next) => { setCode(next); setHasAttempted(false); }} /><View style={styles.resendRow}><Text style={styles.resendText}>Didn’t receive a code?</Text><TouchableOpacity accessibilityRole="button" disabled={seconds > 0} onPress={resend}><Text style={[styles.resendAction, seconds > 0 && styles.resendDisabled]}>{seconds > 0 ? `Resend in 0:${String(seconds).padStart(2, "0")}` : "Resend code"}</Text></TouchableOpacity></View>{hasAttempted && !isValid ? <Text accessibilityRole="alert" style={styles.error}>That code is incorrect. Check it and try again.</Text> : null}<View style={styles.demoCode}><Text style={styles.demoTitle}>Demo verification</Text><Text style={styles.demoDetail}>Use code {FRONTEND_OTP_CODE} while SMS and email delivery are being connected.</Text></View></AuthScreen>;
+  return <AuthScreen showBack title="Check your messages" detail={`Enter the six-digit code sent to your ${channel} ${destination}.`} primaryLabel="Verify and continue" onPrimary={verify} primaryDisabled={code.length < 6} secondaryLabel="Use a different phone or email" onSecondary={changeDestination}><OtpInput value={code} onChange={(next) => { setCode(next); setHasAttempted(false); }} /><View style={styles.resendRow}><Text style={styles.resendText}>Didn’t receive a code?</Text><TouchableOpacity accessibilityRole="button" disabled={seconds > 0} onPress={resend}><Text style={[styles.resendAction, seconds > 0 && styles.resendDisabled]}>{seconds > 0 ? `Resend in 0:${String(seconds).padStart(2, "0")}` : "Resend code"}</Text></TouchableOpacity></View>{authError ? <Text accessibilityRole="alert" style={styles.error}>{authError}</Text> : hasAttempted && !isValid ? <Text accessibilityRole="alert" style={styles.error}>That code is incorrect. Check it and try again.</Text> : null}<View style={styles.demoCode}><Text style={styles.demoTitle}>Demo verification</Text><Text style={styles.demoDetail}>Use code {FRONTEND_OTP_CODE} while SMS and email delivery are being connected.</Text></View></AuthScreen>;
 }
 
 const styles = StyleSheet.create({

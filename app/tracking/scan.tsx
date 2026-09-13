@@ -4,18 +4,33 @@ import { router, type Href } from "expo-router";
 
 import { AppIcon } from "@/components/ui/app-icon";
 import { Card, IconButton, PrimaryButton, Screen, SecondaryButton } from "@/components/ui/nwc-ui";
-import { shipments } from "@/lib/mock-cargo-data";
-import { findShipmentForTrackingCode } from "@/lib/mock-tracking-scan";
+import { toUiShipment } from "@/lib/mappers/shipment-ui-mapper";
 import { shipmentDestination } from "@/lib/shipment-navigation";
 import { nwcColors } from "@/lib/nwc-theme";
+import { useCustomerShipments } from "@/lib/use-cases/use-customer-shipments";
+import { usePublicTracking } from "@/lib/use-cases/use-public-tracking";
 
 export default function ScanTrackingScreen() {
   const [code, setCode] = useState("");
   const [scannerShown, setScannerShown] = useState(false);
   const [message, setMessage] = useState("");
-  const submit = () => { const shipment = findShipmentForTrackingCode(code, shipments); if (!shipment) { setMessage("We could not find that tracking code. Try the example code below."); return; } router.replace(shipmentDestination(shipment) as Href); };
-  const useDemo = () => { setCode(shipments[0].reference); setMessage("Demo code added. Continue to open its live tracking view."); };
-  return <Screen><View style={styles.page}><View style={styles.header}><IconButton label="Go back" icon="arrow-left" onPress={() => router.back()} /><Text style={styles.headerTitle}>Track by code</Text><View style={styles.headerSpacer} /></View><View style={styles.content}><View style={styles.lead}><Text style={styles.title}>Scan a shipment</Text><Text style={styles.detail}>Use a tracking label, or enter the code shown on your cargo receipt.</Text></View><Card style={styles.scanner}><View style={styles.scanIcon}><AppIcon name="qrcode-scan" size={43} color={nwcColors.primaryInk} /></View><Text style={styles.scanTitle}>{scannerShown ? "Camera scanner ready later" : "Use your cargo code"}</Text><Text style={styles.scanDetail}>{scannerShown ? "This browser-safe preview keeps the entry flow visible. Native camera scanning can connect here later." : "Open the scan entry to see how a camera scan will fit without blocking browser testing."}</Text><SecondaryButton label={scannerShown ? "Use typed code" : "Open scan preview"} icon="qrcode-scan" onPress={() => setScannerShown((shown) => !shown)} /></Card><View style={styles.form}><Text style={styles.label}>Tracking code</Text><View style={styles.inputShell}><AppIcon name="barcode-scan" size={20} color={nwcColors.info} /><TextInput accessibilityLabel="Tracking code" value={code} onChangeText={(value) => { setCode(value); setMessage(""); }} autoCapitalize="characters" placeholder="e.g. NW-784512" placeholderTextColor="#91A0AE" returnKeyType="go" onSubmitEditing={submit} style={styles.input} /></View>{message ? <Text accessibilityRole="alert" style={styles.message}>{message}</Text> : null}<PrimaryButton label="Track shipment" icon="arrow-right" disabled={!code.trim()} onPress={submit} /></View><TouchableOpacity accessibilityRole="button" accessibilityLabel="Use demo tracking code" onPress={useDemo} style={styles.demo}><Text style={styles.demoText}>Use demo code: {shipments[0].reference}</Text><AppIcon name="chevron-right" size={18} color={nwcColors.info} /></TouchableOpacity></View></View></Screen>;
+  const tracking = usePublicTracking();
+  const shipmentState = useCustomerShipments();
+  const demoCode = shipmentState.shipments[0]?.code ?? "EXP-LUN10001";
+  const submit = async () => {
+    const result = await tracking.track(code);
+    if (!result) {
+      setMessage(tracking.errorMessage || "Tracking is taking longer than expected. Please try again.");
+      return;
+    }
+    if (result.kind !== "found") {
+      setMessage(result.message);
+      return;
+    }
+    router.replace(shipmentDestination(toUiShipment(result.shipment)) as Href);
+  };
+  const useDemo = () => { setCode(demoCode); setMessage("Demo code added. Continue to open its live tracking view."); };
+  return <Screen><View style={styles.page}><View style={styles.header}><IconButton label="Go back" icon="arrow-left" onPress={() => router.back()} /><Text style={styles.headerTitle}>Track by code</Text><View style={styles.headerSpacer} /></View><View style={styles.content}><View style={styles.lead}><Text style={styles.title}>Scan a shipment</Text><Text style={styles.detail}>Use a tracking label, or enter the code shown on your cargo receipt.</Text></View><Card style={styles.scanner}><View style={styles.scanIcon}><AppIcon name="qrcode-scan" size={43} color={nwcColors.primaryInk} /></View><Text style={styles.scanTitle}>{scannerShown ? "Camera scanner ready later" : "Use your cargo code"}</Text><Text style={styles.scanDetail}>{scannerShown ? "This browser-safe preview keeps the entry flow visible. Native camera scanning can connect here later." : "Open the scan entry to see how a camera scan will fit without blocking browser testing."}</Text><SecondaryButton label={scannerShown ? "Use typed code" : "Open scan preview"} icon="qrcode-scan" onPress={() => setScannerShown((shown) => !shown)} /></Card><View style={styles.form}><Text style={styles.label}>Tracking code</Text><View style={styles.inputShell}><AppIcon name="barcode-scan" size={20} color={nwcColors.info} /><TextInput accessibilityLabel="Tracking code" value={code} onChangeText={(value) => { setCode(value); setMessage(""); }} autoCapitalize="characters" placeholder="e.g. EXP-LUN10001" placeholderTextColor="#91A0AE" returnKeyType="go" onSubmitEditing={submit} style={styles.input} /></View>{message ? <Text accessibilityRole="alert" style={styles.message}>{message}</Text> : null}<PrimaryButton label={tracking.status === "loading" ? "Checking..." : "Track shipment"} icon="arrow-right" disabled={!code.trim() || tracking.status === "loading"} onPress={submit} /></View><TouchableOpacity accessibilityRole="button" accessibilityLabel="Use demo tracking code" onPress={useDemo} style={styles.demo}><Text style={styles.demoText}>Use demo code: {demoCode}</Text><AppIcon name="chevron-right" size={18} color={nwcColors.info} /></TouchableOpacity></View></View></Screen>;
 }
 
 const styles = StyleSheet.create({

@@ -2,15 +2,15 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-nati
 import { router, type Href } from "expo-router";
 import { AppIcon } from "@/components/ui/app-icon";
 import { Screen } from "@/components/ui/nwc-ui";
-import { mockPermissions, permissionStatusLabel, type MockPermission } from "@/lib/mock-permissions";
+import { customerPermissions, permissionStatusLabel, type CustomerPermission } from "@/lib/domain/permission";
 import { nwcColors } from "@/lib/nwc-theme";
-import { useMockPermissions } from "@/stores/mock-permissions";
+import { useCustomerPermissions } from "@/lib/use-cases/use-customer-permissions";
 
-const permissionKeys = Object.keys(mockPermissions) as MockPermission[];
+const permissionKeys = Object.keys(customerPermissions) as CustomerPermission[];
 
 export default function PermissionsScreen() {
-  const { statuses } = useMockPermissions();
-  return <Screen><View style={styles.page}><View style={styles.header}><TouchableOpacity accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={styles.back}><AppIcon name="arrow-left" size={21} color={nwcColors.brandNavy} /></TouchableOpacity><View><Text style={styles.title}>Permissions</Text><Text style={styles.detail}>You choose when to allow access.</Text></View></View><ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>{permissionKeys.map((permission) => { const item = mockPermissions[permission]; const status = statuses[permission]; const allowed = status === "granted"; return <TouchableOpacity key={permission} accessibilityRole="button" accessibilityLabel={`Open ${item.title} permission`} onPress={() => router.push(`/permissions/${permission}` as Href)} style={styles.card}><View style={[styles.iconWrap, allowed && styles.iconWrapAllowed]}><AppIcon name={item.icon} size={22} color={allowed ? nwcColors.primaryInk : nwcColors.brandNavy} /></View><View style={styles.copy}><Text style={styles.cardTitle}>{item.title}</Text><Text numberOfLines={2} style={styles.summary}>{item.summary}</Text></View><View style={[styles.status, allowed && styles.statusAllowed]}><Text style={[styles.statusText, allowed && styles.statusTextAllowed]}>{permissionStatusLabel(status)}</Text></View><AppIcon name="chevron-right" size={19} color={nwcColors.muted} /></TouchableOpacity>; })}</ScrollView></View></Screen>;
+  const { statuses } = useCustomerPermissions();
+  return <Screen><View style={styles.page}><View style={styles.header}><TouchableOpacity accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={styles.back}><AppIcon name="arrow-left" size={21} color={nwcColors.brandNavy} /></TouchableOpacity><View><Text style={styles.title}>Permissions</Text><Text style={styles.detail}>You choose when to allow access.</Text></View></View><ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>{permissionKeys.map((permission) => { const item = customerPermissions[permission]; const status = statuses[permission]; const allowed = status === "granted"; return <TouchableOpacity key={permission} accessibilityRole="button" accessibilityLabel={`Open ${item.title} permission`} onPress={() => router.push(`/permissions/${permission}` as Href)} style={styles.card}><View style={[styles.iconWrap, allowed && styles.iconWrapAllowed]}><AppIcon name={item.icon} size={22} color={allowed ? nwcColors.primaryInk : nwcColors.brandNavy} /></View><View style={styles.copy}><Text style={styles.cardTitle}>{item.title}</Text><Text numberOfLines={2} style={styles.summary}>{item.summary}</Text></View><View style={[styles.status, allowed && styles.statusAllowed]}><Text style={[styles.statusText, allowed && styles.statusTextAllowed]}>{permissionStatusLabel(status)}</Text></View><AppIcon name="chevron-right" size={19} color={nwcColors.muted} /></TouchableOpacity>; })}</ScrollView></View></Screen>;
 }
 
 const styles = StyleSheet.create({
