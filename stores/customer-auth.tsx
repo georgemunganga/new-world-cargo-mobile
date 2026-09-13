@@ -1,7 +1,9 @@
 import { createContext, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
+import { router, type Href } from "expo-router";
 
 import { isValidEmailInput, normaliseAuthIdentifier, normaliseZambianPhone } from "@/lib/auth-flow";
 import { MobileApiError } from "@/lib/api/errors";
+import { addSessionExpiredListener } from "@/lib/api/session-events";
 import { featureFlags } from "@/lib/config/feature-flags";
 import { decodeStoredCustomer, type StoredCustomer } from "@/lib/customer-session";
 import type { AuthSession, OtpChallenge } from "@/lib/domain/auth";
@@ -140,6 +142,17 @@ export function CustomerAuthProvider({ children }: PropsWithChildren) {
       active = false;
     };
   }, []);
+
+  useEffect(() => addSessionExpiredListener((error) => {
+    void Promise.all([clearStoredSession(), clearSecureSession(), removeSessionToken()])
+      .finally(() => {
+        setCustomer(null);
+        setPendingAuth(null);
+        setAuthChallenge(null);
+        setAuthError(error.message || "Your session expired. Please sign in again.");
+        router.replace("/auth/session-expired" as Href);
+      });
+  }), []);
 
   const value = useMemo<AuthContextValue>(() => ({
     customer,

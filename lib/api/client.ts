@@ -1,6 +1,7 @@
 import { mobileEnv } from "@/lib/config/env";
 import { getSessionToken } from "@/lib/_core/auth";
 import { MobileApiError, apiCodeFromServer, apiCodeFromStatus, type FieldErrors } from "./errors";
+import { notifySessionExpired } from "./session-events";
 
 export type ApiClientOptions = {
   baseUrl?: string;
@@ -96,12 +97,14 @@ export function createApiClient(options: ApiClientOptions = {}) {
 
       if (!response.ok) {
         const details = await parseErrorResponse(response);
-        throw new MobileApiError(apiCodeFromServer(details.code) ?? apiCodeFromStatus(response.status), details.message || "Request failed.", {
+        const error = new MobileApiError(apiCodeFromServer(details.code) ?? apiCodeFromStatus(response.status), details.message || "Request failed.", {
           status: response.status,
           fieldErrors: details.fieldErrors,
           requestId: details.requestId,
           retryable: details.retryable,
         });
+        if (error.code === "UNAUTHENTICATED" && requestOptions.auth !== false) notifySessionExpired(error);
+        throw error;
       }
 
       if (response.status === 204) return undefined as T;
