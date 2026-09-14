@@ -57,6 +57,8 @@ const eas = JSON.parse(fs.readFileSync(path.join(root, "eas.json"), "utf8"));
 assert(eas.build?.preview?.env?.EXPO_PUBLIC_API_MODE === "mock", "Preview build must use mock API mode.");
 assert(eas.build?.staging?.env?.EXPO_PUBLIC_API_MODE === "laravel", "Staging build must use Laravel API mode.");
 assert(eas.build?.production?.env?.EXPO_PUBLIC_API_MODE === "laravel", "Production build must use Laravel API mode.");
+assert(eas.build?.staging?.env?.EXPO_PUBLIC_API_BASE_URL === "https://api.newworldcargo.com", "Staging must use the public API hostname.");
+assert(eas.build?.production?.env?.EXPO_PUBLIC_API_BASE_URL === "https://api.newworldcargo.com", "Production must use the public API hostname.");
 assert(eas.build?.staging?.env?.EXPO_PUBLIC_MAPS_PROVIDER === "native", "Staging build must use native maps.");
 assert(eas.build?.staging?.env?.EXPO_PUBLIC_PAYMENTS_PROVIDER === "laravel", "Staging build must use Laravel payments.");
 assert(eas.build?.production?.env?.EXPO_PUBLIC_MAPS_PROVIDER === "native", "Production build must use native maps.");

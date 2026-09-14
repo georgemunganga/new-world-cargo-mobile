@@ -36,6 +36,8 @@ describe("mobile release configuration", () => {
     expect(eas.build.preview.env.EXPO_PUBLIC_API_MODE).toBe("mock");
     expect(eas.build.staging.env.EXPO_PUBLIC_API_MODE).toBe("laravel");
     expect(eas.build.production.env.EXPO_PUBLIC_API_MODE).toBe("laravel");
+    expect(eas.build.staging.env.EXPO_PUBLIC_API_BASE_URL).toBe("https://api.newworldcargo.com");
+    expect(eas.build.production.env.EXPO_PUBLIC_API_BASE_URL).toBe("https://api.newworldcargo.com");
     expect(eas.build.staging.env.EXPO_PUBLIC_MAPS_PROVIDER).toBe("native");
     expect(eas.build.staging.env.EXPO_PUBLIC_PAYMENTS_PROVIDER).toBe("laravel");
     expect(eas.build.production.env.EXPO_PUBLIC_MAPS_PROVIDER).toBe("native");
