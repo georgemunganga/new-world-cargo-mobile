@@ -8,7 +8,7 @@ function endpointFor(kind: AddressBookKind, id?: string) {
 }
 
 type LaravelRecipientResponse = { id: string | number; name?: string; address?: string; phone?: string; countryCode?: string | null };
-type LaravelSavedPlaceResponse = { id: string | number; label?: string; detail?: string; address?: string };
+type LaravelSavedPlaceResponse = { id: string | number; label?: string; detail?: string; address?: string; city?: string | null; area?: string | null; country?: string | null; lat?: string | number | null; lng?: string | number | null };
 
 function mapRecipient(raw: LaravelRecipientResponse): AddressBookItem {
   return {
@@ -32,6 +32,11 @@ function mapSavedPlace(raw: LaravelSavedPlaceResponse): AddressBookItem {
     id: String(raw.id),
     label: raw.label ?? "Saved place",
     detail: raw.detail ?? raw.address ?? "Saved location",
+    ...(raw.city ? { city: raw.city } : {}),
+    ...(raw.area ? { area: raw.area } : {}),
+    ...(raw.country ? { country: raw.country } : {}),
+    ...(raw.lat != null && Number.isFinite(Number(raw.lat)) ? { latitude: Number(raw.lat) } : {}),
+    ...(raw.lng != null && Number.isFinite(Number(raw.lng)) ? { longitude: Number(raw.lng) } : {}),
   };
 }
 
@@ -47,7 +52,7 @@ export const laravelAddressBookRepository: AddressBookRepository = {
   async saveDirectoryItem(kind, item) {
     const endpoint = endpointFor(kind, item.id);
     if (kind === "places") {
-      const payload = { label: item.label, detail: item.detail };
+      const payload = { label: item.label, detail: item.detail, city: item.city, area: item.area, country: item.country, latitude: item.latitude, longitude: item.longitude };
       const response = item.id ? await apiClient.patch<{ data: LaravelSavedPlaceResponse }>(endpoint, payload) : await apiClient.post<{ data: LaravelSavedPlaceResponse }>(endpoint, payload);
       return mapSavedPlace(response.data);
     }

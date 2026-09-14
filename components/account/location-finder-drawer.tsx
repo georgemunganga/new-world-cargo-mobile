@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 
 import { CustomerMap } from "@/components/map/customer-map";
@@ -6,15 +6,16 @@ import { CustomerBottomDrawer } from "@/components/ui/customer-bottom-drawer";
 import { AppIcon } from "@/components/ui/app-icon";
 import { PrimaryButton, SecondaryButton } from "@/components/ui/nwc-ui";
 import type { AddressBookItem } from "@/lib/domain/address-book";
-import { loadRouteReferenceData, routeSuggestionToAddress, searchRouteSuggestions, type RouteSuggestion } from "@/lib/route-autocomplete";
+import { loadRouteReferenceData, resolveRouteSuggestion, routeSuggestionToAddress, searchLiveRouteSuggestions, searchRouteSuggestions, type RouteSuggestion } from "@/lib/route-autocomplete";
 import { nwcColors } from "@/lib/nwc-theme";
 
-type LocationFinderDrawerProps = { visible: boolean; item: AddressBookItem | null; onDismiss: () => void; onSave: (item: { id?: string; label: string; detail: string }) => void };
+type LocationFinderDrawerProps = { visible: boolean; item: AddressBookItem | null; onDismiss: () => void; onSave: (item: Omit<AddressBookItem, "id"> & { id?: string }) => void };
 
 export function LocationFinderDrawer({ visible, item, onDismiss, onSave }: LocationFinderDrawerProps) {
   const [label, setLabel] = useState("");
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<RouteSuggestion | null>(null);
+  const [suggestions, setSuggestions] = useState<RouteSuggestion[]>([]);
   useEffect(() => { if (visible) { setLabel(item?.label ?? ""); setQuery(item?.detail ?? ""); setSelected(null); } }, [item, visible]);
   const [referenceVersion, setReferenceVersion] = useState(0);
   useEffect(() => {
@@ -27,10 +28,19 @@ export function LocationFinderDrawer({ visible, item, onDismiss, onSave }: Locat
       mounted = false;
     };
   }, [visible]);
-  const suggestions = useMemo(() => searchRouteSuggestions("local", query), [query, referenceVersion]);
+  useEffect(() => {
+    let mounted = true;
+    if (!visible) return () => { mounted = false; };
+    setSuggestions(searchRouteSuggestions("local", query));
+    if (query.trim().length < 3) return () => { mounted = false; };
+    const timer = setTimeout(() => {
+      void searchLiveRouteSuggestions("local", query).then((records) => { if (mounted) setSuggestions(records); }).catch(() => undefined);
+    }, 300);
+    return () => { mounted = false; clearTimeout(timer); };
+  }, [query, referenceVersion, visible]);
   const selectedAddress = selected ? routeSuggestionToAddress(selected) : undefined;
-  const save = () => { if (!label.trim() || !query.trim()) return; onSave({ id: item?.id || undefined, label: label.trim(), detail: selected?.label ?? query.trim() }); };
-  return <CustomerBottomDrawer visible={visible} overline="Saved place" title={item?.id ? "Edit saved place" : "Find a place"} detail="Search nearby locations, inspect the map, then save a name you will recognize." initialSnap="expanded" onDismiss={onDismiss} footer={<View style={styles.actions}><SecondaryButton label="Cancel" onPress={onDismiss} style={styles.action} /><PrimaryButton label="Save place" icon="check" disabled={!label.trim() || !query.trim()} onPress={save} style={styles.action} /></View>}><CustomerMap mode="location-picker" destination={selectedAddress} height={144} style={styles.map} /><TextInput accessibilityLabel="Saved place name" value={label} onChangeText={setLabel} placeholder="Place name, e.g. Home" placeholderTextColor="#91A0AE" returnKeyType="next" style={styles.input} /><View style={styles.search}><AppIcon name="magnify" size={19} color={nwcColors.info} /><TextInput accessibilityLabel="Find a nearby location" value={query} onChangeText={(value) => { setQuery(value); setSelected(null); }} placeholder="Find a nearby location" placeholderTextColor="#91A0AE" returnKeyType="search" style={styles.searchInput} /></View><View style={styles.results}>{suggestions.map((suggestion) => <View key={suggestion.id} style={styles.result}><View style={styles.resultIcon}><AppIcon name={suggestion.kind === "branch" ? "warehouse" : "map-marker-outline"} size={18} color={nwcColors.brandNavy} /></View><View style={styles.resultCopy}><View style={styles.resultLabelRow}><PrimaryButton label={suggestion.label} icon={selected?.id === suggestion.id ? "check" : undefined} onPress={() => { setSelected(suggestion); setQuery(suggestion.label); }} style={styles.useAction} /></View></View></View>)}</View></CustomerBottomDrawer>;
+  const save = () => { if (!label.trim() || !query.trim()) return; onSave({ id: item?.id || undefined, label: label.trim(), detail: selected?.detail ?? query.trim(), city: selected?.city, area: selected?.area, country: selected?.country, latitude: selected?.latitude, longitude: selected?.longitude }); };
+  return <CustomerBottomDrawer visible={visible} overline="Saved place" title={item?.id ? "Edit saved place" : "Find a place"} detail="Search nearby locations, inspect the map, then save a name you will recognize." initialSnap="expanded" onDismiss={onDismiss} footer={<View style={styles.actions}><SecondaryButton label="Cancel" onPress={onDismiss} style={styles.action} /><PrimaryButton label="Save place" icon="check" disabled={!label.trim() || !query.trim() || !selected} onPress={save} style={styles.action} /></View>}><CustomerMap mode="location-picker" destination={selectedAddress} height={144} style={styles.map} /><TextInput accessibilityLabel="Saved place name" value={label} onChangeText={setLabel} placeholder="Place name, e.g. Home" placeholderTextColor="#91A0AE" returnKeyType="next" style={styles.input} /><View style={styles.search}><AppIcon name="magnify" size={19} color={nwcColors.info} /><TextInput accessibilityLabel="Find a nearby location" value={query} onChangeText={(value) => { setQuery(value); setSelected(null); }} placeholder="Find a nearby location" placeholderTextColor="#91A0AE" returnKeyType="search" style={styles.searchInput} /></View><View style={styles.results}>{suggestions.map((suggestion) => <View key={suggestion.id} style={styles.result}><View style={styles.resultIcon}><AppIcon name={suggestion.kind === "branch" ? "warehouse" : "map-marker-outline"} size={18} color={nwcColors.brandNavy} /></View><View style={styles.resultCopy}><View style={styles.resultLabelRow}><PrimaryButton label={suggestion.label} icon={selected?.id === suggestion.id ? "check" : undefined} onPress={() => { void resolveRouteSuggestion(suggestion).then((resolved) => { setSelected(resolved); setQuery(resolved.label); }); }} style={styles.useAction} /></View></View></View>)}</View></CustomerBottomDrawer>;
 }
 
 const styles = StyleSheet.create({

@@ -8,6 +8,7 @@ export type CustomerDocumentExportResult = { status: "downloaded" | "unavailable
 type PortalDocumentResponse = { filename: string; mimeType: string; content: string };
 
 export function receiptFilename(invoice: Pick<MockInvoice, "reference">) { return `new-worldcargo-receipt-${invoice.reference.toLowerCase()}.html`; }
+export function invoiceFilename(invoice: Pick<MockInvoice, "reference">) { return `new-worldcargo-invoice-${invoice.reference.toLowerCase()}.html`; }
 export function proofOfDeliveryFilename(shipment: Pick<Shipment, "reference">) { return `new-worldcargo-proof-${shipment.reference.toLowerCase()}.html`; }
 
 export function buildReceiptDocument(invoice: MockInvoice) {
@@ -22,14 +23,35 @@ export function buildProofOfDeliveryDocument(shipment: Shipment) {
 }
 
 export async function exportReceipt(invoice: MockInvoice): Promise<CustomerDocumentExportResult> {
-  const portalDocument = featureFlags.useLaravelBilling ? await fetchPortalDocument(`/api/v1/invoices/${encodeURIComponent(invoice.id)}/receipt-document`).catch(() => null) : null;
-  if (portalDocument) return saveDocument(portalDocument);
+  if (featureFlags.useLaravelBilling) {
+    try {
+      return saveDocument(await fetchPortalDocument(`/api/v1/invoices/${encodeURIComponent(invoice.id)}/receipt-document`));
+    } catch {
+      return { status: "unavailable", filename: receiptFilename(invoice) };
+    }
+  }
   return saveDocument({ filename: receiptFilename(invoice), mimeType: "text/html;charset=utf-8", content: buildReceiptDocument(invoice) });
 }
 
+export async function exportInvoice(invoice: MockInvoice): Promise<CustomerDocumentExportResult> {
+  if (featureFlags.useLaravelBilling) {
+    try {
+      return saveDocument(await fetchPortalDocument(`/api/v1/invoices/${encodeURIComponent(invoice.id)}/document`));
+    } catch {
+      return { status: "unavailable", filename: invoiceFilename(invoice) };
+    }
+  }
+  return saveDocument({ filename: invoiceFilename(invoice), mimeType: "text/html;charset=utf-8", content: buildReceiptDocument(invoice) });
+}
+
 export async function exportProofOfDelivery(shipment: Shipment): Promise<CustomerDocumentExportResult> {
-  const portalDocument = featureFlags.useLaravelShipments ? await fetchPortalDocument(`/api/v1/shipments/${encodeURIComponent(shipment.id)}/proof-of-delivery-document`).catch(() => null) : null;
-  if (portalDocument) return saveDocument(portalDocument);
+  if (featureFlags.useLaravelShipments) {
+    try {
+      return saveDocument(await fetchPortalDocument(`/api/v1/shipments/${encodeURIComponent(shipment.id)}/proof-of-delivery-document`));
+    } catch {
+      return { status: "unavailable", filename: proofOfDeliveryFilename(shipment) };
+    }
+  }
   return saveDocument({ filename: proofOfDeliveryFilename(shipment), mimeType: "text/html;charset=utf-8", content: buildProofOfDeliveryDocument(shipment) });
 }
 

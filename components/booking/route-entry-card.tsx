@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { AppIcon, type AppIconName } from "@/components/ui/app-icon";
-import { loadRouteReferenceData, routeGuardForSearch, searchRouteSuggestions, type RouteSearchScope, type RouteSuggestion } from "@/lib/route-autocomplete";
+import { loadRouteReferenceData, resolveRouteSuggestion, routeGuardForSearch, searchLiveRouteSuggestions, searchRouteSuggestions, type RouteSearchScope, type RouteSuggestion } from "@/lib/route-autocomplete";
 import { nwcColors } from "@/lib/nwc-theme";
 
 type RoutePoint = { value: string; detail: string };
@@ -11,6 +11,9 @@ export function RouteEntryCard({ from, to, scope, onSuggestionSelect, onManualEn
   const [active, setActive] = useState<RouteTarget | null>(null);
   const [query, setQuery] = useState("");
   const [referenceVersion, setReferenceVersion] = useState(0);
+  const [results, setResults] = useState<RouteSuggestion[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState("");
   useEffect(() => {
     let mounted = true;
     void loadRouteReferenceData().then(() => {
@@ -20,19 +23,55 @@ export function RouteEntryCard({ from, to, scope, onSuggestionSelect, onManualEn
       mounted = false;
     };
   }, []);
-  const results = useMemo(() => active ? searchRouteSuggestions(scope, query) : [], [active, query, scope, referenceVersion]);
+  useEffect(() => {
+    let mounted = true;
+    if (!active) {
+      setResults([]);
+      return () => { mounted = false; };
+    }
+    setResults(searchRouteSuggestions(scope, query));
+    setSearchError("");
+    if (query.trim().length < 3) {
+      setSearching(false);
+      return () => { mounted = false; };
+    }
+    setSearching(true);
+    const timer = setTimeout(() => {
+      void searchLiveRouteSuggestions(scope, query)
+        .then((next) => { if (mounted) setResults(next); })
+        .catch((error) => { if (mounted) setSearchError(error instanceof Error ? error.message : "Location search failed."); })
+        .finally(() => { if (mounted) setSearching(false); });
+    }, 300);
+    return () => { mounted = false; clearTimeout(timer); };
+  }, [active, query, scope, referenceVersion]);
   const open = (target: RouteTarget) => { setActive(target); setQuery(""); onActiveTargetChange?.(target); };
-  const select = (suggestion: RouteSuggestion) => { if (!active) return; const next = active === "from" ? "to" : null; onSuggestionSelect(active, suggestion); setQuery(""); setActive(next); onActiveTargetChange?.(next); };
+  const select = async (suggestion: RouteSuggestion) => {
+    if (!active) return;
+    setSearching(true);
+    setSearchError("");
+    try {
+      const resolved = await resolveRouteSuggestion(suggestion);
+      const next = active === "from" ? "to" : null;
+      onSuggestionSelect(active, resolved);
+      setQuery("");
+      setActive(next);
+      onActiveTargetChange?.(next);
+    } catch (error) {
+      setSearchError(error instanceof Error ? error.message : "We could not confirm that location.");
+    } finally {
+      setSearching(false);
+    }
+  };
   const openManualEntry = (target: RouteTarget) => { setActive(null); setQuery(""); onActiveTargetChange?.(null); onManualEntryPress?.(target); };
-  return <View accessibilityLabel={accessibilityHint} style={styles.card}><RouteField target="from" label={fromLabel} point={from} active={active === "from"} query={query} scope={scope} results={results} onOpen={() => open("from")} onChangeText={setQuery} onSelect={select} onManualEntryPress={onManualEntryPress ? () => openManualEntry("from") : undefined} /><View style={styles.divider} /><RouteField target="to" label={toLabel} point={to} active={active === "to"} query={query} scope={scope} results={results} onOpen={() => open("to")} onChangeText={setQuery} onSelect={select} onManualEntryPress={onManualEntryPress ? () => openManualEntry("to") : undefined} /></View>;
+  return <View accessibilityLabel={accessibilityHint} style={styles.card}><RouteField target="from" label={fromLabel} point={from} active={active === "from"} query={query} scope={scope} results={results} searching={searching} searchError={searchError} onOpen={() => open("from")} onChangeText={setQuery} onSelect={select} onManualEntryPress={onManualEntryPress ? () => openManualEntry("from") : undefined} /><View style={styles.divider} /><RouteField target="to" label={toLabel} point={to} active={active === "to"} query={query} scope={scope} results={results} searching={searching} searchError={searchError} onOpen={() => open("to")} onChangeText={setQuery} onSelect={select} onManualEntryPress={onManualEntryPress ? () => openManualEntry("to") : undefined} /></View>;
 }
 
-function RouteField({ target, label, point, active, query, scope, results, onOpen, onChangeText, onSelect, onManualEntryPress }: { target: RouteTarget; label: string; point: RoutePoint; active: boolean; query: string; scope: RouteSearchScope; results: RouteSuggestion[]; onOpen: () => void; onChangeText: (value: string) => void; onSelect: (suggestion: RouteSuggestion) => void; onManualEntryPress?: () => void }) {
+function RouteField({ target, label, point, active, query, scope, results, searching, searchError, onOpen, onChangeText, onSelect, onManualEntryPress }: { target: RouteTarget; label: string; point: RoutePoint; active: boolean; query: string; scope: RouteSearchScope; results: RouteSuggestion[]; searching: boolean; searchError: string; onOpen: () => void; onChangeText: (value: string) => void; onSelect: (suggestion: RouteSuggestion) => void; onManualEntryPress?: () => void }) {
   const isFrom = target === "from";
   const icon: AppIconName = isFrom ? "circle-outline" : "map-marker";
   const placeholder = isFrom ? "Add pickup" : "Add destination";
   const guard = routeGuardForSearch(scope, query);
-  const emptyText = query.trim() && guard.reason ? guard.reason : `No ${scope === "import" ? "supplier city, port, or airport" : "matching place"} found.`;
+  const emptyText = searching ? "Searching live Google Maps locations…" : searchError || (query.trim() && guard.reason ? guard.reason : `No ${scope === "import" ? "supplier city, port, or airport" : "matching place"} found.`);
   return <View style={[styles.fieldBlock, active && styles.fieldBlockActive]}><TouchableOpacity accessibilityRole="button" accessibilityLabel={`${label} ${point.value || placeholder}`} accessibilityHint="Type to see location suggestions below this field" activeOpacity={0.78} onPress={onOpen} style={styles.row}><View style={isFrom ? styles.routeIconFrom : styles.routeIconTo}><AppIcon name={icon} size={20} color={isFrom ? nwcColors.brandNavy : nwcColors.primaryInk} /></View><View style={styles.copy}><Text style={styles.label}>{label}</Text>{active ? <TextInput autoFocus value={query} onChangeText={onChangeText} placeholder={scope === "import" ? "Search country, city, port, or airport" : scope === "intercity" ? "Search city or cargo branch" : "Search area, landmark, or branch"} placeholderTextColor="#8A9AA7" style={styles.searchInput} returnKeyType="search" /> : <><Text numberOfLines={1} style={[styles.value, !point.value && styles.placeholder]}>{point.value || placeholder}</Text>{point.detail ? <Text numberOfLines={1} style={styles.detail}>{point.detail}</Text> : null}</>}</View><AppIcon name={active ? "close" : "magnify"} size={20} color={nwcColors.muted} /></TouchableOpacity>{active ? <View style={styles.suggestions}>{results.map((suggestion) => <SuggestionRow key={suggestion.id} suggestion={suggestion} onPress={() => onSelect(suggestion)} />)}{results.length === 0 ? <View style={styles.emptySuggestion}><AppIcon name="map-search-outline" size={18} color={guard.supported ? nwcColors.info : nwcColors.error} /><Text style={[styles.emptySuggestionText, !guard.supported && styles.emptySuggestionWarning]}>{emptyText}</Text></View> : null}{onManualEntryPress ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Enter location manually" onPress={onManualEntryPress} style={styles.manualRow}><AppIcon name="pencil-outline" size={17} color={nwcColors.info} /><Text style={styles.manualText}>Enter a location manually</Text></TouchableOpacity> : null}</View> : null}</View>;
 }
 

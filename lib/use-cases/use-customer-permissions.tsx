@@ -23,7 +23,7 @@ const nativePermissionFor: Record<CustomerPermission, DevicePermission | null> =
 function statusFromNative(status: Awaited<ReturnType<typeof permissionService.request>>): CustomerPermissionStatus {
   if (status === "granted") return "granted";
   if (status === "denied") return "denied";
-  if (status === "unavailable") return "granted";
+  if (status === "unavailable") return "denied";
   return "not_requested";
 }
 

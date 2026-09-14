@@ -1,6 +1,7 @@
 import type { Address } from "@/types/cargo";
 import { apiClient } from "@/lib/api/client";
 import { featureFlags } from "@/lib/config/feature-flags";
+import { autocompleteGooglePlaces, resolveGooglePlace } from "@/lib/services/maps/google-places-service";
 
 export type RouteSearchScope = "local" | "intercity" | "import" | "custom";
 export type RouteSuggestion = {
@@ -8,9 +9,11 @@ export type RouteSuggestion = {
   label: string;
   detail: string;
   branchId?: string;
+  placeId?: string;
   city: string;
   area: string;
   country?: string;
+  countryCode?: string;
   latitude?: number;
   longitude?: number;
   kind: "address" | "branch" | "warehouse" | "city" | "airport" | "port" | "supplier";
@@ -58,7 +61,17 @@ let liveBranchSuggestions: RouteSuggestion[] = [];
 let liveReferenceDataPromise: Promise<RouteSuggestion[]> | null = null;
 
 type PortalReferenceData = {
-  offices?: Array<{ id?: string | number; name?: string; address?: string | null; detail?: string | null }>;
+  offices?: Array<{
+    id?: string | number;
+    name?: string;
+    address?: string | null;
+    detail?: string | null;
+    city?: string | null;
+    country?: string | null;
+    countryCode?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
+  }>;
 };
 
 const guardCopy: Record<RouteSearchScope, string> = {
@@ -93,7 +106,7 @@ function mapOfficeToSuggestion(office: NonNullable<PortalReferenceData["offices"
   const label = office.name || "New WorldCargo branch";
   const detail = office.detail || office.address || "New WorldCargo branch";
   const knownPlace = knownPlaceFor(`${label} ${detail}`);
-  const city = knownPlace?.city ?? inferUnknownCity(`${label}, ${detail}`);
+  const city = office.city || knownPlace?.city || inferUnknownCity(`${label}, ${detail}`);
   return {
     id: `branch-${office.id ?? label}`,
     label,
@@ -101,17 +114,18 @@ function mapOfficeToSuggestion(office: NonNullable<PortalReferenceData["offices"
     branchId: office.id == null ? undefined : String(office.id),
     city,
     area: city,
-    country: knownPlace?.country,
-    latitude: knownPlace?.latitude,
-    longitude: knownPlace?.longitude,
+    country: office.country || knownPlace?.country,
+    countryCode: office.countryCode?.toUpperCase(),
+    latitude: office.latitude ?? knownPlace?.latitude,
+    longitude: office.longitude ?? knownPlace?.longitude,
     kind: "branch",
   };
 }
 
 function isBranchAllowedForScope(scope: RouteSearchScope, item: RouteSuggestion) {
   if (scope === "import" || scope === "custom") return true;
-  if (scope === "local") return item.country === "Zambia" && item.city === "Lusaka";
-  return item.country === "Zambia" || item.country === "Zimbabwe";
+  if (scope === "local") return (item.countryCode === "ZM" || item.country === "Zambia") && item.city === "Lusaka";
+  return item.countryCode === "ZM" || item.countryCode === "ZW" || item.country === "Zambia" || item.country === "Zimbabwe";
 }
 
 function branchPoolForScope(scope: RouteSearchScope) {
@@ -119,7 +133,9 @@ function branchPoolForScope(scope: RouteSearchScope) {
 }
 
 function poolForScope(scope: RouteSearchScope) {
-  return [...branchPoolForScope(scope), ...suggestions[scope]].filter((item, index, list) => index === list.findIndex((candidate) => candidate.id === item.id || candidate.label.toLowerCase() === item.label.toLowerCase()));
+  const configuredOnly = featureFlags.useLaravelBookings && scope !== "local";
+  const defaults = configuredOnly ? [] : suggestions[scope];
+  return [...branchPoolForScope(scope), ...defaults].filter((item, index, list) => index === list.findIndex((candidate) => candidate.id === item.id || candidate.label.toLowerCase() === item.label.toLowerCase()));
 }
 
 function searchableText(item: RouteSuggestion) {
@@ -159,6 +175,19 @@ export function searchRouteSuggestions(scope: RouteSearchScope, query: string) {
   const pool = poolForScope(scope);
   if (!normalized) return pool.slice(0, 5);
   return pool.filter((item) => matchesSearch(item, normalized)).slice(0, 6);
+}
+
+export async function searchLiveRouteSuggestions(scope: RouteSearchScope, query: string) {
+  const configured = searchRouteSuggestions(scope, query);
+  const countryCodes = uniqueSorted(branchPoolForScope(scope).map((item) => item.countryCode));
+  const google = await autocompleteGooglePlaces(scope, query, countryCodes);
+  return [...configured, ...google]
+    .filter((item, index, list) => index === list.findIndex((candidate) => candidate.id === item.id || candidate.label.toLowerCase() === item.label.toLowerCase()))
+    .slice(0, 6);
+}
+
+export function resolveRouteSuggestion(suggestion: RouteSuggestion) {
+  return resolveGooglePlace(suggestion);
 }
 
 export function routeGuardForSearch(scope: RouteSearchScope, query: string): RouteGuard {

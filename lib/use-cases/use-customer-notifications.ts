@@ -25,13 +25,19 @@ export function useCustomerNotifications(): CustomerNotificationsState {
 
   const markRead = useCallback((id: string) => {
     setNotifications((current) => current.map((item) => item.id === id ? { ...item, unread: false } : item));
-    void repositories.notifications.markRead(id).catch(() => undefined);
-  }, []);
+    void repositories.notifications.markRead(id).catch(() => {
+      setMessage("We could not mark that notification as read. Please try again.");
+      refresh();
+    });
+  }, [refresh]);
 
   const markAllRead = useCallback(() => {
     setNotifications((current) => current.map((item) => ({ ...item, unread: false })));
-    void repositories.notifications.markAllRead().catch(() => undefined);
-  }, []);
+    void repositories.notifications.markAllRead().catch(() => {
+      setMessage("We could not update notifications. Please try again.");
+      refresh();
+    });
+  }, [refresh]);
 
   useEffect(() => {
     refresh();

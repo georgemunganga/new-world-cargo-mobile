@@ -18,6 +18,8 @@ type CustomerBillingAccountContextValue = {
   walletBalance: number;
   walletActivity: MockWalletActivity[];
   reminders: Record<string, boolean>;
+  actionError: string;
+  clearActionError: () => void;
   setPaymentState: (state: MockPaymentState) => void;
   selectInvoice: (invoiceId?: string) => void;
   setSelectedPaymentMethod: (method: MockPaymentMethod) => void;
@@ -47,6 +49,7 @@ export function CustomerBillingAccountProvider({ children }: PropsWithChildren) 
   const [walletBalance, setWalletBalance] = useState(useLiveBillingActions ? 0 : mockWalletStartingBalance);
   const [walletActivity, setWalletActivity] = useState<MockWalletActivity[]>(useLiveBillingActions ? [] : [{ id: "wallet-opening", label: "Wallet balance", detail: "Opening balance", amount: mockWalletStartingBalance, type: "topup", time: "1 Sep" }]);
   const [reminders, setReminders] = useState<Record<string, boolean>>(() => Object.fromEntries(seededInvoices.filter((invoice) => invoice.status === "unpaid").map((invoice) => [invoice.id, true])));
+  const [actionError, setActionError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -107,18 +110,21 @@ export function CustomerBillingAccountProvider({ children }: PropsWithChildren) 
   const setSelectedPaymentMethod = (method: MockPaymentMethod) => setSelectedPaymentMethodId(paymentMethods.find((item) => item.method === method)?.id);
   const selectSavedPaymentMethod = (methodId: string) => setSelectedPaymentMethodId(methodId);
   const setDefaultPaymentMethod = (methodId: string) => {
-    setPaymentMethods((current) => current.map((item) => ({ ...item, isDefault: item.id === methodId })));
-    void repositories.billingActions.setDefaultPaymentMethod(methodId).then(setPaymentMethods).catch(() => undefined);
+    setActionError("");
+    void repositories.billingActions.setDefaultPaymentMethod(methodId).then(setPaymentMethods).catch(() => setActionError("We could not change the default payment method. Please try again."));
   };
   const addPaymentMethod = (method: Exclude<MockPaymentMethod, "wallet">) => {
+    setActionError("");
     void repositories.billingActions.savePaymentMethod(method).then((saved) => setPaymentMethods((current) => current.some((item) => item.id === saved.id) ? current : [...current, saved])).catch(() => {
-      if (useLiveBillingActions) return;
+      if (useLiveBillingActions) { setActionError("We could not save that payment method. Please try again."); return; }
       setPaymentMethods((current) => [...current, { id: `${method}-${current.length + 1}`, method, label: method === "mobile" ? "Mobile money" : "Bank card", detail: method === "mobile" ? "Airtel · 097 555 0124" : "Visa ·•••• 6620" }]);
     });
   };
   const removePaymentMethod = (methodId: string) => {
-    setPaymentMethods((current) => { const next = current.filter((item) => item.id !== methodId); const selectedRemoved = methodId === selectedPaymentMethodId; if (selectedRemoved) setSelectedPaymentMethodId(getDefaultPaymentMethod(next)?.id); return next.some((item) => item.isDefault) ? next : next.map((item, index) => ({ ...item, isDefault: index === 0 })); });
-    void repositories.billingActions.removePaymentMethod(methodId).catch(() => undefined);
+    setActionError("");
+    void repositories.billingActions.removePaymentMethod(methodId).then(() => {
+      setPaymentMethods((current) => { const next = current.filter((item) => item.id !== methodId); const selectedRemoved = methodId === selectedPaymentMethodId; if (selectedRemoved) setSelectedPaymentMethodId(getDefaultPaymentMethod(next)?.id); return next.some((item) => item.isDefault) ? next : next.map((item, index) => ({ ...item, isDefault: index === 0 })); });
+    }).catch(() => setActionError("We could not remove that payment method. Please try again."));
   };
   const confirmSelectedInvoicePayment = () => {
     if (!selectedInvoiceId || !selectedInvoice) return;
@@ -130,7 +136,7 @@ export function CustomerBillingAccountProvider({ children }: PropsWithChildren) 
       if (result.walletActivity) setWalletActivity((current) => [result.walletActivity!, ...current.filter((item) => item.id !== result.walletActivity!.id)]);
       setLastPaidInvoiceId(selectedInvoiceId);
       setPaymentState("confirmed");
-    }).catch(() => setPaymentState("failed"));
+    }).catch(() => { setPaymentState("failed"); setActionError("Payment could not be confirmed. No successful payment was recorded."); });
   };
   const topUpWallet = async (amount: number) => {
     try {
@@ -148,9 +154,20 @@ export function CustomerBillingAccountProvider({ children }: PropsWithChildren) 
       return true;
     }
   };
-  const toggleInvoiceReminder = (invoiceId: string) => setReminders((current) => { const enabled = !current[invoiceId]; void repositories.billingActions.setInvoiceReminder(invoiceId, enabled).catch(() => undefined); return { ...current, [invoiceId]: enabled }; });
-  const submitInvoiceDispute = (invoiceId: string) => { void repositories.billingActions.disputeInvoice(invoiceId).then((resolution) => setInvoices((current) => current.map((invoice) => invoice.id === invoiceId ? { ...invoice, ...(resolution ? { resolution } : {}) } : invoice))).catch(() => undefined); };
-  const value = useMemo<CustomerBillingAccountContextValue>(() => ({ paymentState, invoices, selectedInvoiceId, selectedInvoice, lastPaidInvoiceId, selectedPaymentMethod, paymentMethods, selectedPaymentMethodId, walletBalance, walletActivity, reminders, setPaymentState, selectInvoice, setSelectedPaymentMethod, selectSavedPaymentMethod, setDefaultPaymentMethod, addPaymentMethod, removePaymentMethod, confirmSelectedInvoicePayment, topUpWallet, toggleInvoiceReminder, submitInvoiceDispute }), [invoices, lastPaidInvoiceId, paymentMethods, paymentState, reminders, selectedInvoice, selectedInvoiceId, selectedPaymentMethod, selectedPaymentMethodId, walletActivity, walletBalance]);
+  const toggleInvoiceReminder = (invoiceId: string) => {
+    const enabled = !reminders[invoiceId];
+    setActionError("");
+    void repositories.billingActions.setInvoiceReminder(invoiceId, enabled)
+      .then(() => setReminders((current) => ({ ...current, [invoiceId]: enabled })))
+      .catch(() => setActionError("We could not update this reminder. Please try again."));
+  };
+  const submitInvoiceDispute = (invoiceId: string) => {
+    setActionError("");
+    void repositories.billingActions.disputeInvoice(invoiceId)
+      .then((resolution) => setInvoices((current) => current.map((invoice) => invoice.id === invoiceId ? { ...invoice, ...(resolution ? { resolution } : {}) } : invoice)))
+      .catch(() => setActionError("We could not submit the invoice dispute. Please try again."));
+  };
+  const value = useMemo<CustomerBillingAccountContextValue>(() => ({ paymentState, invoices, selectedInvoiceId, selectedInvoice, lastPaidInvoiceId, selectedPaymentMethod, paymentMethods, selectedPaymentMethodId, walletBalance, walletActivity, reminders, actionError, clearActionError: () => setActionError(""), setPaymentState, selectInvoice, setSelectedPaymentMethod, selectSavedPaymentMethod, setDefaultPaymentMethod, addPaymentMethod, removePaymentMethod, confirmSelectedInvoicePayment, topUpWallet, toggleInvoiceReminder, submitInvoiceDispute }), [actionError, invoices, lastPaidInvoiceId, paymentMethods, paymentState, reminders, selectedInvoice, selectedInvoiceId, selectedPaymentMethod, selectedPaymentMethodId, walletActivity, walletBalance]);
   return <CustomerBillingAccountContext.Provider value={value}>{children}</CustomerBillingAccountContext.Provider>;
 }
 

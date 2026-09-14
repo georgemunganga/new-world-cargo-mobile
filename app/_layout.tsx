@@ -14,6 +14,9 @@ import { CustomerBillingAccountProvider } from "@/stores/customer-billing-accoun
 import { NotificationPreferenceProvider } from "@/stores/notification-preferences";
 import { shouldLoadBundledPoppins } from "@/lib/startup-font-policy";
 import { analytics } from "@/lib/services/observability/analytics";
+import { assertProductionEnvReady } from "@/lib/config/env";
+
+assertProductionEnvReady();
 
 const poppinsFonts = { Poppins_500Medium, Poppins_600SemiBold, Poppins_700Bold, Poppins_800ExtraBold };
 

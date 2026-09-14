@@ -89,7 +89,7 @@ export function CustomerMap({ mode, pickup, destination, shipment, deliveryServi
   const nativeDestination = mapCoordinate(endpoint, profile.destinationFallback);
 
   if (featureFlags.enableNativeMaps && Platform.OS !== "web" && (nativeOrigin || nativeDestination)) {
-    return <NativeMapSurface origin={nativeOrigin} destination={nativeDestination} progress={progress} completed={mode === "completed"} height={height} fill={fill} style={style as object} onZoomChange={onZoomChange} />;
+    return <NativeMapSurface origin={nativeOrigin} destination={nativeDestination} progress={progress} completed={mode === "completed"} routeMode={profile.routeStyle === "international" ? "direct" : "road"} height={height} fill={fill} style={style as object} onZoomChange={onZoomChange} />;
   }
 
   return <View accessibilityRole="image" accessibilityLabel={copy.accessibility} style={[styles.wrap, fill ? styles.fill : { height }, style]}>

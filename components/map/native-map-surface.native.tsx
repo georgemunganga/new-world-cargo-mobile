@@ -1,17 +1,31 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE, type Region } from "react-native-maps";
 
 import { AppIcon } from "@/components/ui/app-icon";
 import { nwcColors } from "@/lib/nwc-theme";
+import { computeGoogleRoadRoute, type MapCoordinate } from "@/lib/services/maps/google-routes-service";
 import type { NativeMapSurfaceProps } from "./native-map-surface";
 
 const fallbackRegion: Region = { latitude: -15.3875, longitude: 28.3228, latitudeDelta: 0.2, longitudeDelta: 0.2 };
 
-export function NativeMapSurface({ origin, destination, progress, completed, height = 328, fill = false, style, onZoomChange }: NativeMapSurfaceProps) {
+export function NativeMapSurface({ origin, destination, progress, completed, routeMode = "road", height = 328, fill = false, style, onZoomChange }: NativeMapSurfaceProps) {
   const map = useRef<MapView>(null);
   const coordinates = useMemo(() => [origin, destination].filter((point): point is NonNullable<typeof point> => Boolean(point)), [destination, origin]);
   const region = useMemo(() => regionFor(coordinates), [coordinates]);
+  const [routeCoordinates, setRouteCoordinates] = useState<MapCoordinate[]>(coordinates);
+
+  useEffect(() => {
+    let mounted = true;
+    if (!origin || !destination || routeMode === "direct") {
+      setRouteCoordinates(coordinates);
+      return () => { mounted = false; };
+    }
+    void computeGoogleRoadRoute(origin, destination)
+      .then((route) => { if (mounted) setRouteCoordinates(route); })
+      .catch(() => { if (mounted) setRouteCoordinates([origin, destination]); });
+    return () => { mounted = false; };
+  }, [origin, destination, routeMode]);
 
   useEffect(() => {
     if (coordinates.length > 1) map.current?.fitToCoordinates(coordinates, { edgePadding: { top: 76, right: 54, bottom: 76, left: 54 }, animated: true });
@@ -30,7 +44,7 @@ export function NativeMapSurface({ origin, destination, progress, completed, hei
     <MapView ref={map} provider={PROVIDER_GOOGLE} style={StyleSheet.absoluteFill} initialRegion={region} showsUserLocation showsMyLocationButton toolbarEnabled={false} onRegionChangeComplete={(_, details) => details?.isGesture && map.current?.getCamera().then((camera) => onZoomChange?.(camera.zoom ?? 0))}>
       {origin ? <Marker coordinate={origin} title={origin.label} pinColor={nwcColors.brandNavy} /> : null}
       {destination ? <Marker coordinate={destination} title={destination.label} pinColor={completed ? nwcColors.success : nwcColors.primary} /> : null}
-      {origin && destination ? <Polyline coordinates={[origin, destination]} strokeColor={completed ? nwcColors.success : nwcColors.primary} strokeWidth={5} lineDashPattern={progress < 1 ? [14, 8] : undefined} /> : null}
+      {origin && destination ? <Polyline coordinates={routeCoordinates} strokeColor={completed ? nwcColors.success : nwcColors.primary} strokeWidth={5} lineDashPattern={progress < 1 ? [14, 8] : undefined} /> : null}
     </MapView>
     <View style={styles.controls}>
       <MapButton label="Zoom in" icon="plus" onPress={() => zoomBy(1)} />

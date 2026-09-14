@@ -5,6 +5,7 @@ export type NativeMapSurfaceProps = {
   destination: { latitude: number; longitude: number; label: string } | null;
   progress: number;
   completed: boolean;
+  routeMode?: "road" | "direct";
   height?: number;
   fill?: boolean;
   style?: ComponentProps<"div">["style"] | object;
