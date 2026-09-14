@@ -103,6 +103,82 @@ export function canPayWithWallet(balance: number, invoice: Pick<CustomerInvoice,
   return balance >= invoice.amount.amount;
 }
 
+export type BillingDisplayInvoice = {
+  id: string;
+  reference: string;
+  shipmentReference: string;
+  description: string;
+  shipmentLabel: string;
+  route: string;
+  amount: string;
+  amountValue: number;
+  currencyDetail: string;
+  issuedAt: string;
+  dueAt?: string;
+  paidAt?: string;
+  paymentMethod?: string;
+  status: Extract<InvoiceStatus, "paid" | "unpaid">;
+  lineItems: { label: string; detail?: string; amount: string }[];
+  resolution?: InvoiceResolution;
+};
+
+export function displayInvoiceFromCustomerInvoice(invoice: CustomerInvoice): BillingDisplayInvoice {
+  return {
+    id: invoice.id,
+    reference: invoice.reference,
+    shipmentReference: invoice.shipmentCode ?? invoice.reference,
+    description: invoice.description,
+    shipmentLabel: invoice.shipmentLabel,
+    route: invoice.route,
+    amount: invoice.amount.formatted,
+    amountValue: invoice.amount.amount,
+    currencyDetail: invoice.currencyDetail ?? `${invoice.amount.currencyCode} · account currency`,
+    issuedAt: invoice.issuedAt ?? "To confirm",
+    dueAt: invoice.dueAt,
+    paidAt: invoice.paidAt,
+    paymentMethod: invoice.paymentMethod,
+    status: invoice.status === "paid" ? "paid" : "unpaid",
+    lineItems: invoice.lineItems.length
+      ? invoice.lineItems.map((item) => ({ label: item.label, ...(item.detail ? { detail: item.detail } : {}), amount: item.amount.formatted }))
+      : [{ label: "Cargo charge", amount: invoice.amount.formatted }],
+    ...(invoice.resolution ? { resolution: invoice.resolution } : {}),
+  };
+}
+
+export function calculateDisplayOutstandingBalance(invoices: BillingDisplayInvoice[]) {
+  return invoices.filter((invoice) => invoice.status === "unpaid").reduce((sum, invoice) => sum + invoice.amountValue, 0);
+}
+
+export function filterDisplayInvoices(invoices: BillingDisplayInvoice[], query: string, status: "all" | BillingDisplayInvoice["status"]) {
+  const normalized = query.trim().toLowerCase();
+  return invoices.filter((invoice) => {
+    if (status !== "all" && invoice.status !== status) return false;
+    if (!normalized) return true;
+    return `${invoice.reference} ${invoice.shipmentReference} ${invoice.shipmentLabel} ${invoice.route}`.toLowerCase().includes(normalized);
+  });
+}
+
+export function paymentMethodIcon(method: PaymentMethod) {
+  return { mobile: "cellphone" as const, card: "credit-card-outline" as const, wallet: "wallet-outline" as const }[method];
+}
+
+export function formatKwacha(value: number) {
+  return `K ${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+export function paymentMethodDetail(method: PaymentMethod, walletBalance: number, methods: SavedPaymentMethod[] = []) {
+  return method === "wallet" ? `Available ${formatKwacha(walletBalance)}` : methods.find((item) => item.method === method)?.detail ?? paymentMethodLabel(method);
+}
+
+export function canPayWithDisplayWallet(balance: number, invoice: Pick<BillingDisplayInvoice, "amountValue">) {
+  return canPayWithWallet(balance, { amount: { amount: invoice.amountValue, currencyCode: "ZMW", formatted: formatKwacha(invoice.amountValue) } });
+}
+
+export function invoiceReminderLabel(invoice: Pick<BillingDisplayInvoice, "status" | "dueAt">) {
+  if (invoice.status === "paid") return undefined;
+  return invoice.dueAt ? `Due ${invoice.dueAt}` : "Due reminder";
+}
+
 export function paymentPresentation(state: PaymentState) {
   return {
     ready: { eyebrow: "Payment required", title: "Your payment is ready.", detail: "Review the invoice and choose a payment method.", tone: "warning" as const, icon: "receipt-text-outline" as const },

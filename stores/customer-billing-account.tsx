@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
-import { canPayWithMockWallet, getDefaultPaymentMethod, mockInvoices, mockSavedPaymentMethods, mockWalletStartingBalance, paymentMethodLabel, type MockInvoice, type MockPaymentMethod, type MockPaymentState, type MockSavedPaymentMethod, type MockWalletActivity } from "@/lib/mock-billing";
-import type { CustomerInvoice } from "@/lib/domain/billing";
+import { getDefaultPaymentMethod, mockInvoices, mockSavedPaymentMethods, mockWalletStartingBalance, type MockInvoice, type MockPaymentMethod, type MockPaymentState, type MockSavedPaymentMethod, type MockWalletActivity } from "@/lib/mock-billing";
+import { canPayWithDisplayWallet, displayInvoiceFromCustomerInvoice, paymentMethodLabel, type CustomerInvoice } from "@/lib/domain/billing";
 import { featureFlags } from "@/lib/config/feature-flags";
 import { repositories } from "@/lib/repositories";
 import { readCache, writeCache } from "@/lib/storage/cache-storage";
@@ -33,29 +33,6 @@ type CustomerBillingAccountContextValue = {
 
 const CustomerBillingAccountContext = createContext<CustomerBillingAccountContextValue | null>(null);
 
-function mockInvoiceFromCustomerInvoice(invoice: CustomerInvoice): MockInvoice {
-  return {
-    id: invoice.id,
-    reference: invoice.reference,
-    shipmentReference: invoice.shipmentCode ?? invoice.reference,
-    description: invoice.description,
-    shipmentLabel: invoice.shipmentLabel,
-    route: invoice.route,
-    amount: invoice.amount.formatted,
-    amountValue: invoice.amount.amount,
-    currencyDetail: invoice.currencyDetail ?? `${invoice.amount.currencyCode} · account currency`,
-    issuedAt: invoice.issuedAt ?? "To confirm",
-    dueAt: invoice.dueAt,
-    paidAt: invoice.paidAt,
-    paymentMethod: invoice.paymentMethod,
-    status: invoice.status === "paid" ? "paid" : "unpaid",
-    lineItems: invoice.lineItems.length
-      ? invoice.lineItems.map((item) => ({ label: item.label, ...(item.detail ? { detail: item.detail } : {}), amount: item.amount.formatted }))
-      : [{ label: "Cargo charge", amount: invoice.amount.formatted }],
-    ...(invoice.resolution ? { resolution: invoice.resolution } : {}),
-  };
-}
-
 export function CustomerBillingAccountProvider({ children }: PropsWithChildren) {
   const useLiveBilling = featureFlags.useLaravelBilling;
   const useLiveBillingActions = featureFlags.useLaravelBillingActions;
@@ -76,7 +53,7 @@ export function CustomerBillingAccountProvider({ children }: PropsWithChildren) 
     void repositories.billing.listInvoices().then((records) => {
       if (!active) return;
       void writeCache(storageKeys.billingCache, records);
-      const nextInvoices = records.map(mockInvoiceFromCustomerInvoice);
+      const nextInvoices = records.map(displayInvoiceFromCustomerInvoice);
       setInvoices(nextInvoices);
       selectInvoice((current) => current && nextInvoices.some((invoice) => invoice.id === current) ? current : nextInvoices.find((invoice) => invoice.status === "unpaid")?.id ?? nextInvoices[0]?.id);
       setReminders((current) => {
@@ -89,7 +66,7 @@ export function CustomerBillingAccountProvider({ children }: PropsWithChildren) 
     }).catch(async () => {
       const cached = await readCache<CustomerInvoice[]>(storageKeys.billingCache);
       if (!active || !cached?.value.length) return;
-      const nextInvoices = cached.value.map(mockInvoiceFromCustomerInvoice);
+      const nextInvoices = cached.value.map(displayInvoiceFromCustomerInvoice);
       setInvoices(nextInvoices);
       selectInvoice((current) => current && nextInvoices.some((invoice) => invoice.id === current) ? current : nextInvoices.find((invoice) => invoice.status === "unpaid")?.id ?? nextInvoices[0]?.id);
     });
@@ -145,7 +122,7 @@ export function CustomerBillingAccountProvider({ children }: PropsWithChildren) 
   };
   const confirmSelectedInvoicePayment = () => {
     if (!selectedInvoiceId || !selectedInvoice) return;
-    if (selectedPaymentMethod === "wallet" && !canPayWithMockWallet(walletBalance, selectedInvoice)) { setPaymentState("failed"); return; }
+    if (selectedPaymentMethod === "wallet" && !canPayWithDisplayWallet(walletBalance, selectedInvoice)) { setPaymentState("failed"); return; }
     void repositories.billingActions.confirmInvoicePayment({ invoice: { id: selectedInvoice.id, reference: selectedInvoice.reference, amount: { amount: selectedInvoice.amountValue, currencyCode: "ZMW", formatted: selectedInvoice.amount } }, method: selectedPaymentMethod, walletBalance }).then((result) => {
       if (result.state !== "confirmed") { setPaymentState(result.state); return; }
       setInvoices((current) => current.map((invoice) => invoice.id === selectedInvoiceId ? { ...invoice, status: "paid", dueAt: undefined, paidAt: result.paidAt ?? "Just now", paymentMethod: result.paymentMethodLabel ?? paymentMethodLabel(selectedPaymentMethod) } : invoice));

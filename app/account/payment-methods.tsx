@@ -5,7 +5,7 @@ import { AppIcon } from "@/components/ui/app-icon";
 import { CustomerBottomDrawer } from "@/components/ui/customer-bottom-drawer";
 import { CustomerConfirmationDialog } from "@/components/ui/customer-confirmation-dialog";
 import { Card, IconButton, PrimaryButton, Screen, SecondaryButton, StatusBadge } from "@/components/ui/nwc-ui";
-import { paymentMethodIcon } from "@/lib/mock-billing";
+import { paymentMethodIcon } from "@/lib/domain/billing";
 import { nwcColors } from "@/lib/nwc-theme";
 import { useCustomerBillingAccount } from "@/stores/customer-billing-account";
 

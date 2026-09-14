@@ -1,18 +1,53 @@
-import { useState } from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { router } from "expo-router";
+import { useMemo, useState } from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { router, type Href } from "expo-router";
+import { AuthPasswordInput } from "@/components/auth/auth-shell";
 import { AppIcon } from "@/components/ui/app-icon";
 import { Card, IconButton, PrimaryButton, SecondaryButton, Screen } from "@/components/ui/nwc-ui";
+import { isValidEmailInput } from "@/lib/auth-flow";
 import { nwcColors } from "@/lib/nwc-theme";
 import { useCustomerAuth } from "@/stores/customer-auth";
 
 export default function AccountRecoveryScreen() {
-  const { customer } = useCustomerAuth();
-  const [codeVisible, setCodeVisible] = useState(false);
-  const [sessionsCleared, setSessionsCleared] = useState(false);
-  return <Screen><View style={styles.page}><View style={styles.header}><IconButton label="Go back" icon="arrow-left" onPress={() => router.back()} /><Text style={styles.headerTitle}>Account recovery</Text><View style={styles.headerSpacer} /></View><ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}><View style={styles.titleBlock}><Text style={styles.title}>Keep access secure</Text><Text style={styles.detail}>Your verified phone is used to restore access. These controls are frontend mock states only.</Text></View><Card style={styles.phone}><View style={styles.phoneIcon}><AppIcon name="cellphone" size={21} color={nwcColors.primaryInk} /></View><View style={styles.phoneCopy}><Text style={styles.phoneLabel}>Verified phone</Text><Text style={styles.phoneValue}>{customer?.phone ?? "+260 97••• 0187"}</Text></View></Card><Card style={styles.recoveryCard}><Text style={styles.cardTitle}>Recovery code</Text><Text style={styles.cardDetail}>Keep this code offline. It can help you recover access if you change your phone.</Text>{codeVisible ? <View style={styles.code}><Text style={styles.codeText}>NWC-4K8P-92QX</Text></View> : null}<TouchableOpacity accessibilityRole="button" accessibilityLabel={codeVisible ? "Hide recovery code" : "Show mock recovery code"} onPress={() => setCodeVisible((visible) => !visible)} style={styles.inlineAction}><Text style={styles.inlineActionText}>{codeVisible ? "Hide code" : "Show code"}</Text></TouchableOpacity></Card><Card style={styles.recoveryCard}><Text style={styles.cardTitle}>Other devices</Text><Text style={styles.cardDetail}>{sessionsCleared ? "Other mock sessions were signed out." : "Sign out on another device if you think your account is at risk."}</Text>{sessionsCleared ? <View style={styles.confirmed}><AppIcon name="check" size={15} color={nwcColors.success} /><Text style={styles.confirmedText}>Other sessions cleared</Text></View> : <TouchableOpacity accessibilityRole="button" accessibilityLabel="Sign out other mock sessions" onPress={() => setSessionsCleared(true)} style={styles.inlineAction}><Text style={styles.inlineActionText}>Sign out other devices</Text></TouchableOpacity>}</Card><View style={styles.actions}><PrimaryButton label="Continue with phone" icon="cellphone" onPress={() => router.push("/auth/phone")} /><SecondaryButton label="Contact support" onPress={() => router.push("/support")} /></View></ScrollView></View></Screen>;
+  const { authError, changePassword, customer, requestPasswordReset, signOut } = useCustomerAuth();
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [nextPassword, setNextPassword] = useState("");
+  const [resetSent, setResetSent] = useState(false);
+  const [passwordChanged, setPasswordChanged] = useState(false);
+  const [localMessage, setLocalMessage] = useState("");
+  const recoveryEmail = useMemo(() => customer?.email?.trim().toLowerCase() ?? "", [customer?.email]);
+  const canRequestReset = isValidEmailInput(recoveryEmail);
+  const canChangePassword = currentPassword.length >= 8 && nextPassword.length >= 8;
+  const sendRecoveryEmail = async () => {
+    if (!canRequestReset) {
+      setLocalMessage("Add a verified email to your profile before using email recovery.");
+      return;
+    }
+    setLocalMessage("");
+    const sent = await requestPasswordReset(recoveryEmail);
+    if (sent) {
+      setResetSent(true);
+      setLocalMessage(`Recovery instructions were sent to ${recoveryEmail}.`);
+    }
+  };
+  const updatePassword = async () => {
+    if (!canChangePassword) return;
+    setLocalMessage("");
+    const changed = await changePassword(currentPassword, nextPassword);
+    if (changed) {
+      setPasswordChanged(true);
+      setCurrentPassword("");
+      setNextPassword("");
+      setLocalMessage("Your password was updated. Use the new password next time you sign in.");
+    }
+  };
+  const signOutHere = async () => {
+    await signOut();
+    router.replace("/auth/phone" as Href);
+  };
+  return <Screen><View style={styles.page}><View style={styles.header}><IconButton label="Go back" icon="arrow-left" onPress={() => router.back()} /><Text style={styles.headerTitle}>Account recovery</Text><View style={styles.headerSpacer} /></View><ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}><View style={styles.titleBlock}><Text style={styles.title}>Keep access secure</Text><Text style={styles.detail}>Use your verified contact details to recover access, update your password, or contact support if something looks wrong.</Text></View><Card style={styles.contactCard}><View style={styles.contactIcon}><AppIcon name="shield-check-outline" size={21} color={nwcColors.primaryInk} /></View><View style={styles.contactCopy}><Text style={styles.contactLabel}>Verified contact</Text><Text style={styles.contactValue}>{recoveryEmail || customer?.phone || "No verified contact on this profile"}</Text><Text style={styles.contactDetail}>{recoveryEmail ? "Password reset instructions are sent by email." : "Phone sign-in is available, but password reset needs a verified email."}</Text></View></Card><Card style={styles.recoveryCard}><Text style={styles.cardTitle}>Recover by email</Text><Text style={styles.cardDetail}>{resetSent ? "Check your inbox for the reset token, then finish the reset from the sign-in screen." : "Send a password reset token through the Laravel customer portal API."}</Text><SecondaryButton label={resetSent ? "Send recovery email again" : "Send recovery instructions"} icon="email-outline" disabled={!canRequestReset} onPress={sendRecoveryEmail} /><SecondaryButton label="Open reset screen" onPress={() => router.push("/auth/forgot-password" as Href)} /></Card><Card style={styles.recoveryCard}><Text style={styles.cardTitle}>Change password</Text><Text style={styles.cardDetail}>If you know your current password, update it here without leaving your signed-in account.</Text><AuthPasswordInput label="Current password" placeholder="Current password" value={currentPassword} autoComplete="current-password" textContentType="password" onChangeText={setCurrentPassword} /><AuthPasswordInput label="New password" placeholder="At least 8 characters" value={nextPassword} autoComplete="new-password" textContentType="newPassword" onChangeText={setNextPassword} /><PrimaryButton label={passwordChanged ? "Password updated" : "Update password"} icon="lock-reset" disabled={!canChangePassword} onPress={updatePassword} /></Card><Card style={styles.recoveryCard}><Text style={styles.cardTitle}>This device</Text><Text style={styles.cardDetail}>If this phone is shared or lost, sign out of the app on this device. Server-wide device revocation needs a future backend endpoint.</Text><SecondaryButton label="Sign out on this device" icon="logout" onPress={signOutHere} /></Card>{localMessage || authError ? <Text accessibilityRole={authError ? "alert" : "text"} style={authError ? styles.error : styles.success}>{authError || localMessage}</Text> : null}<View style={styles.actions}><SecondaryButton label="Contact support" icon="headset" onPress={() => router.push("/support" as Href)} /></View></ScrollView></View></Screen>;
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1, paddingTop: 16, paddingHorizontal: 20, backgroundColor: nwcColors.background }, header: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }, headerTitle: { color: nwcColors.brandNavy, fontSize: 15, lineHeight: 20, fontFamily: "Poppins_800ExtraBold" }, headerSpacer: { width: 44, height: 44 }, content: { paddingTop: 24, paddingBottom: 42, gap: 16 }, titleBlock: { gap: 4 }, title: { color: nwcColors.foreground, fontSize: 29, lineHeight: 37, letterSpacing: -0.5, fontFamily: "Poppins_800ExtraBold" }, detail: { color: nwcColors.muted, fontSize: 13, lineHeight: 19, fontFamily: "Poppins_500Medium" }, phone: { minHeight: 68, flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: "#F2F8FA" }, phoneIcon: { width: 42, height: 42, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: nwcColors.primary }, phoneCopy: { gap: 1 }, phoneLabel: { color: nwcColors.muted, fontSize: 10, lineHeight: 14, fontFamily: "Poppins_600SemiBold" }, phoneValue: { color: nwcColors.foreground, fontSize: 14, lineHeight: 19, fontFamily: "Poppins_800ExtraBold" }, recoveryCard: { gap: 8 }, cardTitle: { color: nwcColors.foreground, fontSize: 14, lineHeight: 19, fontFamily: "Poppins_800ExtraBold" }, cardDetail: { color: nwcColors.muted, fontSize: 12, lineHeight: 18, fontFamily: "Poppins_500Medium" }, code: { paddingVertical: 11, paddingHorizontal: 12, borderRadius: 15, backgroundColor: "#F1F6F7", borderWidth: 1, borderColor: "#DCE6E8" }, codeText: { color: nwcColors.brandNavy, fontSize: 15, lineHeight: 20, letterSpacing: 1.1, fontFamily: "Poppins_800ExtraBold" }, inlineAction: { alignSelf: "flex-start", minHeight: 34, justifyContent: "center" }, inlineActionText: { color: nwcColors.info, fontSize: 12, lineHeight: 17, fontFamily: "Poppins_800ExtraBold" }, confirmed: { flexDirection: "row", alignItems: "center", gap: 6 }, confirmedText: { color: nwcColors.success, fontSize: 11, lineHeight: 16, fontFamily: "Poppins_700Bold" }, actions: { gap: 10 },
+  page: { flex: 1, paddingTop: 16, paddingHorizontal: 20, backgroundColor: nwcColors.background }, header: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }, headerTitle: { color: nwcColors.brandNavy, fontSize: 15, lineHeight: 20, fontFamily: "Poppins_800ExtraBold" }, headerSpacer: { width: 44, height: 44 }, content: { paddingTop: 24, paddingBottom: 42, gap: 16 }, titleBlock: { gap: 4 }, title: { color: nwcColors.foreground, fontSize: 29, lineHeight: 37, letterSpacing: -0.5, fontFamily: "Poppins_800ExtraBold" }, detail: { color: nwcColors.muted, fontSize: 13, lineHeight: 19, fontFamily: "Poppins_500Medium" }, contactCard: { minHeight: 82, flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: "#F2F8FA" }, contactIcon: { width: 42, height: 42, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: nwcColors.primary }, contactCopy: { flex: 1, gap: 1 }, contactLabel: { color: nwcColors.muted, fontSize: 10, lineHeight: 14, fontFamily: "Poppins_600SemiBold" }, contactValue: { color: nwcColors.foreground, fontSize: 14, lineHeight: 19, fontFamily: "Poppins_800ExtraBold" }, contactDetail: { color: nwcColors.muted, fontSize: 11, lineHeight: 16, fontFamily: "Poppins_500Medium" }, recoveryCard: { gap: 10 }, cardTitle: { color: nwcColors.foreground, fontSize: 14, lineHeight: 19, fontFamily: "Poppins_800ExtraBold" }, cardDetail: { color: nwcColors.muted, fontSize: 12, lineHeight: 18, fontFamily: "Poppins_500Medium" }, success: { color: nwcColors.success, fontSize: 12, lineHeight: 18, fontFamily: "Poppins_700Bold", textAlign: "center" }, error: { color: nwcColors.error, fontSize: 12, lineHeight: 18, fontFamily: "Poppins_700Bold", textAlign: "center" }, actions: { gap: 10 },
 });

@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/api/client";
-import type { BookingDraftSummary, BookingSubmissionResult } from "@/lib/domain/booking";
+import { bookingQuoteRequestFromDraft, estimateBookingQuote } from "@/lib/booking-pricing";
+import type { BookingDraftSummary, BookingService, BookingSubmissionResult } from "@/lib/domain/booking";
 import type { BookingRepository } from "@/lib/repositories/types";
 import type { Address, BookingCargoAttachment, BookingCargoItem, PersonContact } from "@/types/cargo";
 import { laravelUploadRepository } from "./laravel-upload-adapter";
@@ -103,14 +104,27 @@ export function portalSubmissionPayload(service: string, draft: unknown) {
       : addressText(raw.destination);
   const pickupBranchId = raw.pickup?.branchId ?? raw.originBranchId ?? raw.destinationBranchId;
   const destinationBranchId = raw.destination?.branchId ?? raw.destinationBranchId;
+  const quoteRequest = bookingQuoteRequestFromDraft(service as BookingService, raw);
   return {
     service,
     draft,
+    pricing: {
+      request: quoteRequest,
+      quote: raw.quote,
+      quotePayload: raw.quote?.quotePayload,
+      quoteSignature: raw.quote?.quoteSignature,
+      quoteSource: raw.quote?.source,
+    },
     form: {
       pickup,
       destination,
       pickupBranchId,
       destinationBranchId,
+      pickupLatitude: quoteRequest.pickup?.latitude,
+      pickupLongitude: quoteRequest.pickup?.longitude,
+      destinationLatitude: quoteRequest.destination?.latitude,
+      destinationLongitude: quoteRequest.destination?.longitude,
+      distanceKm: quoteRequest.distanceKm,
       recipient: receiver.name,
       phone: receiver.phone,
       sender: sender.name,
@@ -135,7 +149,9 @@ export const laravelBookingRepository: BookingRepository = {
   },
   async submitBooking(input) {
     const uploadedDraft = await uploadDraftAttachments(input.draft);
-    const payload = portalSubmissionPayload(input.service, uploadedDraft);
+    const freshQuote = await estimateBookingQuote(input.service, uploadedDraft);
+    const quotedDraft = freshQuote && uploadedDraft && typeof uploadedDraft === "object" ? { ...uploadedDraft, quote: freshQuote } : uploadedDraft;
+    const payload = portalSubmissionPayload(input.service, quotedDraft);
     const draft = await apiClient.post<{ data: LaravelDraftResponse }>("/api/v1/shipment-drafts", {
       payload,
     });

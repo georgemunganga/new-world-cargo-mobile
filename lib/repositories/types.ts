@@ -71,6 +71,7 @@ export type AddressBookRepository = {
 export type SupportRepository = {
   listCases(): Promise<SupportCase[]>;
   createCase(input: CreateSupportCaseInput): Promise<SupportCase>;
+  attachEvidence(caseId: string, fileId: string): Promise<SupportCase>;
 };
 
 export type ReturnRequestRepository = {

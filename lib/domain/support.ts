@@ -13,6 +13,7 @@ export type SupportCase = {
   status: SupportCaseStatus;
   updatedAt: string;
   events: SupportCaseEvent[];
+  attachmentFileIds?: string[];
 };
 
 export type CreateSupportCaseInput = {

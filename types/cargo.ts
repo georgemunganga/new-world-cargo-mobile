@@ -10,12 +10,27 @@ export type ShipmentStatus =
 export type BookingStep = "route" | "parcel" | "contacts" | "schedule" | "review";
 export type LocalDeliveryVehicle = "scooter" | "small_van" | "cargo_van";
 
+export type BookingQuote = {
+  source: "server" | "fallback";
+  currency: string;
+  total: number;
+  formattedTotal: string;
+  distanceKm?: number;
+  estimatedDurationMinutes?: number;
+  expiresAt?: string;
+  quotePayload?: Record<string, unknown>;
+  quoteSignature?: string;
+  breakdown?: Record<string, unknown>;
+};
+
 export type Address = {
   label?: string;
   branchId?: string;
   city: string;
   area: string;
   detail: string;
+  latitude?: number;
+  longitude?: number;
 };
 
 export type PersonContact = {
@@ -90,6 +105,7 @@ export type LocalDeliveryDraft = {
   deliveryInstructions?: string;
   schedule?: "as_soon_as_possible" | "later_today" | "scheduled";
   vehicle?: LocalDeliveryVehicle;
+  quote?: BookingQuote;
 };
 
 export type ImportBookingDraft = {
@@ -98,8 +114,12 @@ export type ImportBookingDraft = {
   originCountry?: string;
   originCity?: string;
   originBranchId?: string;
+  originLatitude?: number;
+  originLongitude?: number;
   destinationCity?: string;
   destinationBranchId?: string;
+  destinationLatitude?: number;
+  destinationLongitude?: number;
   cargoCategory?: string;
   cargoDescription?: string;
   quantity?: number;
@@ -107,14 +127,19 @@ export type ImportBookingDraft = {
   cargoPhotos?: BookingCargoAttachment[];
   supportingDocument?: BookingCargoAttachment;
   consignee?: PersonContact;
+  quote?: BookingQuote;
 };
 
 export type IntercityBookingDraft = {
   service: "intercity";
   originCity?: string;
   originBranchId?: string;
+  originLatitude?: number;
+  originLongitude?: number;
   destinationCity?: string;
   destinationBranchId?: string;
+  destinationLatitude?: number;
+  destinationLongitude?: number;
   cargoCategory?: string;
   quantity?: number;
   cargoItems?: BookingCargoItem[];
@@ -125,6 +150,7 @@ export type IntercityBookingDraft = {
   receiver?: PersonContact;
   fulfilment?: "collection" | "door_delivery";
   schedule?: "next_available" | "scheduled";
+  quote?: BookingQuote;
 };
 
 export type CustomRequestDraft = {
@@ -138,4 +164,5 @@ export type CustomRequestDraft = {
   cargoPhotos?: BookingCargoAttachment[];
   supportingDocument?: BookingCargoAttachment;
   contact?: PersonContact;
+  quote?: BookingQuote;
 };

@@ -1,31 +1,29 @@
-import { canPayWithWallet, paymentMethodLabel as domainPaymentMethodLabel, paymentPresentation, type PaymentMethod, type PaymentState, type SavedPaymentMethod, type WalletActivity } from "@/lib/domain/billing";
+import {
+  canPayWithDisplayWallet,
+  calculateDisplayOutstandingBalance,
+  filterDisplayInvoices,
+  formatKwacha,
+  invoiceReminderLabel,
+  paymentMethodDetail as domainPaymentMethodDetail,
+  paymentMethodIcon,
+  paymentMethodLabel as domainPaymentMethodLabel,
+  paymentPresentation,
+  type BillingDisplayInvoice,
+  type PaymentMethod,
+  type PaymentState,
+  type SavedPaymentMethod,
+  type WalletActivity,
+} from "@/lib/domain/billing";
 
 export type MockPaymentState = PaymentState;
-export type MockInvoiceStatus = "paid" | "unpaid";
+export type MockInvoiceStatus = BillingDisplayInvoice["status"];
 export type MockPaymentMethod = PaymentMethod;
 export type MockSavedPaymentMethod = SavedPaymentMethod;
 
-export type MockInvoiceLineItem = { label: string; detail?: string; amount: string };
-export type MockResolutionEvent = { label: string; detail: string; time: string; complete: boolean };
-export type MockInvoiceResolution = { kind: "refund" | "dispute"; title: string; detail: string; events: MockResolutionEvent[] };
-export type MockInvoice = {
-  id: string;
-  reference: string;
-  shipmentReference: string;
-  description: string;
-  shipmentLabel: string;
-  route: string;
-  amount: string;
-  amountValue: number;
-  currencyDetail: string;
-  issuedAt: string;
-  dueAt?: string;
-  paidAt?: string;
-  paymentMethod?: string;
-  status: MockInvoiceStatus;
-  lineItems: MockInvoiceLineItem[];
-  resolution?: MockInvoiceResolution;
-};
+export type MockInvoiceLineItem = BillingDisplayInvoice["lineItems"][number];
+export type MockResolutionEvent = NonNullable<BillingDisplayInvoice["resolution"]>["events"][number];
+export type MockInvoiceResolution = NonNullable<BillingDisplayInvoice["resolution"]>;
+export type MockInvoice = BillingDisplayInvoice;
 
 export type MockWalletActivity = WalletActivity;
 export const mockWalletStartingBalance = 1750;
@@ -44,14 +42,14 @@ export const mockInvoices: MockInvoice[] = [
 
 export const mockInvoice = mockInvoices[0];
 
-export function calculateOutstandingBalance(invoices: MockInvoice[]) { return invoices.filter((invoice) => invoice.status === "unpaid").reduce((sum, invoice) => sum + invoice.amountValue, 0); }
-export function filterMockInvoices(invoices: MockInvoice[], query: string, status: "all" | MockInvoiceStatus) { const normalized = query.trim().toLowerCase(); return invoices.filter((invoice) => (status === "all" || invoice.status === status) && (!normalized || `${invoice.reference} ${invoice.shipmentReference} ${invoice.shipmentLabel} ${invoice.route}`.toLowerCase().includes(normalized))); }
+export const calculateOutstandingBalance = calculateDisplayOutstandingBalance;
+export const filterMockInvoices = filterDisplayInvoices;
 export const paymentMethodLabel = domainPaymentMethodLabel;
-export function paymentMethodIcon(method: MockPaymentMethod) { return { mobile: "cellphone" as const, card: "credit-card-outline" as const, wallet: "wallet-outline" as const }[method]; }
-export function paymentMethodDetail(method: MockPaymentMethod, walletBalance: number) { return method === "wallet" ? `Available ${formatMockKwacha(walletBalance)}` : mockSavedPaymentMethods.find((item) => item.method === method)?.detail ?? paymentMethodLabel(method); }
+export { paymentMethodIcon };
+export function paymentMethodDetail(method: MockPaymentMethod, walletBalance: number) { return domainPaymentMethodDetail(method, walletBalance, mockSavedPaymentMethods); }
 export function getDefaultPaymentMethod(methods: MockSavedPaymentMethod[]) { return methods.find((item) => item.isDefault) ?? methods[0]; }
-export function formatMockKwacha(value: number) { return `K ${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`; }
-export function canPayWithMockWallet(balance: number, invoice: Pick<MockInvoice, "amountValue">) { return canPayWithWallet(balance, { amount: { amount: invoice.amountValue, currencyCode: "ZMW", formatted: formatMockKwacha(invoice.amountValue) } }); }
-export function mockReminderLabel(invoice: MockInvoice) { if (invoice.status === "paid") return undefined; return invoice.dueAt === "1 Sep 2026" ? "Due today" : "Due in 3 days"; }
+export const formatMockKwacha = formatKwacha;
+export const canPayWithMockWallet = canPayWithDisplayWallet;
+export function mockReminderLabel(invoice: MockInvoice) { if (invoice.status === "paid") return undefined; return invoice.dueAt === "1 Sep 2026" ? "Due today" : invoiceReminderLabel(invoice); }
 
 export const mockPaymentPresentation = paymentPresentation;

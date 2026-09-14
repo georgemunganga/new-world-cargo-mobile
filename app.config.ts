@@ -41,6 +41,7 @@ const config: ExpoConfig = {
       NSCameraUsageDescription: "Allow New WorldCargo to scan shipment labels and attach cargo evidence.",
       NSPhotoLibraryUsageDescription: "Allow New WorldCargo to select profile photos and support evidence.",
       NSLocationWhenInUseUsageDescription: "Allow New WorldCargo to help choose pickup and delivery locations.",
+      NSContactsUsageDescription: "Allow New WorldCargo to fill delivery contact details from your phone contacts.",
     },
   },
   android: {
@@ -52,7 +53,7 @@ const config: ExpoConfig = {
     predictiveBackGestureEnabled: false,
     package: env.androidPackage,
     versionCode: Number.isFinite(env.androidVersionCode) && env.androidVersionCode > 0 ? env.androidVersionCode : 1,
-    permissions: ["POST_NOTIFICATIONS", "CAMERA", "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"],
+    permissions: ["POST_NOTIFICATIONS", "CAMERA", "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "READ_CONTACTS"],
     intentFilters: [
       {
         action: "VIEW",

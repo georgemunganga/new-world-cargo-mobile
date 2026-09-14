@@ -1,28 +1,39 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { router, type Href } from "expo-router";
-import { MockRouteMap } from "@/components/map/mock-route-map";
+import { CustomerMap } from "@/components/map/customer-map";
 import { AppIcon } from "@/components/ui/app-icon";
 import { Card, IconButton, PrimaryButton, Screen, SectionHeader, StatusBadge } from "@/components/ui/nwc-ui";
-import { searchMockAddresses, type AddressSearchResult } from "@/lib/mock-addresses";
 import { nwcColors } from "@/lib/nwc-theme";
+import { loadRouteReferenceData, searchRouteSuggestions, type RouteSuggestion } from "@/lib/route-autocomplete";
 import { useBookingDraft } from "@/stores/booking-draft";
 import { useCustomerPermissions } from "@/lib/use-cases/use-customer-permissions";
 
 type PlaceTarget = "pickup" | "destination";
+type AddressSearchResult = RouteSuggestion & { type: "address" | "branch" | "warehouse"; landmark: string };
 
 export default function AddressSearchScreen() {
   const [target, setTarget] = useState<PlaceTarget>("pickup");
   const [query, setQuery] = useState("");
   const { localDraft, updateLocalDraft } = useBookingDraft();
   const { statuses } = useCustomerPermissions();
-  const results = useMemo(() => searchMockAddresses(query), [query]);
+  const [referenceVersion, setReferenceVersion] = useState(0);
+  useEffect(() => {
+    let active = true;
+    void loadRouteReferenceData().finally(() => {
+      if (active) setReferenceVersion((value) => value + 1);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+  const results = useMemo(() => searchRouteSuggestions("local", query).map(toAddressSearchResult), [query, referenceVersion]);
   const selectAddress = (address: AddressSearchResult) => {
     updateLocalDraft({ [target]: { label: address.label, city: address.city, area: address.area, detail: address.detail } });
     if (target === "pickup") setTarget("destination");
   };
   const isComplete = Boolean(localDraft.pickup && localDraft.destination);
-  return <Screen><View style={styles.page}><View style={styles.header}><View><Text style={styles.eyebrow}>Local Delivery</Text><SectionHeader title="Find an address" /></View><IconButton label="Go back" icon="arrow-left" onPress={() => router.back()} /></View><ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}><View style={styles.targetSwitch}><TargetButton label="Pickup" selected={target === "pickup"} onPress={() => setTarget("pickup")} /><TargetButton label="Delivery" selected={target === "destination"} onPress={() => setTarget("destination")} /></View><View style={styles.searchFrame}><AppIcon name="magnify" size={22} color={nwcColors.muted} /><TextInput value={query} onChangeText={setQuery} placeholder={`Search ${target === "pickup" ? "pickup" : "delivery"} area, road, branch, or landmark`} placeholderTextColor="#91A0AE" style={styles.searchInput} returnKeyType="search" /></View><TouchableOpacity accessibilityRole="button" accessibilityLabel="Use my current location" accessibilityHint="Opens location permission education when access is not allowed" onPress={() => statuses.location === "granted" ? setQuery("Longacres") : router.push("/permissions/location" as Href)} style={styles.locationButton}><AppIcon name="crosshairs-gps" size={19} color={nwcColors.info} /><Text style={styles.locationText}>Use my current location</Text><AppIcon name="chevron-right" size={20} color={nwcColors.info} /></TouchableOpacity><View style={styles.locationWarning}><AppIcon name="information-outline" size={18} color={nwcColors.warning} /><Text style={styles.locationWarningText}>Map pins are approximate. Confirm the written address and landmark before requesting pickup.</Text></View><Text style={styles.resultHeading}>{query ? "Search results" : "Suggested places"}</Text><View style={styles.results}>{results.map((address) => <AddressResultCard key={address.id} address={address} onPress={() => selectAddress(address)} />)}{results.length === 0 ? <Card style={styles.noResults}><AppIcon name="map-search-outline" size={26} color={nwcColors.info} /><Text style={styles.noResultsTitle}>No matching place yet</Text><Text style={styles.noResultsDetail}>Try a city, area, road, landmark, branch, or warehouse. You can also type the address manually on the booking route screen.</Text></Card> : null}</View>{isComplete ? <View style={styles.preview}><Text style={styles.previewTitle}>Route preview</Text><MockRouteMap pickup={localDraft.pickup} destination={localDraft.destination} /><View style={styles.serviceArea}><AppIcon name="map-marker-radius-outline" size={19} color={nwcColors.success} /><Text style={styles.serviceAreaText}>This route appears to be inside the local-delivery service area. Availability will be confirmed before booking.</Text></View><PrimaryButton label="Use this route" icon="check" onPress={() => router.back()} /></View> : null}<Card style={styles.markersCard}><Text style={styles.markersTitle}>Collection markers in your search</Text><View style={styles.markerRow}><AppIcon name="storefront-outline" size={19} color={nwcColors.brandNavy} /><Text style={styles.markerText}>New WorldCargo branch and warehouse results are marked clearly for collection or receiving.</Text></View></Card></ScrollView></View></Screen>;
+  return <Screen><View style={styles.page}><View style={styles.header}><View><Text style={styles.eyebrow}>Local Delivery</Text><SectionHeader title="Find an address" /></View><IconButton label="Go back" icon="arrow-left" onPress={() => router.back()} /></View><ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}><View style={styles.targetSwitch}><TargetButton label="Pickup" selected={target === "pickup"} onPress={() => setTarget("pickup")} /><TargetButton label="Delivery" selected={target === "destination"} onPress={() => setTarget("destination")} /></View><View style={styles.searchFrame}><AppIcon name="magnify" size={22} color={nwcColors.muted} /><TextInput value={query} onChangeText={setQuery} placeholder={`Search ${target === "pickup" ? "pickup" : "delivery"} area, road, branch, or landmark`} placeholderTextColor="#91A0AE" style={styles.searchInput} returnKeyType="search" /></View><TouchableOpacity accessibilityRole="button" accessibilityLabel="Use my current location" accessibilityHint="Opens location permission education when access is not allowed" onPress={() => statuses.location === "granted" ? setQuery("Longacres") : router.push("/permissions/location" as Href)} style={styles.locationButton}><AppIcon name="crosshairs-gps" size={19} color={nwcColors.info} /><Text style={styles.locationText}>Use my current location</Text><AppIcon name="chevron-right" size={20} color={nwcColors.info} /></TouchableOpacity><View style={styles.locationWarning}><AppIcon name="information-outline" size={18} color={nwcColors.warning} /><Text style={styles.locationWarningText}>Map pins are approximate. Confirm the written address and landmark before requesting pickup.</Text></View><Text style={styles.resultHeading}>{query ? "Search results" : "Suggested places"}</Text><View style={styles.results}>{results.map((address) => <AddressResultCard key={address.id} address={address} onPress={() => selectAddress(address)} />)}{results.length === 0 ? <Card style={styles.noResults}><AppIcon name="map-search-outline" size={26} color={nwcColors.info} /><Text style={styles.noResultsTitle}>No matching place yet</Text><Text style={styles.noResultsDetail}>Try a city, area, road, landmark, branch, or warehouse. You can also type the address manually on the booking route screen.</Text></Card> : null}</View>{isComplete ? <View style={styles.preview}><Text style={styles.previewTitle}>Route preview</Text><CustomerMap mode="route-preview" pickup={localDraft.pickup} destination={localDraft.destination} routeReady height={220} /><View style={styles.serviceArea}><AppIcon name="map-marker-radius-outline" size={19} color={nwcColors.success} /><Text style={styles.serviceAreaText}>This route appears to be inside the local-delivery service area. Availability will be confirmed before booking.</Text></View><PrimaryButton label="Use this route" icon="check" onPress={() => router.back()} /></View> : null}<Card style={styles.markersCard}><Text style={styles.markersTitle}>Collection markers in your search</Text><View style={styles.markerRow}><AppIcon name="storefront-outline" size={19} color={nwcColors.brandNavy} /><Text style={styles.markerText}>New WorldCargo branch and warehouse results are marked clearly for collection or receiving.</Text></View></Card></ScrollView></View></Screen>;
 }
 
 function TargetButton({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
@@ -33,6 +44,15 @@ function AddressResultCard({ address, onPress }: { address: AddressSearchResult;
   const icon = address.type === "branch" ? "storefront-outline" : address.type === "warehouse" ? "warehouse" : "map-marker-outline";
   const label = address.type === "branch" ? "Branch" : address.type === "warehouse" ? "Warehouse" : "Address";
   return <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Choose ${address.label}`} accessibilityHint={`${address.detail}. ${address.landmark}`} onPress={onPress} activeOpacity={0.76}><Card style={styles.resultCard}><View style={styles.resultIcon}><AppIcon name={icon} size={21} color={nwcColors.brandNavy} /></View><View style={styles.resultCopy}><Text style={styles.resultTitle}>{address.label}</Text><Text style={styles.resultDetail}>{`${address.detail}, ${address.city}`}</Text><Text style={styles.resultLandmark}>{address.landmark}</Text></View><StatusBadge label={label} tone={address.type === "address" ? "neutral" : "info"} /></Card></TouchableOpacity>;
+}
+
+function toAddressSearchResult(suggestion: RouteSuggestion): AddressSearchResult {
+  const type = suggestion.kind === "branch" ? "branch" : suggestion.kind === "warehouse" ? "warehouse" : "address";
+  return {
+    ...suggestion,
+    type,
+    landmark: suggestion.kind === "branch" || suggestion.kind === "warehouse" ? "New WorldCargo service point" : suggestion.detail,
+  };
 }
 
 const styles = StyleSheet.create({

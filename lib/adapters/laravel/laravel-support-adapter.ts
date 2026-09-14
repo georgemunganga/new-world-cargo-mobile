@@ -26,6 +26,8 @@ type LaravelSupportCaseResponse = {
   updated_at?: string;
   events?: LaravelSupportEventResponse[];
   timeline?: LaravelSupportEventResponse[];
+  attachmentFileId?: string | null;
+  attachmentFileIds?: string[];
 };
 
 function normalizeStatus(status?: string): SupportCaseStatus {
@@ -47,6 +49,7 @@ function mapSupportCase(raw: LaravelSupportCaseResponse): SupportCase {
       detail: event.detail ?? event.message ?? "Update received.",
       time: event.time ?? event.created_at ?? "Recently",
     })),
+    attachmentFileIds: raw.attachmentFileIds ?? (raw.attachmentFileId ? [raw.attachmentFileId] : []),
   };
 }
 
@@ -61,6 +64,12 @@ export const laravelSupportRepository: SupportRepository = {
       subject: input.topic,
       detail: input.detail,
       shipmentNumber: input.shipmentReference ?? input.invoiceReference,
+    });
+    return mapSupportCase(response.data);
+  },
+  async attachEvidence(caseId, fileId) {
+    const response = await apiClient.post<{ data: LaravelSupportCaseResponse }>(`/api/v1/support/cases/${encodeURIComponent(caseId)}/evidence`, {
+      fileId,
     });
     return mapSupportCase(response.data);
   },

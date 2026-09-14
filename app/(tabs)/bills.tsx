@@ -5,7 +5,7 @@ import { router, useLocalSearchParams, type Href } from "expo-router";
 import { AppIcon } from "@/components/ui/app-icon";
 import { useFloatingNavigationClearance } from "@/components/navigation/use-floating-navigation-clearance";
 import { Card, Screen, StatusBadge } from "@/components/ui/nwc-ui";
-import { calculateOutstandingBalance, filterMockInvoices, mockReminderLabel, type MockInvoiceStatus } from "@/lib/mock-billing";
+import { calculateDisplayOutstandingBalance, filterDisplayInvoices, invoiceReminderLabel, type BillingDisplayInvoice } from "@/lib/domain/billing";
 import { nwcColors } from "@/lib/nwc-theme";
 import { useCustomerBillingAccount } from "@/stores/customer-billing-account";
 
@@ -14,11 +14,11 @@ export default function BillsScreen() {
   const floatingNavigationClearance = useFloatingNavigationClearance();
   const { state } = useLocalSearchParams<{ state?: "loading" | "error" }>();
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<"all" | MockInvoiceStatus>("all");
-  const visibleInvoices = useMemo(() => filterMockInvoices(invoices, query, filter), [filter, invoices, query]);
+  const [filter, setFilter] = useState<"all" | BillingDisplayInvoice["status"]>("all");
+  const visibleInvoices = useMemo(() => filterDisplayInvoices(invoices, query, filter), [filter, invoices, query]);
   const recent = visibleInvoices.slice(0, 3);
   const older = visibleInvoices.slice(3);
-  const outstanding = calculateOutstandingBalance(invoices);
+  const outstanding = calculateDisplayOutstandingBalance(invoices);
   const outstandingLabel = formatAggregateAmount(outstanding, invoices.filter((invoice) => invoice.status === "unpaid").map((invoice) => invoice.amount));
   const walletLabel = formatAggregateAmount(walletBalance, invoices.map((invoice) => invoice.amount));
   const openInvoice = (invoiceId: string) => { selectInvoice(invoiceId); router.push(`/bills/${invoiceId}` as Href); };
@@ -33,9 +33,9 @@ function formatAggregateAmount(amount: number, formattedSamples: string[]) {
   return `${currency} ${amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-function InvoiceSection({ title, eyebrow, invoices, onOpen, reminders }: { title: string; eyebrow: string; invoices: ReturnType<typeof filterMockInvoices>; onOpen: (invoiceId: string) => void; reminders: Record<string, boolean> }) {
+function InvoiceSection({ title, eyebrow, invoices, onOpen, reminders }: { title: string; eyebrow: string; invoices: BillingDisplayInvoice[]; onOpen: (invoiceId: string) => void; reminders: Record<string, boolean> }) {
   if (!invoices.length) return null;
-  return <View style={styles.section}><View style={styles.sectionHeader}><View><Text style={styles.eyebrow}>{eyebrow}</Text><Text style={styles.sectionTitle}>{title}</Text></View><Text style={styles.shown}>{invoices.length} shown</Text></View><Card style={styles.ledger}>{invoices.map((invoice, index) => <TouchableOpacity key={invoice.id} accessibilityRole="button" accessibilityLabel={`View invoice ${invoice.reference}`} accessibilityHint={`${invoice.shipmentLabel}, ${invoice.amount}, ${invoice.status}`} activeOpacity={0.72} onPress={() => onOpen(invoice.id)} style={[styles.invoiceRow, index !== invoices.length - 1 && styles.invoiceDivider]}><View style={[styles.invoiceIcon, invoice.status === "paid" && styles.invoiceIconPaid]}><AppIcon name="receipt-text-outline" size={21} color={nwcColors.primaryInk} /></View><View style={styles.invoiceCopy}><View style={styles.invoiceTitleLine}><Text numberOfLines={1} style={styles.invoiceTitle}>{invoice.shipmentLabel}</Text><StatusBadge label={invoice.status === "paid" ? "Paid" : "Due"} tone={invoice.status === "paid" ? "success" : "warning"} /></View><Text numberOfLines={1} style={styles.invoiceMeta}>{invoice.reference} · {invoice.status === "paid" ? `Paid ${invoice.paidAt}` : `Due ${invoice.dueAt}`}</Text>{invoice.status === "unpaid" && reminders[invoice.id] ? <View style={styles.reminder}><AppIcon name="bell-outline" size={11} color={nwcColors.warning} /><Text style={styles.reminderText}>{mockReminderLabel(invoice)}</Text></View> : null}</View><View style={styles.invoiceAmount}><Text style={styles.invoiceAmountText}>{invoice.amount}</Text><AppIcon name="chevron-right" size={19} color={nwcColors.muted} /></View></TouchableOpacity>)}</Card></View>;
+  return <View style={styles.section}><View style={styles.sectionHeader}><View><Text style={styles.eyebrow}>{eyebrow}</Text><Text style={styles.sectionTitle}>{title}</Text></View><Text style={styles.shown}>{invoices.length} shown</Text></View><Card style={styles.ledger}>{invoices.map((invoice, index) => <TouchableOpacity key={invoice.id} accessibilityRole="button" accessibilityLabel={`View invoice ${invoice.reference}`} accessibilityHint={`${invoice.shipmentLabel}, ${invoice.amount}, ${invoice.status}`} activeOpacity={0.72} onPress={() => onOpen(invoice.id)} style={[styles.invoiceRow, index !== invoices.length - 1 && styles.invoiceDivider]}><View style={[styles.invoiceIcon, invoice.status === "paid" && styles.invoiceIconPaid]}><AppIcon name="receipt-text-outline" size={21} color={nwcColors.primaryInk} /></View><View style={styles.invoiceCopy}><View style={styles.invoiceTitleLine}><Text numberOfLines={1} style={styles.invoiceTitle}>{invoice.shipmentLabel}</Text><StatusBadge label={invoice.status === "paid" ? "Paid" : "Due"} tone={invoice.status === "paid" ? "success" : "warning"} /></View><Text numberOfLines={1} style={styles.invoiceMeta}>{invoice.reference} · {invoice.status === "paid" ? `Paid ${invoice.paidAt}` : `Due ${invoice.dueAt}`}</Text>{invoice.status === "unpaid" && reminders[invoice.id] ? <View style={styles.reminder}><AppIcon name="bell-outline" size={11} color={nwcColors.warning} /><Text style={styles.reminderText}>{invoiceReminderLabel(invoice)}</Text></View> : null}</View><View style={styles.invoiceAmount}><Text style={styles.invoiceAmountText}>{invoice.amount}</Text><AppIcon name="chevron-right" size={19} color={nwcColors.muted} /></View></TouchableOpacity>)}</Card></View>;
 }
 
 function BillsState({ icon, title, detail, actionLabel, onAction }: { icon: Parameters<typeof AppIcon>[0]["name"]; title: string; detail: string; actionLabel?: string; onAction?: () => void }) {

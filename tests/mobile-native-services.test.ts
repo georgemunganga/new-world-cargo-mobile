@@ -10,9 +10,9 @@ import { shareService } from "../lib/services/device/share-service";
 describe("mobile native-service adapter contracts", () => {
   it("returns structured unavailable results for device features not installed in the browser-safe build", async () => {
     await expect(cameraService.scanQrCode()).resolves.toMatchObject({ ok: false, reason: "missing-native-module" });
-    await expect(cameraService.pickImage()).resolves.toMatchObject({ ok: false, reason: "missing-native-module" });
+    await expect(cameraService.pickImage()).resolves.toMatchObject({ ok: false, reason: "browser-preview" });
     await expect(fileService.pickDocument()).resolves.toMatchObject({ ok: false, reason: "browser-preview" });
-    await expect(locationService.getCurrentLocation()).resolves.toMatchObject({ ok: false, reason: "missing-native-module" });
+    await expect(locationService.getCurrentLocation()).resolves.toMatchObject({ ok: false, reason: "browser-preview" });
   });
 
   it("keeps success and unavailable result helpers predictable", () => {
@@ -29,7 +29,7 @@ describe("mobile native-service adapter contracts", () => {
     await expect(mapService.previewRoute(
       { label: "Lusaka", latitude: -15.3875, longitude: 28.3228 },
       { label: "Kitwe", latitude: -12.8024, longitude: 28.2132 },
-    )).resolves.toMatchObject({ ok: true, value: { provider: "mock", distanceLabel: "To be calculated by map provider" } });
+    )).resolves.toMatchObject({ ok: true, value: { provider: "mock", service: "local", distanceLabel: "Local distance pending map provider" } });
   });
 
   it("returns a customer-safe unavailable result when native sharing is unavailable", async () => {

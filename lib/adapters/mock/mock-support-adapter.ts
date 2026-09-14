@@ -23,4 +23,14 @@ export const mockSupportRepository: SupportRepository = {
     cases.unshift(created);
     return created;
   },
+  async attachEvidence(caseId, fileId) {
+    const supportCase = cases.find((item) => item.id === caseId);
+    if (!supportCase) throw new Error("Support case not found.");
+    supportCase.attachmentFileIds = [...(supportCase.attachmentFileIds ?? []), fileId];
+    supportCase.events = [
+      { label: "Evidence attached", detail: "A support attachment was added for review.", time: "Just now" },
+      ...supportCase.events,
+    ];
+    return supportCase;
+  },
 };

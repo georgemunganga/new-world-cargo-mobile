@@ -56,6 +56,7 @@ corepack pnpm build:production:ios
 
 ## Manual Device Smoke Test
 
+- Run the full customer UAT script in `docs/mobile-uat-checklist.md` before approving a production candidate.
 - Open app from fresh install.
 - Sign in.
 - Restore app after closing.

@@ -44,6 +44,11 @@ describe("mobile Laravel feature contracts", () => {
       originCountry: "China",
       destinationCity: "Lusaka",
       destinationBranchId: "1",
+      originLatitude: 23.1291,
+      originLongitude: 113.2644,
+      destinationLatitude: -15.3875,
+      destinationLongitude: 28.3228,
+      quote: { source: "server", currency: "ZMW", total: 2450, formattedTotal: "K 2,450", quotePayload: { total: 2450 }, quoteSignature: "signed-quote" },
       consignee: { name: "George Munganga", phone: "+260971000000" },
       cargoItems: [{ id: "item-1", name: "Shoes", quantity: 2, weight: 3.5, amount: 42.5 }],
     })).toMatchObject({
@@ -52,6 +57,20 @@ describe("mobile Laravel feature contracts", () => {
         destination: "Lusaka",
         pickupBranchId: "1",
         destinationBranchId: "1",
+        pickupLatitude: 23.1291,
+        pickupLongitude: 113.2644,
+        destinationLatitude: -15.3875,
+        destinationLongitude: 28.3228,
+      },
+      pricing: {
+        request: {
+          bookingType: "international_import",
+          transportMode: undefined,
+          cargo: { totalWeight: 7, declaredValue: 85 },
+        },
+        quotePayload: { total: 2450 },
+        quoteSignature: "signed-quote",
+        quoteSource: "server",
       },
       cargoRows: [{ name: "Shoes", quantity: 2, weight: 3.5, amount: 42.5 }],
     });
