@@ -29,10 +29,10 @@ export default function AccountRecoveryScreen() {
   const canRequestReset = isValidEmailInput(recoveryEmail);
   const canChangePassword =
     currentPassword.length >= 8 && nextPassword.length >= 8;
-  const sendRecoveryEmail = async () => {
+  const sendRecoveryOtp = async () => {
     if (!canRequestReset) {
       setLocalMessage(
-        "Add a verified email to your profile before using email recovery.",
+        "Add a verified email to your profile before using password recovery.",
       );
       return;
     }
@@ -40,7 +40,9 @@ export default function AccountRecoveryScreen() {
     const sent = await requestPasswordReset(recoveryEmail);
     if (sent) {
       setResetSent(true);
-      setLocalMessage(`Recovery instructions were sent to ${recoveryEmail}.`);
+      setLocalMessage(
+        `A six-digit recovery code was sent to ${recoveryEmail}.`,
+      );
     }
   };
   const updatePassword = async () => {
@@ -101,27 +103,27 @@ export default function AccountRecoveryScreen() {
               </Text>
               <Text style={styles.contactDetail}>
                 {recoveryEmail
-                  ? "Password reset instructions are sent by email."
+                  ? "Password reset codes are sent to this verified email."
                   : "Phone sign-in is available, but password reset needs a verified email."}
               </Text>
             </View>
           </Card>
           <Card style={styles.recoveryCard}>
-            <Text style={styles.cardTitle}>Recover by email</Text>
+            <Text style={styles.cardTitle}>Recover with an OTP</Text>
             <Text style={styles.cardDetail}>
               {resetSent
-                ? "Check your inbox for the reset token, then finish the reset from the sign-in screen."
-                : "Send password reset instructions to your verified email."}
+                ? "Enter the six-digit code on the reset screen. It expires after 10 minutes."
+                : "Send a one-time password code to your verified contact."}
             </Text>
             <SecondaryButton
               label={
                 resetSent
-                  ? "Send recovery email again"
-                  : "Send recovery instructions"
+                  ? "Send another verification code"
+                  : "Send verification code"
               }
               icon="email-outline"
               disabled={!canRequestReset}
-              onPress={sendRecoveryEmail}
+              onPress={sendRecoveryOtp}
             />
             <SecondaryButton
               label="Open reset screen"

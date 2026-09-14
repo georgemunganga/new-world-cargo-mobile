@@ -47,13 +47,15 @@ describe("mobile Laravel auth contract", () => {
   });
 
   it("builds Laravel register payloads from the mobile domain input", () => {
-    expect(portalRegisterPayload({
-      name: "Thelma Sunyanga",
-      email: "THELMA@EXAMPLE.COM",
-      phone: "+260 97 000 0000",
-      city: "Lusaka",
-      password: "JesusisLord#202!",
-    })).toEqual({
+    expect(
+      portalRegisterPayload({
+        name: "Thelma Sunyanga",
+        email: "THELMA@EXAMPLE.COM",
+        phone: "+260 97 000 0000",
+        city: "Lusaka",
+        password: "JesusisLord#202!",
+      }),
+    ).toEqual({
       firstName: "Thelma",
       lastName: "Sunyanga",
       email: "thelma@example.com",
@@ -63,18 +65,30 @@ describe("mobile Laravel auth contract", () => {
   });
 
   it("keeps profile names compatible with Laravel firstName and lastName fields", () => {
-    expect(splitPortalName("IT Department")).toEqual({ firstName: "IT", lastName: "Department" });
-    expect(mapPortalCustomer({ id: 7, firstName: "IT", lastName: null, email: "it@example.com" }).name).toBe("IT");
+    expect(splitPortalName("IT Department")).toEqual({
+      firstName: "IT",
+      lastName: "Department",
+    });
+    expect(
+      mapPortalCustomer({
+        id: 7,
+        firstName: "IT",
+        lastName: null,
+        email: "it@example.com",
+      }).name,
+    ).toBe("IT");
   });
 
-  it("documents the current Laravel password reset token shape", () => {
-    expect(portalPasswordResetPayload({
-      challengeId: "george@example.com",
-      code: "reset-token-from-email",
-      password: "JesusisLord#202!",
-    })).toEqual({
-      email: "george@example.com",
-      token: "reset-token-from-email",
+  it("uses a six-digit OTP for the Laravel password reset contract", () => {
+    expect(
+      portalPasswordResetPayload({
+        challengeId: "george@example.com",
+        code: "482913",
+        password: "JesusisLord#202!",
+      }),
+    ).toEqual({
+      identifier: "george@example.com",
+      code: "482913",
       password: "JesusisLord#202!",
       password_confirmation: "JesusisLord#202!",
     });
