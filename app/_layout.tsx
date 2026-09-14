@@ -13,6 +13,7 @@ import { CustomerPermissionProvider } from "@/lib/use-cases/use-customer-permiss
 import { CustomerBillingAccountProvider } from "@/stores/customer-billing-account";
 import { NotificationPreferenceProvider } from "@/stores/notification-preferences";
 import { shouldLoadBundledPoppins } from "@/lib/startup-font-policy";
+import { analytics } from "@/lib/services/observability/analytics";
 
 const poppinsFonts = { Poppins_500Medium, Poppins_600SemiBold, Poppins_700Bold, Poppins_800ExtraBold };
 
@@ -31,6 +32,7 @@ function AppRoot() {
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
+    analytics.track("app_opened");
     const timer = setTimeout(() => setShowSplash(false), 1200);
     return () => clearTimeout(timer);
   }, []);

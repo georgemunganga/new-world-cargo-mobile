@@ -17,16 +17,18 @@
       "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_APP_ENV": "staging",
-        "EXPO_PUBLIC_API_MODE": "hybrid",
-        "EXPO_PUBLIC_MAPS_PROVIDER": "mock",
-        "EXPO_PUBLIC_PAYMENTS_PROVIDER": "mock"
+        "EXPO_PUBLIC_API_MODE": "laravel",
+        "EXPO_PUBLIC_MAPS_PROVIDER": "native",
+        "EXPO_PUBLIC_PAYMENTS_PROVIDER": "laravel"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_APP_ENV": "production",
-        "EXPO_PUBLIC_API_MODE": "laravel"
+        "EXPO_PUBLIC_API_MODE": "laravel",
+        "EXPO_PUBLIC_MAPS_PROVIDER": "native",
+        "EXPO_PUBLIC_PAYMENTS_PROVIDER": "laravel"
       }
     }
   },

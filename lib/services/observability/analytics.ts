@@ -1,5 +1,6 @@
 import { featureFlags } from "@/lib/config/feature-flags";
 import { redactSensitiveProperties, type RedactableProperties } from "./redaction";
+import { sendTelemetry } from "./telemetry-client";
 
 export type AnalyticsEventName =
   | "app_opened"
@@ -22,6 +23,7 @@ export type AnalyticsProperties = RedactableProperties;
 export const analytics = {
   track(name: AnalyticsEventName, properties: AnalyticsProperties = {}) {
     if (!featureFlags.enableObservability) return;
-    console.info("[analytics]", name, redactSensitiveProperties(properties));
+    const safeProperties = redactSensitiveProperties(properties);
+    sendTelemetry(name, safeProperties);
   },
 };

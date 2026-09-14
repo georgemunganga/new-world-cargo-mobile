@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { PanResponder, StyleSheet, Text, TouchableOpacity, View, type StyleProp, type ViewStyle } from "react-native";
+import { PanResponder, Platform, StyleSheet, Text, TouchableOpacity, View, type StyleProp, type ViewStyle } from "react-native";
 import Svg, { Circle, Path, Polygon, Rect } from "react-native-svg";
 
 import { AppIcon, type AppIconName } from "@/components/ui/app-icon";
+import { NativeMapSurface } from "@/components/map/native-map-surface";
+import { featureFlags } from "@/lib/config/feature-flags";
 import { deliveryMapProfileFor, type DeliveryMapService } from "@/lib/domain/delivery-map";
 import { nwcColors } from "@/lib/nwc-theme";
 import type { Address, Shipment } from "@/types/cargo";
@@ -30,7 +32,7 @@ type CustomerMapProps = {
 const modeCopy: Record<CustomerMapMode, { label: string; accessibility: string }> = {
   "location-picker": { label: "Location picker", accessibility: "Location picker map. Use the zoom controls, drag the map, or pinch to inspect the route." },
   "route-preview": { label: "Route preview", accessibility: "Route preview map. Use the zoom controls, drag the map, or pinch to inspect the route." },
-  "live-local": { label: "Live local route", accessibility: "Live local delivery map with a moving vehicle marker and delivery route." },
+  "live-local": { label: "Live local route", accessibility: "Live local delivery map with the last recorded vehicle position and delivery route." },
   international: { label: "International transit", accessibility: "International shipment map showing origin, destination, and cargo position across regions." },
   completed: { label: "Delivered route", accessibility: "Completed delivery route map showing the confirmed delivery destination." },
 };
@@ -46,7 +48,7 @@ export function CustomerMap({ mode, pickup, destination, shipment, deliveryServi
   const pinchStart = useRef<number | null>(null);
   const zoomStart = useRef(initialZoom);
   const isInternational = mode === "international";
-  const progress = Math.max(0.08, Math.min(0.93, routeProgress ?? shipment?.trackingProgress?.fraction ?? (mode === "completed" ? 1 : profile.defaultProgress)));
+  const progress = Math.max(0, Math.min(1, routeProgress ?? shipment?.trackingProgress?.fraction ?? (mode === "completed" ? 1 : profile.defaultProgress)));
   const copy = { label: profile.label, accessibility: profile.accessibility || modeCopy[mode].accessibility };
   const origin = pickup ?? shipment?.pickup;
   const endpoint = destination ?? shipment?.destination;
@@ -83,6 +85,12 @@ export function CustomerMap({ mode, pickup, destination, shipment, deliveryServi
   const destinationLabel = endpoint?.area || endpoint?.city || profile.destinationFallback;
   const originPosition = markerPositionFor(origin, profile.routeStyle, isInternational ? styles.internationalOrigin : profile.routeStyle === "intercity" ? styles.intercityOrigin : styles.pickupMarker);
   const destinationPosition = markerPositionFor(endpoint, profile.routeStyle, isInternational ? styles.internationalDestination : profile.routeStyle === "intercity" ? styles.intercityDestination : styles.destinationMarker);
+  const nativeOrigin = mapCoordinate(origin, profile.originFallback);
+  const nativeDestination = mapCoordinate(endpoint, profile.destinationFallback);
+
+  if (featureFlags.enableNativeMaps && Platform.OS !== "web" && (nativeOrigin || nativeDestination)) {
+    return <NativeMapSurface origin={nativeOrigin} destination={nativeDestination} progress={progress} completed={mode === "completed"} height={height} fill={fill} style={style as object} onZoomChange={onZoomChange} />;
+  }
 
   return <View accessibilityRole="image" accessibilityLabel={copy.accessibility} style={[styles.wrap, fill ? styles.fill : { height }, style]}>
     <View {...mapGesture.panHandlers} style={[styles.mapCanvas, { transform: [{ translateX: pan.x }, { translateY: pan.y }, { scale: zoom }] }]}>
@@ -98,6 +106,11 @@ export function CustomerMap({ mode, pickup, destination, shipment, deliveryServi
     <View pointerEvents="none" style={styles.zoomBadge}><Text style={styles.zoomBadgeText}>{Math.round(zoom * 100)}%</Text></View>
     <View pointerEvents="none" style={styles.gestureHint}><AppIcon name="gesture-pinch" size={15} color={nwcColors.info} /><Text style={styles.gestureHintText}>{origin || endpoint ? "Auto-zoomed · pinch or drag" : "Pinch or drag map"}</Text></View>
   </View>;
+}
+
+function mapCoordinate(address: Address | undefined, fallback: string) {
+  if (!address || !Number.isFinite(address.latitude) || !Number.isFinite(address.longitude)) return null;
+  return { latitude: address.latitude as number, longitude: address.longitude as number, label: address.label || address.detail || address.city || fallback };
 }
 
 function CityBase({ progress, routeReady }: { progress: number; routeReady: boolean }) {

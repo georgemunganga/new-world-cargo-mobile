@@ -42,6 +42,9 @@ export function toUiShipment(shipment: CustomerShipment): Shipment {
     actionLabel: shipment.actionLabel,
     trackingContact: shipment.trackingContact,
     trackingProgress: shipment.trackingProgress,
+    trackingEvents: shipment.trackingEvents,
+    updatedAt: shipment.updatedAt,
+    revision: shipment.revision,
   };
 }
 

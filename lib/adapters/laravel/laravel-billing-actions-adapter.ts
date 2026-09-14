@@ -9,6 +9,12 @@ type LaravelPaymentIntentResponse = { id?: string; status?: string; clientToken?
 type LaravelPaymentMethodResponse = SavedPaymentMethod;
 type LaravelResolutionResponse = NonNullable<CustomerInvoice["resolution"]>;
 
+export function paymentStateFromProvider(status?: string): "confirmed" | "failed" | "delayed" {
+  if (["succeeded", "confirmed", "completed"].includes(status ?? "")) return "confirmed";
+  if (["requires_action", "processing", "pending"].includes(status ?? "")) return "delayed";
+  return "failed";
+}
+
 function mapWallet(raw: LaravelWalletResponse): WalletSnapshot {
   const balance = raw.availableBalance ? Number(raw.availableBalance.amountMinor ?? 0) / 100 : typeof raw.balance === "number" ? raw.balance : Number(raw.balance ?? 0);
   return { balance: Number.isFinite(balance) ? balance : 0, activity: raw.activity ?? [] };
@@ -68,7 +74,7 @@ export const laravelBillingActionsRepository: BillingActionsRepository = {
       method,
     });
     return {
-      state: response.data.status === "requires_action" ? "delayed" : "confirmed",
+      state: paymentStateFromProvider(response.data.status),
       paymentMethodLabel: input.method === "card" ? "Bank card" : "Mobile money",
     };
   },

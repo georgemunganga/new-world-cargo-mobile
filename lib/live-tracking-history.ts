@@ -9,6 +9,9 @@ export type LiveTrackingHistoryEvent = {
 };
 
 export function getLiveTrackingHistory(shipment: Shipment): LiveTrackingHistoryEvent[] {
+  if (shipment.trackingEvents?.length) {
+    return shipment.trackingEvents.map((event) => ({ id: event.id, label: event.label, detail: event.detail, time: event.displayTime, state: event.state }));
+  }
   const stages = shipment.trackingProgress?.stages ?? ["Booking confirmed", "Collection", "In transit", "Destination arrival"];
   const fraction = shipment.trackingProgress?.fraction ?? 0.25;
   const currentIndex = shipment.status === "pending" ? 0 : fraction < 0.28 ? 1 : fraction < 0.78 ? 2 : 3;
@@ -19,7 +22,7 @@ export function getLiveTrackingHistory(shipment: Shipment): LiveTrackingHistoryE
     `Moving toward ${shipment.destination.city}`,
     `Next handover: ${shipment.destination.area} · ${shipment.destination.city}`,
   ];
-  const times = ["30 Aug · 09:20", "30 Aug · 11:05", "Today · 10:35", shipment.eta];
+  const times = [shipment.dateLabel || "Recorded", "Pending", "Pending", shipment.eta];
 
   return labels.map((label, index) => ({
     id: `${shipment.id}-${index}`,

@@ -72,6 +72,15 @@ export type TrackingProgress = {
   stages: string[];
 };
 
+export type TrackingEvent = {
+  id: string;
+  label: string;
+  detail: string;
+  occurredAt?: string;
+  displayTime: string;
+  state: "complete" | "current" | "upcoming";
+};
+
 export type Shipment = {
   id: string;
   reference: string;
@@ -85,6 +94,9 @@ export type Shipment = {
   actionLabel?: string;
   trackingContact?: TrackingContact;
   trackingProgress?: TrackingProgress;
+  trackingEvents?: TrackingEvent[];
+  updatedAt?: string;
+  revision?: number;
 };
 
 export type LocalDeliveryDraft = {

@@ -24,6 +24,15 @@ export type ShipmentTrackingProgress = {
   stages: string[];
 };
 
+export type ShipmentTrackingEvent = {
+  id: string;
+  label: string;
+  detail: string;
+  occurredAt?: string;
+  displayTime: string;
+  state: "complete" | "current" | "upcoming";
+};
+
 export type CustomerShipment = {
   id: string;
   code: string;
@@ -37,6 +46,9 @@ export type CustomerShipment = {
   actionLabel?: string;
   trackingContact?: ShipmentTrackingContact;
   trackingProgress?: ShipmentTrackingProgress;
+  trackingEvents?: ShipmentTrackingEvent[];
+  updatedAt?: string;
+  revision?: number;
   amountDue?: string;
   branchId?: string;
 };

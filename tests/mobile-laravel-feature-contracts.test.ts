@@ -16,6 +16,9 @@ describe("mobile Laravel feature contracts", () => {
       origin: "China",
       destination: "Lusaka",
       etaLabel: "Sep 20, 2026",
+      progress: 55,
+      updatedAt: "2026-09-14T06:00:00Z",
+      events: [{ id: "stage-1", label: "Picked up", detail: "Lusaka depot", displayTime: "Sep 14, 2026 8:00 AM", complete: true }],
     })).toMatchObject({
       id: "37726",
       code: "EXP-LUN10001",
@@ -25,6 +28,9 @@ describe("mobile Laravel feature contracts", () => {
       origin: { city: "China" },
       destination: { city: "Lusaka" },
       etaLabel: "Sep 20, 2026",
+      trackingProgress: { fraction: 0.55 },
+      trackingEvents: [{ id: "stage-1", label: "Picked up", state: "complete" }],
+      updatedAt: "2026-09-14T06:00:00Z",
     });
   });
 

@@ -14,5 +14,5 @@ export const featureFlags = {
   useLaravelAccountSettings: mobileEnv.apiMode === "laravel",
   enableNativeMaps: mobileEnv.mapsProvider !== "mock",
   enableLivePayments: mobileEnv.paymentsProvider !== "mock",
-  enableObservability: !!mobileEnv.observabilityDsn && mobileEnv.appEnvironment !== "development",
+  enableObservability: !!mobileEnv.observabilityDsn || (!!mobileEnv.apiBaseUrl && mobileEnv.apiMode !== "mock"),
 };

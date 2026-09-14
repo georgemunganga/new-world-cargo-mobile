@@ -28,8 +28,12 @@ describe("mobile release configuration", () => {
 
   it("keeps build profiles separated by API mode", () => {
     expect(eas.build.preview.env.EXPO_PUBLIC_API_MODE).toBe("mock");
-    expect(eas.build.staging.env.EXPO_PUBLIC_API_MODE).toBe("hybrid");
+    expect(eas.build.staging.env.EXPO_PUBLIC_API_MODE).toBe("laravel");
     expect(eas.build.production.env.EXPO_PUBLIC_API_MODE).toBe("laravel");
+    expect(eas.build.staging.env.EXPO_PUBLIC_MAPS_PROVIDER).toBe("native");
+    expect(eas.build.staging.env.EXPO_PUBLIC_PAYMENTS_PROVIDER).toBe("laravel");
+    expect(eas.build.production.env.EXPO_PUBLIC_MAPS_PROVIDER).toBe("native");
+    expect(eas.build.production.env.EXPO_PUBLIC_PAYMENTS_PROVIDER).toBe("laravel");
   });
 
   it("exposes standard build and audit scripts", () => {
