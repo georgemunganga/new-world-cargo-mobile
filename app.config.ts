@@ -2,6 +2,7 @@ import "./scripts/load-env.js";
 import type { ExpoConfig } from "expo/config";
 
 const rawBundleId = process.env.EXPO_PUBLIC_APP_ID ?? "com.newworldcargo.mobile";
+const googleMapsApiKey = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
 const bundleId = rawBundleId
   .replace(/[-_]/g, ".")
   .replace(/[^a-zA-Z0-9.]/g, "")
@@ -36,6 +37,7 @@ const config: ExpoConfig = {
     supportsTablet: true,
     bundleIdentifier: env.iosBundleId,
     buildNumber: env.iosBuildNumber,
+    config: googleMapsApiKey ? { googleMapsApiKey } : undefined,
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
       NSCameraUsageDescription: "Allow New WorldCargo to scan shipment labels and attach cargo evidence.",
@@ -53,6 +55,7 @@ const config: ExpoConfig = {
     predictiveBackGestureEnabled: false,
     package: env.androidPackage,
     versionCode: Number.isFinite(env.androidVersionCode) && env.androidVersionCode > 0 ? env.androidVersionCode : 1,
+    config: googleMapsApiKey ? { googleMaps: { apiKey: googleMapsApiKey } } : undefined,
     permissions: ["POST_NOTIFICATIONS", "CAMERA", "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "READ_CONTACTS"],
     intentFilters: [
       {

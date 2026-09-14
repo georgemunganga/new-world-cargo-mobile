@@ -26,6 +26,12 @@ describe("mobile release configuration", () => {
     expect(config.android?.permissions).toEqual(expect.arrayContaining(["POST_NOTIFICATIONS", "CAMERA", "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]));
   });
 
+  it("passes the configured Google Maps key to both native platforms", () => {
+    if (!process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY) return;
+    expect(config.ios?.config?.googleMapsApiKey).toBe(process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY);
+    expect(config.android?.config?.googleMaps?.apiKey).toBe(process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY);
+  });
+
   it("keeps build profiles separated by API mode", () => {
     expect(eas.build.preview.env.EXPO_PUBLIC_API_MODE).toBe("mock");
     expect(eas.build.staging.env.EXPO_PUBLIC_API_MODE).toBe("laravel");

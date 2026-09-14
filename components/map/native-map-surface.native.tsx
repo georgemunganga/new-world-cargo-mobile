@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import MapView, { Marker, Polyline, type Region } from "react-native-maps";
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE, type Region } from "react-native-maps";
 
 import { AppIcon } from "@/components/ui/app-icon";
 import { nwcColors } from "@/lib/nwc-theme";
@@ -27,7 +27,7 @@ export function NativeMapSurface({ origin, destination, progress, completed, hei
   };
 
   return <View accessibilityRole="image" accessibilityLabel="Interactive shipment route map. Drag or pinch to inspect locations." style={[styles.wrap, fill ? styles.fill : { height }, style]}>
-    <MapView ref={map} style={StyleSheet.absoluteFill} initialRegion={region} showsUserLocation showsMyLocationButton toolbarEnabled={false} onRegionChangeComplete={(_, details) => details?.isGesture && map.current?.getCamera().then((camera) => onZoomChange?.(camera.zoom ?? 0))}>
+    <MapView ref={map} provider={PROVIDER_GOOGLE} style={StyleSheet.absoluteFill} initialRegion={region} showsUserLocation showsMyLocationButton toolbarEnabled={false} onRegionChangeComplete={(_, details) => details?.isGesture && map.current?.getCamera().then((camera) => onZoomChange?.(camera.zoom ?? 0))}>
       {origin ? <Marker coordinate={origin} title={origin.label} pinColor={nwcColors.brandNavy} /> : null}
       {destination ? <Marker coordinate={destination} title={destination.label} pinColor={completed ? nwcColors.success : nwcColors.primary} /> : null}
       {origin && destination ? <Polyline coordinates={[origin, destination]} strokeColor={completed ? nwcColors.success : nwcColors.primary} strokeWidth={5} lineDashPattern={progress < 1 ? [14, 8] : undefined} /> : null}
