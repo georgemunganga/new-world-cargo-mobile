@@ -18,6 +18,7 @@ describe("mobile API errors", () => {
   it("preserves Laravel portal API error codes that carry product meaning", () => {
     expect(apiCodeFromServer("CONTACT_UNVERIFIED")).toBe("CONTACT_UNVERIFIED");
     expect(apiCodeFromServer("CURRENT_PASSWORD_INVALID")).toBe("CURRENT_PASSWORD_INVALID");
+    expect(apiCodeFromServer("PRICING_NOT_CONFIGURED")).toBe("PRICING_NOT_CONFIGURED");
     expect(apiCodeFromServer("SOMETHING_NEW")).toBeNull();
   });
 

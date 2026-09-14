@@ -23,6 +23,7 @@ import { AppIcon } from "@/components/ui/app-icon";
 import { IconButton, PrimaryButton, Screen } from "@/components/ui/nwc-ui";
 import { isRouteReady } from "@/lib/booking-progress";
 import { estimateBookingQuote } from "@/lib/booking-pricing";
+import { errorReporter } from "@/lib/services/observability/error-reporter";
 import {
   getLocalDeliveryRouteSheetState,
   type LocalDeliveryRouteTarget,
@@ -51,6 +52,8 @@ export default function LocalDeliveryRouteScreen() {
   const [destinationPinPosition, setDestinationPinPosition] =
     useState<PickupPinPosition>("initial");
   const [quoteError, setQuoteError] = useState("");
+  const [quoteLoading, setQuoteLoading] = useState(false);
+  const [quoteRequestVersion, setQuoteRequestVersion] = useState(0);
   const routeReady = isRouteReady(localDraft);
   const vehicle = localDraft.vehicle ?? "scooter";
   const quote = localDraft.quote ?? null;
@@ -79,12 +82,15 @@ export default function LocalDeliveryRouteScreen() {
     let active = true;
     if (!routeReady) {
       setQuoteError("");
+      setQuoteLoading(false);
       if (localDraft.quote) updateLocalDraft({ quote: undefined });
       return () => {
         active = false;
       };
     }
     setQuoteError("");
+    setQuoteLoading(true);
+    if (localDraft.quote) updateLocalDraft({ quote: undefined });
     void estimateBookingQuote("local", localDraft)
       .then((nextQuote) => {
         if (active && nextQuote) updateLocalDraft({ quote: nextQuote });
@@ -92,11 +98,18 @@ export default function LocalDeliveryRouteScreen() {
       .catch((error) => {
         if (!active) return;
         updateLocalDraft({ quote: undefined });
-        setQuoteError(
-          error instanceof Error
-            ? error.message
-            : "We could not load a server quote. Check your connection and try again.",
-        );
+        const message = error instanceof Error
+          ? error.message
+          : "We could not load a server quote. Check your connection and try again.";
+        setQuoteError(message);
+        errorReporter.capture(error, {
+          workflow: "local_booking_quote",
+          service: "local",
+          endpoint: "/api/v1/bookings/quote",
+        });
+      })
+      .finally(() => {
+        if (active) setQuoteLoading(false);
       });
     return () => {
       active = false;
@@ -110,6 +123,7 @@ export default function LocalDeliveryRouteScreen() {
     localDraft.destination?.latitude,
     localDraft.destination?.longitude,
     localDraft.destination?.area,
+    quoteRequestVersion,
   ]);
   const updateAddress = (key: "pickup" | "destination", detail: string) => {
     const current = localDraft[key] ?? { city: "Lusaka", area: "" };
@@ -371,12 +385,16 @@ export default function LocalDeliveryRouteScreen() {
                         routeReady
                           ? quote
                             ? "Continue to parcel"
-                            : "Waiting for server quote"
+                            : quoteError
+                              ? "Retry price"
+                              : quoteLoading
+                                ? "Getting price..."
+                                : "Get price"
                           : "Add pickup and destination"
                       }
                       icon="arrow-right"
-                      disabled={!routeReady || !quote}
-                      onPress={continueBooking}
+                      disabled={!routeReady || (quoteLoading && !quote)}
+                      onPress={quote ? continueBooking : () => setQuoteRequestVersion((version) => version + 1)}
                     />
                   </>
                 )}

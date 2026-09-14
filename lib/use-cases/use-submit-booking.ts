@@ -3,6 +3,7 @@ import { customerSafeMessageFor } from "@/lib/api/errors";
 import type { BookingService, BookingSubmissionResult } from "@/lib/domain/booking";
 import { repositories } from "@/lib/repositories";
 import { analytics } from "@/lib/services/observability/analytics";
+import { errorReporter } from "@/lib/services/observability/error-reporter";
 
 export function useSubmitBooking() {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
@@ -19,6 +20,7 @@ export function useSubmitBooking() {
       analytics.track("booking_submitted", { service, reference: nextResult.reference });
       return nextResult;
     } catch (error) {
+      errorReporter.capture(error, { workflow: "booking_submission", service });
       const message = customerSafeMessageFor(error);
       setErrorMessage(message);
       setStatus("error");
