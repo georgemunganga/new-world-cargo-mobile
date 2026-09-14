@@ -1,15 +1,33 @@
 import { useEffect, useState } from "react";
-import { KeyboardAvoidingView, LayoutAnimation, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, UIManager, View, useWindowDimensions } from "react-native";
+import {
+  KeyboardAvoidingView,
+  LayoutAnimation,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  UIManager,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import { router, type Href } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BookingSection, FormField } from "@/components/booking/booking-ui";
 import { RouteEntryCard } from "@/components/booking/route-entry-card";
-import { LocalDeliveryMapBackdrop, type PickupPinPosition } from "@/components/map/local-delivery-map-backdrop";
+import {
+  LocalDeliveryMapBackdrop,
+  type PickupPinPosition,
+} from "@/components/map/local-delivery-map-backdrop";
 import { AppIcon } from "@/components/ui/app-icon";
 import { IconButton, PrimaryButton, Screen } from "@/components/ui/nwc-ui";
 import { isRouteReady } from "@/lib/booking-progress";
 import { estimateBookingQuote } from "@/lib/booking-pricing";
-import { getLocalDeliveryRouteSheetState, type LocalDeliveryRouteTarget } from "@/lib/local-delivery-route-sheet";
+import {
+  getLocalDeliveryRouteSheetState,
+  type LocalDeliveryRouteTarget,
+} from "@/lib/local-delivery-route-sheet";
+import { useBookingDrawerSnap } from "@/lib/use-cases/use-booking-drawer-snap";
 import { savedPlaceToAddress } from "@/lib/account-directory-booking";
 import { nwcColors } from "@/lib/nwc-theme";
 import { routeSuggestionToAddress } from "@/lib/route-autocomplete";
@@ -22,20 +40,41 @@ export default function LocalDeliveryRouteScreen() {
   const insets = useSafeAreaInsets();
   const { localDraft, updateLocalDraft, setBookingStep } = useBookingDraft();
   const { savedPlaces } = useAddressBook();
-  const [activeTarget, setActiveTarget] = useState<LocalDeliveryRouteTarget | null>(null);
+  const [activeTarget, setActiveTarget] =
+    useState<LocalDeliveryRouteTarget | null>(null);
   const [showManualEntry, setShowManualEntry] = useState(false);
-  const [adjustingTarget, setAdjustingTarget] = useState<"pickup" | "destination" | null>(null);
-  const [pickupPinPosition, setPickupPinPosition] = useState<PickupPinPosition>("initial");
-  const [destinationPinPosition, setDestinationPinPosition] = useState<PickupPinPosition>("initial");
+  const [adjustingTarget, setAdjustingTarget] = useState<
+    "pickup" | "destination" | null
+  >(null);
+  const [pickupPinPosition, setPickupPinPosition] =
+    useState<PickupPinPosition>("initial");
+  const [destinationPinPosition, setDestinationPinPosition] =
+    useState<PickupPinPosition>("initial");
   const [quoteError, setQuoteError] = useState("");
   const routeReady = isRouteReady(localDraft);
   const vehicle = localDraft.vehicle ?? "scooter";
   const quote = localDraft.quote ?? null;
-  const sheetState = getLocalDeliveryRouteSheetState(activeTarget, height - insets.top, Boolean(adjustingTarget));
+  const sheetState = getLocalDeliveryRouteSheetState(
+    activeTarget,
+    height - insets.top,
+    Boolean(adjustingTarget),
+  );
+  const {
+    expanded,
+    setExpanded,
+    sheetHeight,
+    drawerTransform,
+    panHandlers,
+    toggleExpanded,
+  } = useBookingDrawerSnap(height, insets.top, sheetState.height);
   useEffect(() => {
-    if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) UIManager.setLayoutAnimationEnabledExperimental(true);
+    if (
+      Platform.OS === "android" &&
+      UIManager.setLayoutAnimationEnabledExperimental
+    )
+      UIManager.setLayoutAnimationEnabledExperimental(true);
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-  }, [sheetState.height]);
+  }, [sheetHeight]);
   useEffect(() => {
     let active = true;
     if (!routeReady) {
@@ -53,17 +92,33 @@ export default function LocalDeliveryRouteScreen() {
       .catch((error) => {
         if (!active) return;
         updateLocalDraft({ quote: undefined });
-        setQuoteError(error instanceof Error ? error.message : "We could not load a server quote. Check your connection and try again.");
+        setQuoteError(
+          error instanceof Error
+            ? error.message
+            : "We could not load a server quote. Check your connection and try again.",
+        );
       });
     return () => {
       active = false;
     };
-  }, [routeReady, vehicle, localDraft.pickup?.latitude, localDraft.pickup?.longitude, localDraft.pickup?.area, localDraft.destination?.latitude, localDraft.destination?.longitude, localDraft.destination?.area]);
+  }, [
+    routeReady,
+    vehicle,
+    localDraft.pickup?.latitude,
+    localDraft.pickup?.longitude,
+    localDraft.pickup?.area,
+    localDraft.destination?.latitude,
+    localDraft.destination?.longitude,
+    localDraft.destination?.area,
+  ]);
   const updateAddress = (key: "pickup" | "destination", detail: string) => {
     const current = localDraft[key] ?? { city: "Lusaka", area: "" };
     updateLocalDraft({ [key]: { ...current, detail } });
   };
-  const applySaved = (place: (typeof savedPlaces)[number], key: "pickup" | "destination") => updateLocalDraft({ [key]: savedPlaceToAddress(place) });
+  const applySaved = (
+    place: (typeof savedPlaces)[number],
+    key: "pickup" | "destination",
+  ) => updateLocalDraft({ [key]: savedPlaceToAddress(place) });
   const continueBooking = () => {
     setBookingStep("parcel");
     router.push("/local-delivery/parcel" as Href);
@@ -72,37 +127,98 @@ export default function LocalDeliveryRouteScreen() {
     setActiveTarget(null);
     setShowManualEntry(false);
     setAdjustingTarget(target);
+    setExpanded(true);
   };
   const selectPinPosition = (position: PickupPinPosition) => {
     if (adjustingTarget === "pickup") setPickupPinPosition(position);
     else setDestinationPinPosition(position);
   };
   const isEditing = Boolean(activeTarget);
-  const sheetTitle = isEditing ? "Where should we look?" : adjustingTarget ? `Adjust ${adjustingTarget} pin` : "Set your route";
-  const sheetDetail = quoteError || (isEditing ? "Suggestions appear directly beneath the field you are typing in." : adjustingTarget ? "Use the controls to nudge the map pin, then confirm its position." : "Choose pickup and destination. We will handle the rest.");
+  const sheetTitle = isEditing
+    ? "Where should we look?"
+    : adjustingTarget
+      ? `Adjust ${adjustingTarget} pin`
+      : "Set your route";
+  const sheetDetail =
+    quoteError ||
+    (isEditing
+      ? "Suggestions appear directly beneath the field you are typing in."
+      : adjustingTarget
+        ? "Use the controls to nudge the map pin, then confirm its position."
+        : "Choose pickup and destination. We will handle the rest.");
 
   return (
     <Screen>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.page}>
-        <LocalDeliveryMapBackdrop pickup={localDraft.pickup} destination={localDraft.destination} pickupPinPosition={pickupPinPosition} destinationPinPosition={destinationPinPosition} adjustingTarget={adjustingTarget} routeReady={routeReady} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={styles.page}
+      >
+        <LocalDeliveryMapBackdrop
+          pickup={localDraft.pickup}
+          destination={localDraft.destination}
+          pickupPinPosition={pickupPinPosition}
+          destinationPinPosition={destinationPinPosition}
+          adjustingTarget={adjustingTarget}
+          routeReady={routeReady}
+        />
         <View style={styles.topBar}>
-          <IconButton label="Go back" icon="arrow-left" onPress={() => router.back()} />
+          <IconButton
+            label="Go back"
+            icon="arrow-left"
+            onPress={() => router.back()}
+          />
           <View style={styles.topPill}>
             <View style={styles.topPillDot} />
             <Text style={styles.topPillText}>Local Delivery</Text>
           </View>
-          <IconButton label="Open notifications" icon="bell-outline" onPress={() => router.push("/notifications" as Href)} />
+          <IconButton
+            label="Open notifications"
+            icon="bell-outline"
+            onPress={() => router.push("/notifications" as Href)}
+          />
         </View>
-        <View style={[styles.sheet, { height: sheetState.height }]}>
-          <View style={styles.grabber} />
-          <ScrollView keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={[styles.sheetContent, { paddingBottom: Math.max(insets.bottom, 18) + 10 }]}>
+        <View style={[styles.sheet, { height: sheetHeight }, drawerTransform]}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={`${expanded ? "Collapse" : "Expand"} local delivery drawer`}
+            accessibilityHint="You can also drag this handle"
+            onPress={toggleExpanded}
+            {...panHandlers}
+            style={styles.handleArea}
+          >
+            <View style={styles.grabber} />
+          </TouchableOpacity>
+          <ScrollView
+            keyboardDismissMode="on-drag"
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={[
+              styles.sheetContent,
+              { paddingBottom: Math.max(insets.bottom, 18) + 10 },
+            ]}
+          >
             <View>
-              <Text style={styles.overline}>{sheetState.mode === "editing" ? `Search ${activeTarget === "from" ? "pickup" : "destination"}` : sheetState.mode === "adjusting-pin" ? `${adjustingTarget === "pickup" ? "Pickup" : "Destination"} location` : "Local Delivery"}</Text>
+              <Text style={styles.overline}>
+                {sheetState.mode === "editing"
+                  ? `Search ${activeTarget === "from" ? "pickup" : "destination"}`
+                  : sheetState.mode === "adjusting-pin"
+                    ? `${adjustingTarget === "pickup" ? "Pickup" : "Destination"} location`
+                    : "Local Delivery"}
+              </Text>
               <Text style={styles.title}>{sheetTitle}</Text>
               <Text style={styles.detail}>{sheetDetail}</Text>
             </View>
             {adjustingTarget ? (
-              <PinAdjustmentPanel target={adjustingTarget} position={adjustingTarget === "pickup" ? pickupPinPosition : destinationPinPosition} onNudge={selectPinPosition} onConfirm={() => setAdjustingTarget(null)} />
+              <PinAdjustmentPanel
+                target={adjustingTarget}
+                position={
+                  adjustingTarget === "pickup"
+                    ? pickupPinPosition
+                    : destinationPinPosition
+                }
+                onNudge={selectPinPosition}
+                onConfirm={() => setAdjustingTarget(null)}
+              />
             ) : (
               <>
                 <RouteEntryCard
@@ -117,11 +233,13 @@ export default function LocalDeliveryRouteScreen() {
                   }}
                   onSuggestionSelect={(target, suggestion) =>
                     updateLocalDraft({
-                      [target === "from" ? "pickup" : "destination"]: routeSuggestionToAddress(suggestion),
+                      [target === "from" ? "pickup" : "destination"]:
+                        routeSuggestionToAddress(suggestion),
                     })
                   }
                   onActiveTargetChange={(target) => {
                     setActiveTarget(target);
+                    if (target) setExpanded(true);
                     if (target) setAdjustingTarget(null);
                   }}
                   onManualEntryPress={() => {
@@ -131,16 +249,56 @@ export default function LocalDeliveryRouteScreen() {
                 />
                 {isEditing ? null : (
                   <>
-                    <RoutePreview quote={quote} vehicle={vehicle} onSelectVehicle={(nextVehicle) => updateLocalDraft({ vehicle: nextVehicle })} onAdjustPickup={() => openPinAdjustment("pickup")} onAdjustDestination={() => openPinAdjustment("destination")} />
-                    <TouchableOpacity accessibilityRole="button" accessibilityState={{ expanded: showManualEntry }} accessibilityLabel={showManualEntry ? "Hide manual address entry" : "Enter an address manually"} onPress={() => setShowManualEntry((current) => !current)} style={styles.manualToggle}>
-                      <AppIcon name="pencil-outline" size={18} color={nwcColors.info} />
-                      <Text style={styles.manualToggleText}>{showManualEntry ? "Hide manual address entry" : "Enter address manually"}</Text>
-                      <AppIcon name={showManualEntry ? "chevron-up" : "chevron-down"} size={19} color={nwcColors.info} />
+                    <RoutePreview
+                      quote={quote}
+                      vehicle={vehicle}
+                      onSelectVehicle={(nextVehicle) =>
+                        updateLocalDraft({ vehicle: nextVehicle })
+                      }
+                      onAdjustPickup={() => openPinAdjustment("pickup")}
+                      onAdjustDestination={() =>
+                        openPinAdjustment("destination")
+                      }
+                    />
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      accessibilityState={{ expanded: showManualEntry }}
+                      accessibilityLabel={
+                        showManualEntry
+                          ? "Hide manual address entry"
+                          : "Enter an address manually"
+                      }
+                      onPress={() => setShowManualEntry((current) => !current)}
+                      style={styles.manualToggle}
+                    >
+                      <AppIcon
+                        name="pencil-outline"
+                        size={18}
+                        color={nwcColors.info}
+                      />
+                      <Text style={styles.manualToggleText}>
+                        {showManualEntry
+                          ? "Hide manual address entry"
+                          : "Enter address manually"}
+                      </Text>
+                      <AppIcon
+                        name={showManualEntry ? "chevron-up" : "chevron-down"}
+                        size={19}
+                        color={nwcColors.info}
+                      />
                     </TouchableOpacity>
                     {showManualEntry ? (
                       <View style={styles.manualArea}>
                         <BookingSection label="Pickup details">
-                          <FormField label="From where?" icon="circle-outline" placeholder="Building, street, area, or landmark" value={localDraft.pickup?.detail ?? ""} onChangeText={(detail) => updateAddress("pickup", detail)} />
+                          <FormField
+                            label="From where?"
+                            icon="circle-outline"
+                            placeholder="Building, street, area, or landmark"
+                            value={localDraft.pickup?.detail ?? ""}
+                            onChangeText={(detail) =>
+                              updateAddress("pickup", detail)
+                            }
+                          />
                           <FormField
                             label="Pickup area"
                             icon="map-marker-outline"
@@ -158,7 +316,15 @@ export default function LocalDeliveryRouteScreen() {
                           />
                         </BookingSection>
                         <BookingSection label="Delivery details">
-                          <FormField label="To where?" icon="map-marker" placeholder="Building, street, area, or landmark" value={localDraft.destination?.detail ?? ""} onChangeText={(detail) => updateAddress("destination", detail)} />
+                          <FormField
+                            label="To where?"
+                            icon="map-marker"
+                            placeholder="Building, street, area, or landmark"
+                            value={localDraft.destination?.detail ?? ""}
+                            onChangeText={(detail) =>
+                              updateAddress("destination", detail)
+                            }
+                          />
                           <FormField
                             label="Delivery area"
                             icon="map-marker-outline"
@@ -181,13 +347,37 @@ export default function LocalDeliveryRouteScreen() {
                       <Text style={styles.savedTitle}>Saved places</Text>
                       <View style={styles.savedChips}>
                         {savedPlaces.slice(0, 3).map((place) => (
-                          <TouchableOpacity key={place.id} accessibilityRole="button" accessibilityLabel={`Use ${place.label} as ${localDraft.pickup ? "destination" : "pickup"}`} onPress={() => applySaved(place, localDraft.pickup ? "destination" : "pickup")} style={styles.savedChip}>
-                            <Text style={styles.savedChipText}>{place.label}</Text>
+                          <TouchableOpacity
+                            key={place.id}
+                            accessibilityRole="button"
+                            accessibilityLabel={`Use ${place.label} as ${localDraft.pickup ? "destination" : "pickup"}`}
+                            onPress={() =>
+                              applySaved(
+                                place,
+                                localDraft.pickup ? "destination" : "pickup",
+                              )
+                            }
+                            style={styles.savedChip}
+                          >
+                            <Text style={styles.savedChipText}>
+                              {place.label}
+                            </Text>
                           </TouchableOpacity>
                         ))}
                       </View>
                     </View>
-                    <PrimaryButton label={routeReady ? (quote ? "Continue to parcel" : "Waiting for server quote") : "Add pickup and destination"} icon="arrow-right" disabled={!routeReady || !quote} onPress={continueBooking} />
+                    <PrimaryButton
+                      label={
+                        routeReady
+                          ? quote
+                            ? "Continue to parcel"
+                            : "Waiting for server quote"
+                          : "Add pickup and destination"
+                      }
+                      icon="arrow-right"
+                      disabled={!routeReady || !quote}
+                      onPress={continueBooking}
+                    />
                   </>
                 )}
               </>
@@ -199,10 +389,28 @@ export default function LocalDeliveryRouteScreen() {
   );
 }
 
-function RoutePreview({ quote, vehicle, onSelectVehicle, onAdjustPickup, onAdjustDestination }: { quote: BookingQuote | null; vehicle: LocalDeliveryVehicle; onSelectVehicle: (vehicle: LocalDeliveryVehicle) => void; onAdjustPickup: () => void; onAdjustDestination: () => void }) {
+function RoutePreview({
+  quote,
+  vehicle,
+  onSelectVehicle,
+  onAdjustPickup,
+  onAdjustDestination,
+}: {
+  quote: BookingQuote | null;
+  vehicle: LocalDeliveryVehicle;
+  onSelectVehicle: (vehicle: LocalDeliveryVehicle) => void;
+  onAdjustPickup: () => void;
+  onAdjustDestination: () => void;
+}) {
   if (!quote) return null;
-  const distance = quote.distanceKm ? `${quote.distanceKm} km` : "Distance pending";
-  const eta = quote.estimatedDurationMinutes ? `${quote.estimatedDurationMinutes} min` : quote.source === "server" ? "Server quote" : "Dev fallback";
+  const distance = quote.distanceKm
+    ? `${quote.distanceKm} km`
+    : "Distance pending";
+  const eta = quote.estimatedDurationMinutes
+    ? `${quote.estimatedDurationMinutes} min`
+    : quote.source === "server"
+      ? "Server quote"
+      : "Dev fallback";
   return (
     <View style={styles.routePreview}>
       <View style={styles.routePreviewTop}>
@@ -218,25 +426,75 @@ function RoutePreview({ quote, vehicle, onSelectVehicle, onAdjustPickup, onAdjus
         <Text style={styles.quotePrice}>{quote.formattedTotal}</Text>
       </View>
       <View style={styles.vehicleChoices}>
-        {(["scooter", "small_van", "cargo_van"] as LocalDeliveryVehicle[]).map((choice) => (
-          <TouchableOpacity key={choice} accessibilityRole="button" accessibilityState={{ selected: vehicle === choice }} accessibilityLabel={`Choose ${vehicleLabels[choice]}`} onPress={() => onSelectVehicle(choice)} style={[styles.vehicleChoice, vehicle === choice && styles.vehicleChoiceActive]}>
-            <AppIcon name={choice === "scooter" ? "bike-fast" : choice === "small_van" ? "van-utility" : "truck-outline"} size={17} color={vehicle === choice ? nwcColors.primaryInk : nwcColors.info} />
-            <Text style={[styles.vehicleName, vehicle === choice && styles.vehicleNameActive]}>{vehicleLabels[choice]}</Text>
-          </TouchableOpacity>
-        ))}
+        {(["scooter", "small_van", "cargo_van"] as LocalDeliveryVehicle[]).map(
+          (choice) => (
+            <TouchableOpacity
+              key={choice}
+              accessibilityRole="button"
+              accessibilityState={{ selected: vehicle === choice }}
+              accessibilityLabel={`Choose ${vehicleLabels[choice]}`}
+              onPress={() => onSelectVehicle(choice)}
+              style={[
+                styles.vehicleChoice,
+                vehicle === choice && styles.vehicleChoiceActive,
+              ]}
+            >
+              <AppIcon
+                name={
+                  choice === "scooter"
+                    ? "bike-fast"
+                    : choice === "small_van"
+                      ? "van-utility"
+                      : "truck-outline"
+                }
+                size={17}
+                color={
+                  vehicle === choice ? nwcColors.primaryInk : nwcColors.info
+                }
+              />
+              <Text
+                style={[
+                  styles.vehicleName,
+                  vehicle === choice && styles.vehicleNameActive,
+                ]}
+              >
+                {vehicleLabels[choice]}
+              </Text>
+            </TouchableOpacity>
+          ),
+        )}
       </View>
       <Text style={styles.capacityText}>
-        {vehicleCapacity[vehicle]} · {quote.source === "server" ? "Laravel price" : "Development fallback"}
+        {vehicleCapacity[vehicle]} ·{" "}
+        {quote.source === "server" ? "Laravel price" : "Development fallback"}
       </Text>
       <View style={styles.routePreviewFooter}>
-        <Text style={styles.quoteArrival}>{quote.expiresAt ? `Quote expires ${quote.expiresAt}` : "Final price is confirmed by New WorldCargo before payment."}</Text>
+        <Text style={styles.quoteArrival}>
+          {quote.expiresAt
+            ? `Quote expires ${quote.expiresAt}`
+            : "Final price is confirmed by New WorldCargo before payment."}
+        </Text>
         <View style={styles.pinLinks}>
-          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Adjust pickup pin" onPress={onAdjustPickup} style={styles.adjustLink}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Adjust pickup pin"
+            onPress={onAdjustPickup}
+            style={styles.adjustLink}
+          >
             <AppIcon name="crosshairs-gps" size={16} color={nwcColors.info} />
             <Text style={styles.adjustLinkText}>Pickup</Text>
           </TouchableOpacity>
-          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Adjust destination pin" onPress={onAdjustDestination} style={styles.adjustLink}>
-            <AppIcon name="map-marker-radius-outline" size={16} color={nwcColors.info} />
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Adjust destination pin"
+            onPress={onAdjustDestination}
+            style={styles.adjustLink}
+          >
+            <AppIcon
+              name="map-marker-radius-outline"
+              size={16}
+              color={nwcColors.info}
+            />
             <Text style={styles.adjustLinkText}>Destination</Text>
           </TouchableOpacity>
         </View>
@@ -245,34 +503,98 @@ function RoutePreview({ quote, vehicle, onSelectVehicle, onAdjustPickup, onAdjus
   );
 }
 
-function PinAdjustmentPanel({ target, position, onNudge, onConfirm }: { target: "pickup" | "destination"; position: PickupPinPosition; onNudge: (position: PickupPinPosition) => void; onConfirm: () => void }) {
+function PinAdjustmentPanel({
+  target,
+  position,
+  onNudge,
+  onConfirm,
+}: {
+  target: "pickup" | "destination";
+  position: PickupPinPosition;
+  onNudge: (position: PickupPinPosition) => void;
+  onConfirm: () => void;
+}) {
   const targetLabel = target === "pickup" ? "pickup" : "destination";
   return (
     <View style={styles.pinPanel}>
       <View style={styles.pinHint}>
-        <AppIcon name="map-marker-radius-outline" size={19} color={nwcColors.info} />
-        <Text style={styles.pinHintText}>Choose a nearby {targetLabel} point.</Text>
+        <AppIcon
+          name="map-marker-radius-outline"
+          size={19}
+          color={nwcColors.info}
+        />
+        <Text style={styles.pinHintText}>
+          Choose a nearby {targetLabel} point.
+        </Text>
       </View>
       <View style={styles.nudgeGrid}>
-        <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Move ${targetLabel} pin north`} onPress={() => onNudge("north")} style={[styles.nudgeButton, position === "north" && styles.nudgeButtonActive]}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={`Move ${targetLabel} pin north`}
+          onPress={() => onNudge("north")}
+          style={[
+            styles.nudgeButton,
+            position === "north" && styles.nudgeButtonActive,
+          ]}
+        >
           <AppIcon name="arrow-up" size={21} color={nwcColors.brandNavy} />
         </TouchableOpacity>
         <View style={styles.nudgeMiddle}>
-          <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Move ${targetLabel} pin west`} onPress={() => onNudge("west")} style={[styles.nudgeButton, position === "west" && styles.nudgeButtonActive]}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={`Move ${targetLabel} pin west`}
+            onPress={() => onNudge("west")}
+            style={[
+              styles.nudgeButton,
+              position === "west" && styles.nudgeButtonActive,
+            ]}
+          >
             <AppIcon name="arrow-left" size={21} color={nwcColors.brandNavy} />
           </TouchableOpacity>
-          <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Reset ${targetLabel} pin`} onPress={() => onNudge("initial")} style={[styles.nudgeButton, position === "initial" && styles.nudgeButtonActive]}>
-            <AppIcon name="crosshairs-gps" size={20} color={nwcColors.brandNavy} />
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={`Reset ${targetLabel} pin`}
+            onPress={() => onNudge("initial")}
+            style={[
+              styles.nudgeButton,
+              position === "initial" && styles.nudgeButtonActive,
+            ]}
+          >
+            <AppIcon
+              name="crosshairs-gps"
+              size={20}
+              color={nwcColors.brandNavy}
+            />
           </TouchableOpacity>
-          <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Move ${targetLabel} pin east`} onPress={() => onNudge("east")} style={[styles.nudgeButton, position === "east" && styles.nudgeButtonActive]}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={`Move ${targetLabel} pin east`}
+            onPress={() => onNudge("east")}
+            style={[
+              styles.nudgeButton,
+              position === "east" && styles.nudgeButtonActive,
+            ]}
+          >
             <AppIcon name="arrow-right" size={21} color={nwcColors.brandNavy} />
           </TouchableOpacity>
         </View>
-        <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Move ${targetLabel} pin south`} onPress={() => onNudge("south")} style={[styles.nudgeButton, position === "south" && styles.nudgeButtonActive]}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={`Move ${targetLabel} pin south`}
+          onPress={() => onNudge("south")}
+          style={[
+            styles.nudgeButton,
+            position === "south" && styles.nudgeButtonActive,
+          ]}
+        >
           <AppIcon name="arrow-down" size={21} color={nwcColors.brandNavy} />
         </TouchableOpacity>
       </View>
-      <PrimaryButton label={`Confirm ${targetLabel} pin`} icon="check" onPress={onConfirm} />
+      <PrimaryButton
+        label={`Confirm ${targetLabel} pin`}
+        icon="check"
+        onPress={onConfirm}
+      />
     </View>
   );
 }
@@ -326,14 +648,17 @@ const styles = StyleSheet.create({
     shadowRadius: 18,
     elevation: 13,
   },
+  handleArea: {
+    minHeight: 28,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   grabber: {
     alignSelf: "center",
     width: 43,
     height: 5,
     borderRadius: 3,
     backgroundColor: "#C5D1D6",
-    marginTop: 10,
-    marginBottom: 7,
   },
   sheetContent: { flexGrow: 1, paddingHorizontal: 20, gap: 14 },
   overline: {
