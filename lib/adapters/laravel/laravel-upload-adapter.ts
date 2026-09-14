@@ -36,16 +36,17 @@ async function uploadFile(file: UploadFile, purpose = "shipment-evidence") {
       sizeBytes: file.size ?? blob.size,
       purpose,
     });
-    const upload = await fetch(absoluteUploadUrl(intent.data.uploadUrl), {
-      method: "PUT",
-      headers: {
-        "Content-Type": file.type,
-        ...(intent.data.headers ?? {}),
-      },
-      credentials: intent.data.requiresPortalAuth ? "include" : "same-origin",
-      body: blob,
-    });
-    if (!upload.ok) throw new Error("File upload failed. Please try again.");
+    const uploadHeaders = { "Content-Type": file.type, ...(intent.data.headers ?? {}) };
+    if (intent.data.requiresPortalAuth !== false) {
+      await apiClient.put<unknown>(absoluteUploadUrl(intent.data.uploadUrl), blob, { headers: uploadHeaders });
+    } else {
+      const upload = await fetch(absoluteUploadUrl(intent.data.uploadUrl), {
+        method: "PUT",
+        headers: uploadHeaders,
+        body: blob,
+      });
+      if (!upload.ok) throw new Error("File upload failed. Please try again.");
+    }
 
     const completed = await apiClient.post<{ data: PortalFileResponse }>(`/api/v1/files/${encodeURIComponent(intent.data.fileId)}/complete`);
     return {

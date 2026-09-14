@@ -20,10 +20,20 @@ describe("mobile Laravel auth contract", () => {
         provider: "password",
         verified: true,
       },
+      meta: {
+        mobileSession: {
+          token: "mobile-token",
+          csrfToken: "mobile-csrf",
+          expiresAt: "2026-10-14T00:00:00Z",
+        },
+      },
       requestId: "request-1",
     });
 
     expect(session).toMatchObject({
+      token: "mobile-token",
+      csrfToken: "mobile-csrf",
+      expiresAt: "2026-10-14T00:00:00Z",
       customer: {
         id: "1",
         name: "George Munganga",

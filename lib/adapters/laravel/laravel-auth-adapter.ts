@@ -5,13 +5,18 @@ import type { AuthRepository } from "@/lib/repositories/types";
 import { mapPortalSession, portalPasswordResetPayload, portalRegisterPayload } from "./portal-auth-contract";
 import type { PortalAuthUser, PortalEnvelope } from "./portal-auth-contract";
 
-function otpChallengeFromPortalUser(user: PortalAuthUser, purpose: OtpChallenge["purpose"]): OtpChallenge {
+function otpChallengeFromPortalUser(response: PortalEnvelope<PortalAuthUser>, purpose: OtpChallenge["purpose"]): OtpChallenge {
+  const user = response.data;
+  const mobileSession = response.meta?.mobileSession;
   return {
     id: String(user.id),
     destination: user.phone || user.email || "your account",
     channel: user.phone ? "phone" : "email",
     purpose,
     resendAfterSeconds: 60,
+    ...(mobileSession?.token ? { sessionToken: mobileSession.token } : {}),
+    ...(mobileSession?.csrfToken ? { csrfToken: mobileSession.csrfToken } : {}),
+    ...(mobileSession?.expiresAt ? { sessionExpiresAt: mobileSession.expiresAt } : {}),
   };
 }
 
@@ -26,11 +31,11 @@ export const laravelAuthRepository: AuthRepository = {
   },
   async register(input) {
     const response = await apiClient.post<PortalEnvelope<PortalAuthUser>>("/api/v1/auth/register", portalRegisterPayload(input), { auth: false });
-    return otpChallengeFromPortalUser(response.data, "register");
+    return otpChallengeFromPortalUser(response, "register");
   },
   async verifyOtp(input) {
-    await apiClient.post<PortalEnvelope<null>>("/api/v1/auth/verify", { code: input.code }, { auth: false });
-    const session = await apiClient.get<PortalEnvelope<PortalAuthUser>>("/api/v1/session", { auth: false });
+    await apiClient.post<PortalEnvelope<null>>("/api/v1/auth/verify", { code: input.code });
+    const session = await apiClient.get<PortalEnvelope<PortalAuthUser>>("/api/v1/session");
     return mapPortalSession(session);
   },
   async requestPasswordReset(input) {
@@ -53,7 +58,7 @@ export const laravelAuthRepository: AuthRepository = {
     });
   },
   async resendOtp(challengeId) {
-    await apiClient.post<PortalEnvelope<null>>("/api/v1/auth/verify/resend", {}, { auth: false });
+    await apiClient.post<PortalEnvelope<null>>("/api/v1/auth/verify/resend", {});
     return {
       id: challengeId,
       destination: "your account",
@@ -64,7 +69,7 @@ export const laravelAuthRepository: AuthRepository = {
   },
   async restoreSession() {
     try {
-      const response = await apiClient.get<PortalEnvelope<PortalAuthUser>>("/api/v1/session", { auth: false });
+      const response = await apiClient.get<PortalEnvelope<PortalAuthUser>>("/api/v1/session");
       return mapPortalSession(response);
     } catch (error) {
       if (error instanceof MobileApiError && error.code === "UNAUTHENTICATED") return null;

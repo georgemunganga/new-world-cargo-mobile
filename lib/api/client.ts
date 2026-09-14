@@ -1,5 +1,6 @@
 import { mobileEnv } from "@/lib/config/env";
-import { getSessionToken } from "@/lib/_core/auth";
+import { getSessionCsrfToken, getSessionToken } from "@/lib/_core/auth";
+import { Platform } from "react-native";
 import { MobileApiError, apiCodeFromServer, apiCodeFromStatus, type FieldErrors } from "./errors";
 import { notifySessionExpired } from "./session-events";
 
@@ -7,6 +8,8 @@ export type ApiClientOptions = {
   baseUrl?: string;
   timeoutMs?: number;
   getAuthToken?: () => Promise<string | null>;
+  getCsrfToken?: () => Promise<string | null>;
+  mobileClient?: boolean;
 };
 
 export type ApiRequestOptions = RequestInit & {
@@ -19,6 +22,7 @@ const CSRF_COOKIE_NAME = "nwc_csrf";
 const CSRF_HEADER_NAME = "X-CSRF-Token";
 
 function joinUrl(baseUrl: string, endpoint: string) {
+  if (/^https?:\/\//i.test(endpoint)) return endpoint;
   if (!baseUrl) return endpoint;
   const cleanBase = baseUrl.replace(/\/$/, "");
   const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
@@ -36,6 +40,17 @@ function readCookie(name: string) {
 function isUnsafeMethod(method?: string) {
   const value = (method ?? "GET").toUpperCase();
   return value !== "GET" && value !== "HEAD" && value !== "OPTIONS";
+}
+
+function isRawRequestBody(body: unknown): body is BodyInit {
+  return (typeof FormData !== "undefined" && body instanceof FormData)
+    || (typeof Blob !== "undefined" && body instanceof Blob)
+    || (typeof ArrayBuffer !== "undefined" && body instanceof ArrayBuffer)
+    || typeof body === "string";
+}
+
+function serializeRequestBody(body: unknown): BodyInit {
+  return isRawRequestBody(body) ? body : JSON.stringify(body ?? {});
 }
 
 async function parseErrorResponse(response: Response) {
@@ -67,13 +82,16 @@ export function createApiClient(options: ApiClientOptions = {}) {
   const baseUrl = options.baseUrl ?? mobileEnv.apiBaseUrl;
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const getAuthTokenValue = options.getAuthToken ?? getSessionToken;
+  const getCsrfTokenValue = options.getCsrfToken ?? getSessionCsrfToken;
+  const mobileClient = options.mobileClient ?? Platform.OS !== "web";
 
   async function request<T>(endpoint: string, requestOptions: ApiRequestOptions = {}): Promise<T> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), requestOptions.timeoutMs ?? timeoutMs);
     const headers: Record<string, string> = {
       Accept: "application/json",
-      ...(!(requestOptions.body instanceof FormData) ? { "Content-Type": "application/json" } : {}),
+      ...(mobileClient ? { "X-NWC-Mobile-Client": "1" } : {}),
+      ...(!isRawRequestBody(requestOptions.body) ? { "Content-Type": "application/json" } : {}),
       ...((requestOptions.headers as Record<string, string>) || {}),
     };
 
@@ -83,7 +101,7 @@ export function createApiClient(options: ApiClientOptions = {}) {
     }
 
     if (isUnsafeMethod(requestOptions.method) && !headers[CSRF_HEADER_NAME]) {
-      const csrf = readCookie(CSRF_COOKIE_NAME);
+      const csrf = mobileClient ? await getCsrfTokenValue() : readCookie(CSRF_COOKIE_NAME);
       if (csrf) headers[CSRF_HEADER_NAME] = csrf;
     }
 
@@ -124,9 +142,9 @@ export function createApiClient(options: ApiClientOptions = {}) {
 
   return {
     get: <T>(endpoint: string, options?: ApiRequestOptions) => request<T>(endpoint, { ...options, method: "GET" }),
-    post: <T>(endpoint: string, body?: unknown, options?: ApiRequestOptions) => request<T>(endpoint, { ...options, method: "POST", body: body instanceof FormData ? body : JSON.stringify(body ?? {}) }),
-    put: <T>(endpoint: string, body?: unknown, options?: ApiRequestOptions) => request<T>(endpoint, { ...options, method: "PUT", body: body instanceof FormData ? body : JSON.stringify(body ?? {}) }),
-    patch: <T>(endpoint: string, body?: unknown, options?: ApiRequestOptions) => request<T>(endpoint, { ...options, method: "PATCH", body: body instanceof FormData ? body : JSON.stringify(body ?? {}) }),
+    post: <T>(endpoint: string, body?: unknown, options?: ApiRequestOptions) => request<T>(endpoint, { ...options, method: "POST", body: serializeRequestBody(body) }),
+    put: <T>(endpoint: string, body?: unknown, options?: ApiRequestOptions) => request<T>(endpoint, { ...options, method: "PUT", body: serializeRequestBody(body) }),
+    patch: <T>(endpoint: string, body?: unknown, options?: ApiRequestOptions) => request<T>(endpoint, { ...options, method: "PATCH", body: serializeRequestBody(body) }),
     delete: <T>(endpoint: string, options?: ApiRequestOptions) => request<T>(endpoint, { ...options, method: "DELETE" }),
   };
 }

@@ -47,4 +47,42 @@ describe("mobile API errors", () => {
     expect(expired).not.toHaveBeenCalled();
     remove();
   });
+
+  it("sends native bearer and CSRF credentials on write requests", async () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ data: { ok: true } }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await createApiClient({
+      baseUrl: "https://api.example.test",
+      mobileClient: true,
+      getAuthToken: async () => "mobile-token",
+      getCsrfToken: async () => "mobile-csrf",
+    }).patch("/api/v1/profile", { firstName: "George" });
+
+    expect(fetchMock).toHaveBeenCalledWith("https://api.example.test/api/v1/profile", expect.objectContaining({
+      headers: expect.objectContaining({
+        Authorization: "Bearer mobile-token",
+        "X-CSRF-Token": "mobile-csrf",
+        "X-NWC-Mobile-Client": "1",
+      }),
+    }));
+  });
+
+  it("preserves binary upload bodies while adding native credentials", async () => {
+    const fetchMock = vi.fn(async () => new Response(null, { status: 204 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const body = new Blob(["photo"], { type: "image/jpeg" });
+
+    await createApiClient({
+      baseUrl: "https://api.example.test",
+      mobileClient: true,
+      getAuthToken: async () => "mobile-token",
+      getCsrfToken: async () => "mobile-csrf",
+    }).put("/api/v1/files/file-id/content", body, { headers: { "Content-Type": "image/jpeg" } });
+
+    expect(fetchMock).toHaveBeenCalledWith("https://api.example.test/api/v1/files/file-id/content", expect.objectContaining({ body }));
+  });
 });

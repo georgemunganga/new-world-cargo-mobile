@@ -1,5 +1,5 @@
 import { Platform } from "react-native";
-import { SESSION_TOKEN_KEY, USER_INFO_KEY } from "@/constants/oauth";
+import { SESSION_CSRF_TOKEN_KEY, SESSION_TOKEN_KEY, USER_INFO_KEY } from "@/constants/oauth";
 
 export type User = {
   id: number;
@@ -36,6 +36,32 @@ export async function removeSessionToken(): Promise<void> {
     const SecureStore = await import("expo-secure-store");
     await SecureStore.deleteItemAsync(SESSION_TOKEN_KEY);
   } catch (error) {
+    return;
+  }
+}
+
+export async function getSessionCsrfToken(): Promise<string | null> {
+  try {
+    if (Platform.OS === "web") return null;
+    const SecureStore = await import("expo-secure-store");
+    return SecureStore.getItemAsync(SESSION_CSRF_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export async function setSessionCsrfToken(token: string): Promise<void> {
+  if (Platform.OS === "web") return;
+  const SecureStore = await import("expo-secure-store");
+  await SecureStore.setItemAsync(SESSION_CSRF_TOKEN_KEY, token);
+}
+
+export async function removeSessionCsrfToken(): Promise<void> {
+  try {
+    if (Platform.OS === "web") return;
+    const SecureStore = await import("expo-secure-store");
+    await SecureStore.deleteItemAsync(SESSION_CSRF_TOKEN_KEY);
+  } catch {
     return;
   }
 }

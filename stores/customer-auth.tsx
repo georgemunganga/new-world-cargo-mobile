@@ -8,7 +8,7 @@ import { featureFlags } from "@/lib/config/feature-flags";
 import { decodeStoredCustomer, type StoredCustomer } from "@/lib/customer-session";
 import type { AuthSession, OtpChallenge } from "@/lib/domain/auth";
 import type { CustomerProfile as DomainCustomerProfile } from "@/lib/domain/customer";
-import { removeSessionToken, setSessionToken } from "@/lib/_core/auth";
+import { removeSessionCsrfToken, removeSessionToken, setSessionCsrfToken, setSessionToken } from "@/lib/_core/auth";
 import { repositories } from "@/lib/repositories";
 import { clearStoredSession, readStoredSession } from "@/lib/session-storage";
 import { clearSecureSession, readSecureSession, writeSecureSession } from "@/lib/storage/secure-session-storage";
@@ -79,6 +79,7 @@ async function persistAuthSession(session: AuthSession) {
   await Promise.all([
     writeSecureSession(session),
     session.token ? setSessionToken(session.token) : Promise.resolve(),
+    session.csrfToken ? setSessionCsrfToken(session.csrfToken) : Promise.resolve(),
   ]);
   return nextCustomer;
 }
@@ -104,7 +105,7 @@ export function CustomerAuthProvider({ children }: PropsWithChildren) {
               setCustomer(remoteCustomer);
               return;
             }
-            await Promise.all([clearStoredSession(), clearSecureSession(), removeSessionToken()]);
+            await Promise.all([clearStoredSession(), clearSecureSession(), removeSessionToken(), removeSessionCsrfToken()]);
             setCustomer(null);
             return;
           } catch {
@@ -117,7 +118,7 @@ export function CustomerAuthProvider({ children }: PropsWithChildren) {
               setCustomer(saved);
               return;
             }
-            await Promise.all([clearStoredSession(), clearSecureSession(), removeSessionToken()]);
+            await Promise.all([clearStoredSession(), clearSecureSession(), removeSessionToken(), removeSessionCsrfToken()]);
             setCustomer(null);
             return;
           }
@@ -133,7 +134,7 @@ export function CustomerAuthProvider({ children }: PropsWithChildren) {
           setCustomer(saved);
           return;
         }
-        await Promise.all([clearStoredSession(), clearSecureSession(), removeSessionToken()]);
+        await Promise.all([clearStoredSession(), clearSecureSession(), removeSessionToken(), removeSessionCsrfToken()]);
       })
       .finally(() => {
         if (active) setIsRestoring(false);
@@ -144,7 +145,7 @@ export function CustomerAuthProvider({ children }: PropsWithChildren) {
   }, []);
 
   useEffect(() => addSessionExpiredListener((error) => {
-    void Promise.all([clearStoredSession(), clearSecureSession(), removeSessionToken()])
+    void Promise.all([clearStoredSession(), clearSecureSession(), removeSessionToken(), removeSessionCsrfToken()])
       .finally(() => {
         setCustomer(null);
         setPendingAuth(null);
@@ -169,6 +170,10 @@ export function CustomerAuthProvider({ children }: PropsWithChildren) {
       setAuthError("");
       try {
         const challenge = await repositories.auth.register({ name, email, phone: normalisedPhone, city, password });
+        await Promise.all([
+          challenge.sessionToken ? setSessionToken(challenge.sessionToken) : Promise.resolve(),
+          challenge.csrfToken ? setSessionCsrfToken(challenge.csrfToken) : Promise.resolve(),
+        ]);
         setAuthChallenge(challenge);
         setPendingAuth({
           mode: "register",
@@ -313,7 +318,7 @@ export function CustomerAuthProvider({ children }: PropsWithChildren) {
       } catch {
         // Local cleanup must still complete even when the server session is already expired.
       }
-      await Promise.all([clearStoredSession(), clearSecureSession(), removeSessionToken()]);
+      await Promise.all([clearStoredSession(), clearSecureSession(), removeSessionToken(), removeSessionCsrfToken()]);
       setCustomer(null);
       setPendingAuth(null);
       setAuthChallenge(null);

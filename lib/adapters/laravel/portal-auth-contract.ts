@@ -3,7 +3,14 @@ import type { CustomerProfile } from "@/lib/domain/customer";
 
 export type PortalEnvelope<T> = {
   data: T;
-  meta?: Record<string, unknown>;
+  meta?: {
+    mobileSession?: {
+      token?: string;
+      csrfToken?: string;
+      expiresAt?: string;
+    };
+    [key: string]: unknown;
+  };
   requestId?: string;
 };
 
@@ -60,7 +67,11 @@ export function mapPortalCustomer(user: PortalAuthUser): CustomerProfile {
 }
 
 export function mapPortalSession(response: PortalEnvelope<PortalAuthUser>): AuthSession {
+  const mobileSession = response.meta?.mobileSession;
   return {
+    ...(mobileSession?.token ? { token: mobileSession.token } : {}),
+    ...(mobileSession?.csrfToken ? { csrfToken: mobileSession.csrfToken } : {}),
+    ...(mobileSession?.expiresAt ? { expiresAt: mobileSession.expiresAt } : {}),
     customer: mapPortalCustomer(response.data),
   };
 }

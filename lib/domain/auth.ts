@@ -4,6 +4,7 @@ export type AuthIdentifier = { type: "email" | "phone"; value: string };
 
 export type AuthSession = {
   token?: string;
+  csrfToken?: string;
   refreshToken?: string;
   expiresAt?: string;
   customer: CustomerProfile;
@@ -32,6 +33,9 @@ export type OtpChallenge = {
   purpose: OtpPurpose;
   expiresAt?: string;
   resendAfterSeconds: number;
+  sessionToken?: string;
+  csrfToken?: string;
+  sessionExpiresAt?: string;
 };
 
 export type VerifyOtpInput = {

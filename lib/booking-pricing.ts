@@ -183,12 +183,8 @@ export async function estimateBookingQuote(service: BookingService, draft: unkno
   const request = bookingQuoteRequestFromDraft(service, draft);
   if (!request.pickup || !request.destination) return null;
   if (featureFlags.useLaravelBookings) {
-    try {
-      const response = await apiClient.post<LaravelQuoteResponse>("/api/v1/bookings/quote", request);
-      return normalizeQuote(response.data ?? response as LaravelQuoteResponse["data"], request);
-    } catch {
-      return fallbackBookingQuote(request);
-    }
+    const response = await apiClient.post<LaravelQuoteResponse>("/api/v1/bookings/quote", request);
+    return normalizeQuote(response.data ?? response as LaravelQuoteResponse["data"], request);
   }
   return fallbackBookingQuote(request);
 }

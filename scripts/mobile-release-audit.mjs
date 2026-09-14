@@ -39,7 +39,7 @@ function run(command, args) {
 }
 
 function packageManagerCommand(scriptName) {
-  if (process.env.npm_execpath) return [process.execPath, [process.env.npm_execpath, scriptName]];
+  if (process.env.npm_execpath) return [process.execPath, [process.env.npm_execpath, "run", scriptName]];
   return ["corepack", ["pnpm", scriptName]];
 }
 
