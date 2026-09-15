@@ -7,7 +7,7 @@ import type {
 export const importSteps = [
   { id: "route", label: "Route & method" },
   { id: "cargo", label: "Cargo" },
-  { id: "consignee", label: "Consignee" },
+  { id: "consignee", label: "Receiver" },
   { id: "review", label: "Review" },
 ];
 
@@ -16,7 +16,9 @@ export function isImportReady(draft: ImportBookingDraft) {
     draft.method &&
     draft.originCountry &&
     draft.originCity &&
+    draft.originBranchId &&
     draft.destinationCity &&
+    draft.destinationBranchId &&
     draft.cargoCategory &&
     draft.consignee?.name &&
     draft.consignee.phone,
@@ -34,7 +36,9 @@ export const intercitySteps = [
 export function isIntercityReady(draft: IntercityBookingDraft) {
   return Boolean(
     draft.originCity &&
+    draft.originBranchId &&
     draft.destinationCity &&
+    draft.destinationBranchId &&
     draft.cargoCategory &&
     draft.sender?.name &&
     draft.sender.phone &&

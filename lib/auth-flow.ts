@@ -1,5 +1,3 @@
-export const FRONTEND_OTP_CODE = "123456";
-
 export function normaliseZambianPhone(value: string) {
   const digits = value.replace(/\D/g, "");
   if (digits.startsWith("260")) return `+${digits}`;

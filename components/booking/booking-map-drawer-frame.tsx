@@ -31,6 +31,7 @@ type BookingMapDrawerFrameProps = {
   detail: string;
   pickup?: Address;
   destination?: Address;
+  overviewPoints?: Address[];
   routeReady: boolean;
   footer: ReactNode;
   children: ReactNode;
@@ -45,6 +46,7 @@ export function BookingMapDrawerFrame({
   detail,
   pickup,
   destination,
+  overviewPoints,
   routeReady,
   footer,
   children,
@@ -71,6 +73,7 @@ export function BookingMapDrawerFrame({
           deliveryService={service}
           pickup={pickup}
           destination={destination}
+          overviewPoints={overviewPoints}
           routeReady={routeReady}
         />
         <View style={[styles.topBar, { top: Math.max(insets.top, 10) + 4 }]}>
@@ -98,10 +101,6 @@ export function BookingMapDrawerFrame({
             <View style={styles.grabber} />
           </TouchableOpacity>
           <View style={styles.heading}>
-            <View style={styles.stepPill}>
-              <Text style={styles.stepPosition}>{stepPosition}</Text>
-              <Text style={styles.stepLabel}>{stepLabel}</Text>
-            </View>
             <Text style={styles.title}>{title}</Text>
             <Text style={styles.detail}>{detail}</Text>
           </View>

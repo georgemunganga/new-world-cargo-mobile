@@ -1,47 +1,46 @@
-import { useCallback, useEffect, useState } from "react";
-import type { CustomerNotification } from "@/lib/domain/notifications";
+import { useQueryClient } from "@tanstack/react-query";
+import { customerQueries } from "@/lib/data/customer-queries";
+import { useCustomerQuery } from "@/lib/data/use-customer-query";
 import { repositories } from "@/lib/repositories";
-
-export type CustomerNotificationsState =
-  | { status: "loading"; notifications: CustomerNotification[]; refresh: () => void; markRead: (id: string) => void; markAllRead: () => void }
-  | { status: "ready" | "empty" | "error"; notifications: CustomerNotification[]; message?: string; refresh: () => void; markRead: (id: string) => void; markAllRead: () => void };
-
-export function useCustomerNotifications(): CustomerNotificationsState {
-  const [status, setStatus] = useState<CustomerNotificationsState["status"]>("loading");
-  const [notifications, setNotifications] = useState<CustomerNotification[]>([]);
-  const [message, setMessage] = useState<string | undefined>();
-
-  const refresh = useCallback(() => {
-    setStatus((current) => current === "ready" || current === "empty" ? "loading" : current);
-    repositories.notifications.listNotifications().then((records) => {
-      setNotifications(records);
-      setStatus(records.length ? "ready" : "empty");
-      setMessage(undefined);
-    }).catch(() => {
-      setStatus("error");
-      setMessage("We could not load notifications. Please try again.");
-    });
-  }, []);
-
-  const markRead = useCallback((id: string) => {
-    setNotifications((current) => current.map((item) => item.id === id ? { ...item, unread: false } : item));
-    void repositories.notifications.markRead(id).catch(() => {
-      setMessage("We could not mark that notification as read. Please try again.");
-      refresh();
-    });
-  }, [refresh]);
-
-  const markAllRead = useCallback(() => {
-    setNotifications((current) => current.map((item) => ({ ...item, unread: false })));
-    void repositories.notifications.markAllRead().catch(() => {
-      setMessage("We could not update notifications. Please try again.");
-      refresh();
-    });
-  }, [refresh]);
-
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
-
-  return { status, notifications, message, refresh, markRead, markAllRead };
+import { useState } from "react";
+import type { CustomerNotification } from "@/lib/domain/notifications";
+export function useCustomerNotifications() {
+  const query = useCustomerQuery(customerQueries.notifications);
+  const client = useQueryClient();
+  const [error, setError] = useState("");
+  const mark = async (id?: string) => {
+    setError("");
+    try {
+      if (id) await repositories.notifications.markRead(id);
+      else await repositories.notifications.markAllRead();
+      await client.cancelQueries({
+        queryKey: customerQueries.notifications.queryKey,
+      });
+      client.setQueryData<CustomerNotification[]>(
+        customerQueries.notifications.queryKey,
+        (current) =>
+          (current ?? []).map((item) =>
+            !id || item.id === id ? { ...item, unread: false } : item,
+          ),
+      );
+    } catch {
+      setError("We could not update notifications. Please try again.");
+    }
+  };
+  return {
+    notifications: query.data ?? [],
+    status:
+      query.status === "success"
+        ? query.data?.length
+          ? ("ready" as const)
+          : ("empty" as const)
+        : query.status,
+    message: error || query.errorMessage,
+    refresh: query.refresh,
+    markRead: (id: string) => void mark(id),
+    markAllRead: () => void mark(),
+  };
 }
+export type CustomerNotificationsState = ReturnType<
+  typeof useCustomerNotifications
+>;

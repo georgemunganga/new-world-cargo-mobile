@@ -1,3 +1,4 @@
+import { pickupTimeLabel } from "@/lib/pickup-schedule";
 import { StyleSheet, Text, View } from "react-native";
 import { router, useLocalSearchParams, type Href } from "expo-router";
 import { AppIcon } from "@/components/ui/app-icon";
@@ -10,7 +11,7 @@ export default function LocalDeliveryConfirmationScreen() {
   const { shipmentId, reference } = useLocalSearchParams<{ shipmentId?: string; reference?: string }>();
   const goHome = () => { resetLocalDraft(); router.replace("/"); };
   const openShipment = () => { resetLocalDraft(); router.replace((shipmentId ? `/shipments/${shipmentId}` : "/shipments") as Href); };
-  return <Screen><View style={styles.screen}><View style={styles.hero}><View style={styles.successIcon}><AppIcon name="check" size={36} color={nwcColors.primaryInk} /></View><Text style={styles.eyebrow}>{reference ? `Booking reference ${reference}` : "Booking received"}</Text><Text style={styles.title}>Your Local Delivery request was received.</Text><Text style={styles.detail}>New WorldCargo will confirm availability, price, and the next step before collection.</Text></View><Card style={styles.card}><Text style={styles.cardLabel}>Route summary</Text><Text style={styles.route}>{`${localDraft.pickup?.area || "Pickup"} → ${localDraft.destination?.area || "Delivery"}`}</Text><View style={styles.divider} /><Text style={styles.cardDetail}>{`${localDraft.receiver?.name || "Receiver"} · ${localDraft.schedule === "later_today" ? "Later today" : "Earliest available pickup"}`}</Text></Card><View style={styles.actions}><PrimaryButton label={shipmentId ? "Open shipment" : "View shipments"} icon="package-variant-closed" onPress={openShipment} /><SecondaryButton label="Back to Home" onPress={goHome} /></View></View></Screen>;
+  return <Screen><View style={styles.screen}><View style={styles.hero}><View style={styles.successIcon}><AppIcon name="check" size={36} color={nwcColors.primaryInk} /></View><Text style={styles.title}>Your Local Delivery request was received.</Text><Text style={styles.detail}>New WorldCargo will confirm availability, price, and the next step before collection.</Text></View><Card style={styles.card}>{reference ? <Text style={styles.cardDetail}>Reference: {reference}</Text> : null}<Text style={styles.cardLabel}>Route summary</Text><Text style={styles.route}>{`${localDraft.pickup?.area || "Pickup"} → ${localDraft.destination?.area || "Delivery"}`}</Text><View style={styles.divider} /><Text style={styles.cardDetail}>{`${localDraft.receiver?.name || "Receiver"} · ${localDraft.schedule === "scheduled" && localDraft.scheduledAt ? pickupTimeLabel(localDraft.scheduledAt) : localDraft.schedule === "later_today" ? "Later today" : "Earliest available pickup"}`}</Text></Card><View style={styles.actions}><PrimaryButton label={shipmentId ? "Open shipment" : "View shipments"} icon="package-variant-closed" onPress={openShipment} /><SecondaryButton label="Back to Home" onPress={goHome} /></View></View></Screen>;
 }
 
 const styles = StyleSheet.create({
@@ -27,3 +28,4 @@ const styles = StyleSheet.create({
   cardDetail: { color: nwcColors.muted, fontSize: 13, lineHeight: 18, fontWeight: "700" },
   actions: { gap: 10 },
 });
+

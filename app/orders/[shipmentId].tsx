@@ -1,3 +1,4 @@
+import { ListSkeleton } from "@/components/ui/skeleton";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { AppIcon } from "@/components/ui/app-icon";
@@ -16,9 +17,10 @@ export default function OrderDetailsScreen() {
 }
 
 function OrderStateScreen({ status, message, onRetry }: { status: "idle" | "loading" | "success" | "not-found" | "error"; message?: string; onRetry: () => void }) {
+  if (status === "loading" || status === "idle") return <Screen><View style={{padding:20, gap:16}}><IconButton label="Go back" icon="arrow-left" onPress={() => router.back()} /><ListSkeleton kind="shipment" count={2} /></View></Screen>;
   const isError = status === "error";
-  const title = status === "loading" || status === "idle" ? "Loading order" : isError ? "Order could not load" : "Order not found";
-  const detail = status === "loading" || status === "idle" ? "Getting the order summary." : isError ? message || "Try again when your connection is stable." : "Check the shipment reference and try again.";
+  const title = isError ? "Order could not load" : "Order not found";
+  const detail = isError ? message || "Try again when your connection is stable." : "Check the shipment reference and try again.";
   return <Screen><View style={styles.statePage}><View style={styles.stateIcon}><AppIcon name={isError ? "alert-circle-outline" : "package-variant"} size={30} color={nwcColors.primaryInk} /></View><Text style={styles.stateTitle}>{title}</Text><Text style={styles.stateDetail}>{detail}</Text>{isError ? <PrimaryButton label="Try again" onPress={onRetry} /> : null}</View></Screen>;
 }
 

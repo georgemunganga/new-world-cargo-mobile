@@ -1,8 +1,9 @@
 export type StartupScenario = "normal" | "restoring" | "offline" | "maintenance" | "required_update" | "optional_update" | "outage";
 
-export function startupDestination(scenario: StartupScenario, hasCustomer: boolean) {
+export function startupDestination(scenario: StartupScenario, hasCustomer: boolean, hasCompletedOnboarding = false) {
   if (scenario !== "normal") return "/startup";
-  return hasCustomer ? "/(tabs)" : "/auth/welcome";
+  if (hasCustomer) return "/(tabs)";
+  return hasCompletedOnboarding ? "/auth/phone" : "/auth/welcome";
 }
 
 export function startupScenarioLabel(scenario: StartupScenario) {

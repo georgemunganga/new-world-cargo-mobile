@@ -1,48 +1,51 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { repositories } from "@/lib/repositories";
-import { normaliseTrackingCode, type TrackingResult } from "@/lib/domain/tracking";
+import {
+  normaliseTrackingCode,
+  type TrackingResult,
+} from "@/lib/domain/tracking";
 import { customerSafeMessageFor } from "@/lib/api/errors";
-import { readCache, writeCache } from "@/lib/storage/cache-storage";
-import { storageKeys } from "@/lib/storage/storage-keys";
-
-type TrackingCache = Record<string, TrackingResult>;
-
 export function usePublicTracking() {
+  const client = useQueryClient();
+  const version = useRef(0);
   const [result, setResult] = useState<TrackingResult | null>(null);
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [isStale, setIsStale] = useState(false);
-
   const track = async (code: string) => {
-    const cacheKey = normaliseTrackingCode(code);
-    setStatus("loading");
+    const request = ++version.current;
+    const queryKey = ["public-tracking", normaliseTrackingCode(code)];
+    const cached = client.getQueryData<TrackingResult>(queryKey);
+    setResult(cached ?? null);
+    setStatus(cached ? "success" : "loading");
+    setIsStale(Boolean(cached));
     setErrorMessage("");
-    setIsStale(false);
     try {
-      const nextResult = await repositories.tracking.trackByCode(code);
-      if (cacheKey && nextResult.kind === "found") {
-        const cached = (await readCache<TrackingCache>(storageKeys.trackingCache))?.value ?? {};
-        await writeCache(storageKeys.trackingCache, { ...cached, [cacheKey]: nextResult });
-      }
-      setResult(nextResult);
+      const next = await client.fetchQuery({
+        queryKey,
+        queryFn: () => repositories.tracking.trackByCode(code),
+        staleTime: 15_000,
+        networkMode: "always",
+      });
+      if (request !== version.current) return null;
+      setResult(next);
       setStatus("success");
-      return nextResult;
+      setIsStale(false);
+      return next;
     } catch (error) {
-      const cachedResult = cacheKey ? (await readCache<TrackingCache>(storageKeys.trackingCache))?.value[cacheKey] : undefined;
-      if (cachedResult) {
-        setResult(cachedResult);
-        setIsStale(true);
-        setErrorMessage("Showing the last saved tracking result for this code.");
-        setStatus("success");
-        return cachedResult;
-      }
-      const message = customerSafeMessageFor(error);
-      setErrorMessage(message);
-      setResult({ kind: "unavailable", message, retryable: true });
-      setStatus("error");
-      return null;
+      if (request !== version.current) return null;
+      setErrorMessage(
+        cached
+          ? "Showing the last saved tracking result."
+          : customerSafeMessageFor(error),
+      );
+      setStatus(cached ? "success" : "error");
+      setIsStale(Boolean(cached));
+      return cached ?? null;
     }
   };
-
   return { result, status, errorMessage, isStale, track };
 }

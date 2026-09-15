@@ -1,5 +1,5 @@
+import { InvoiceSkeleton } from "@/components/ui/skeleton";
 import {
-  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -20,10 +20,13 @@ import { nwcColors } from "@/lib/nwc-theme";
 import { useCustomerBillingAccount } from "@/stores/customer-billing-account";
 import { useSupportCases } from "@/lib/use-cases/use-support-cases";
 import { exportInvoice, exportReceipt } from "@/lib/customer-document-export";
+import { useAppToast } from "@/components/ui/app-toast";
 
 export default function InvoiceDetailScreen() {
   const { invoiceId } = useLocalSearchParams<{ invoiceId: string }>();
+  const toast = useAppToast();
   const {
+    billingLoading, billingError, refreshBilling,
     invoices,
     selectInvoice,
     reminders,
@@ -32,7 +35,8 @@ export default function InvoiceDetailScreen() {
     actionError,
   } = useCustomerBillingAccount();
   const { createCase } = useSupportCases();
-  const invoice = invoices.find((item) => item.id === invoiceId) ?? invoices[0];
+  const invoice = invoices.find((item) => item.id === invoiceId);
+  if (!invoice) return <Screen><View style={{padding:20, gap:16}}><IconButton label="Go back" icon="arrow-left" onPress={() => router.back()} />{billingLoading ? <InvoiceSkeleton /> : <><Text>{billingError || "Invoice not found."}</Text><PrimaryButton label="Retry" onPress={refreshBilling} /></>}</View></Screen>;
   const reminderOn = Boolean(reminders[invoice.id]);
   const pay = () => {
     selectInvoice(invoice.id);
@@ -40,10 +44,9 @@ export default function InvoiceDetailScreen() {
   };
   const documentAction = (kind: "invoice" | "receipt") => {
     const request = kind === "invoice" ? exportInvoice(invoice) : exportReceipt(invoice);
-    void request.then((result) => Alert.alert(
-      result.status === "downloaded" ? `${kind === "invoice" ? "Invoice" : "Receipt"} downloaded` : "Document unavailable",
-      result.status === "downloaded" ? `${result.filename} was downloaded.` : "The official document could not be downloaded. Please try again.",
-    ));
+    void request.then((result) => result.status === "downloaded"
+      ? toast.success(`${result.filename} was downloaded.`)
+      : toast.error("The official document could not be downloaded. Please try again."));
   };
   const requestChargeReview = () => {
     submitInvoiceDispute(invoice.id);
@@ -72,7 +75,6 @@ export default function InvoiceDetailScreen() {
           contentContainerStyle={styles.content}
         >
           <View style={styles.titleBlock}>
-            <Text style={styles.eyebrow}>Invoice details</Text>
             <Text style={styles.title}>{invoice.reference}</Text>
           </View>
           {actionError ? <Text accessibilityRole="alert" style={styles.reminderDetail}>{actionError}</Text> : null}

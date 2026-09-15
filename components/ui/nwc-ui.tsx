@@ -1,24 +1,54 @@
-import type { PropsWithChildren, ReactNode } from "react";
-import { StyleSheet, Text, TouchableOpacity, View, type GestureResponderEvent, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
+import { useRef, useState, type PropsWithChildren, type ReactNode } from "react";
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View, type GestureResponderEvent, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
 import { ScreenContainer } from "@/components/screen-container";
 import { AppIcon, type AppIconName } from "@/components/ui/app-icon";
 import { nwcColors, nwcRadii } from "@/lib/nwc-theme";
 
-type ButtonProps = {
+export type AppButtonProps = {
   label: string;
-  onPress: (event: GestureResponderEvent) => void;
+  onPress: (event: GestureResponderEvent) => void | Promise<unknown>;
   disabled?: boolean;
+  loading?: boolean;
   icon?: AppIconName;
   style?: StyleProp<ViewStyle>;
   accessibilityHint?: string;
 };
 
-export function PrimaryButton({ label, onPress, disabled, icon, style, accessibilityHint }: ButtonProps) {
-  return <TouchableOpacity accessibilityRole="button" accessibilityLabel={label} accessibilityHint={accessibilityHint} disabled={disabled} activeOpacity={0.84} onPress={onPress} style={[styles.primaryButton, disabled && styles.disabledButton, style]}><Text style={styles.primaryButtonText}>{label}</Text>{icon ? <AppIcon name={icon} size={19} color={nwcColors.primaryInk} /> : null}</TouchableOpacity>;
+function useButtonAction(onPress: AppButtonProps["onPress"], loading = false) {
+  const [awaiting, setAwaiting] = useState(false);
+  const inFlight = useRef(false);
+  const busy = loading || awaiting;
+  const handlePress = (event: GestureResponderEvent) => {
+    if (busy || inFlight.current) return;
+    const result = onPress(event);
+    if (!result || typeof result.then !== "function") return;
+    inFlight.current = true;
+    setAwaiting(true);
+    void Promise.resolve(result).then(
+      () => {
+        inFlight.current = false;
+        setAwaiting(false);
+      },
+      (error) => {
+        inFlight.current = false;
+        setAwaiting(false);
+        if (__DEV__) console.error("[NWC UI] Button action failed", error);
+      },
+    );
+  };
+  return { busy, handlePress };
 }
 
-export function SecondaryButton({ label, onPress, disabled, icon, style, accessibilityHint }: ButtonProps) {
-  return <TouchableOpacity accessibilityRole="button" accessibilityLabel={label} accessibilityHint={accessibilityHint} disabled={disabled} activeOpacity={0.76} onPress={onPress} style={[styles.secondaryButton, disabled && styles.disabledButton, style]}><Text style={styles.secondaryButtonText}>{label}</Text>{icon ? <AppIcon name={icon} size={19} color={nwcColors.brandNavy} /> : null}</TouchableOpacity>;
+export function PrimaryButton({ label, onPress, disabled, loading, icon, style, accessibilityHint }: AppButtonProps) {
+  const { busy, handlePress } = useButtonAction(onPress, loading);
+  const unavailable = disabled || busy;
+  return <TouchableOpacity accessibilityRole="button" accessibilityLabel={label} accessibilityHint={accessibilityHint} accessibilityState={{ disabled: unavailable, busy }} disabled={unavailable} activeOpacity={0.84} onPress={handlePress} style={[styles.primaryButton, unavailable && styles.disabledButton, style]}>{busy ? <ActivityIndicator size="small" color={nwcColors.primaryInk} /> : null}<Text style={styles.primaryButtonText}>{label}</Text>{icon && !busy ? <AppIcon name={icon} size={19} color={nwcColors.primaryInk} /> : null}</TouchableOpacity>;
+}
+
+export function SecondaryButton({ label, onPress, disabled, loading, icon, style, accessibilityHint }: AppButtonProps) {
+  const { busy, handlePress } = useButtonAction(onPress, loading);
+  const unavailable = disabled || busy;
+  return <TouchableOpacity accessibilityRole="button" accessibilityLabel={label} accessibilityHint={accessibilityHint} accessibilityState={{ disabled: unavailable, busy }} disabled={unavailable} activeOpacity={0.76} onPress={handlePress} style={[styles.secondaryButton, unavailable && styles.disabledButton, style]}>{busy ? <ActivityIndicator size="small" color={nwcColors.brandNavy} /> : null}<Text style={styles.secondaryButtonText}>{label}</Text>{icon && !busy ? <AppIcon name={icon} size={19} color={nwcColors.brandNavy} /> : null}</TouchableOpacity>;
 }
 
 export function IconButton({ label, icon, onPress, badge }: { label: string; icon: AppIconName; onPress: () => void; badge?: boolean }) {
@@ -33,8 +63,8 @@ export function Card({ children, style }: PropsWithChildren<{ style?: StyleProp<
   return <View style={[styles.card, style]}>{children}</View>;
 }
 
-export function SectionHeader({ eyebrow, title, action }: { eyebrow?: string; title: string; action?: ReactNode }) {
-  return <View style={styles.sectionHeader}><View style={styles.sectionTitleWrap}>{eyebrow ? <Text style={styles.eyebrow}>{eyebrow}</Text> : null}<Text style={styles.sectionTitle}>{title}</Text></View>{action}</View>;
+export function SectionHeader({ title, action }: { eyebrow?: string; title: string; action?: ReactNode }) {
+  return <View style={styles.sectionHeader}><View style={styles.sectionTitleWrap}><Text style={styles.sectionTitle}>{title}</Text></View>{action}</View>;
 }
 
 export function StatusBadge({ label, tone = "neutral", icon }: { label: string; tone?: "neutral" | "info" | "success" | "warning"; icon?: AppIconName }) {
@@ -45,6 +75,18 @@ export function StatusBadge({ label, tone = "neutral", icon }: { label: string; 
     warning: { backgroundColor: "#FBF0D8", color: nwcColors.warning },
   }[tone];
   return <View accessibilityRole="text" style={[styles.statusBadge, { backgroundColor: palette.backgroundColor }]}>{icon ? <AppIcon name={icon} size={14} color={palette.color} /> : null}<Text style={[styles.statusBadgeText, { color: palette.color }]}>{label}</Text></View>;
+}
+
+export type AppNoticeTone = "info" | "success" | "warning" | "error";
+
+export function AppNotice({ message, tone = "info", style, textStyle }: { message: string; tone?: AppNoticeTone; style?: StyleProp<ViewStyle>; textStyle?: StyleProp<TextStyle> }) {
+  const palette = {
+    info: { backgroundColor: "#E6F3F8", color: nwcColors.info, icon: "information-outline" as const },
+    success: { backgroundColor: "#E5F4EE", color: nwcColors.success, icon: "check-circle-outline" as const },
+    warning: { backgroundColor: "#FBF0D8", color: nwcColors.warning, icon: "alert-outline" as const },
+    error: { backgroundColor: "#FFF0EF", color: nwcColors.error, icon: "alert-circle-outline" as const },
+  }[tone];
+  return <View accessibilityRole={tone === "error" ? "alert" : "text"} style={[styles.notice, { backgroundColor: palette.backgroundColor }, style]}><AppIcon name={palette.icon} size={18} color={palette.color} /><Text style={[styles.noticeText, { color: palette.color }, textStyle]}>{message}</Text></View>;
 }
 
 export function Heading({ children, style }: PropsWithChildren<{ style?: StyleProp<TextStyle> }>) { return <Text style={[styles.heading, style]}>{children}</Text>; }
@@ -69,6 +111,8 @@ const styles = StyleSheet.create({
   sectionTitle: { color: nwcColors.foreground, fontSize: 19, lineHeight: 25, fontFamily: "Poppins_800ExtraBold" },
   statusBadge: { flexDirection: "row", alignItems: "center", gap: 5, borderRadius: nwcRadii.pill, alignSelf: "flex-start", paddingVertical: 5, paddingHorizontal: 9 },
   statusBadgeText: { fontSize: 12, lineHeight: 16, fontFamily: "Poppins_800ExtraBold" },
+  notice: { minHeight: 48, borderRadius: 16, paddingHorizontal: 13, paddingVertical: 11, flexDirection: "row", alignItems: "center", gap: 9 },
+  noticeText: { flex: 1, fontSize: 12, lineHeight: 17, fontFamily: "Poppins_700Bold" },
   heading: { color: nwcColors.foreground, fontSize: 29, lineHeight: 36, fontFamily: "Poppins_800ExtraBold", letterSpacing: -0.6 },
   body: { color: nwcColors.muted, fontSize: 14, lineHeight: 21, fontFamily: "Poppins_500Medium" },
   routeLine: { flexDirection: "row", gap: 10, alignItems: "stretch" },

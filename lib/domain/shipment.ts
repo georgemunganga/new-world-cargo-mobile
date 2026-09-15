@@ -1,6 +1,8 @@
 export type ShipmentStatus = "pending" | "booking_confirmed" | "in_transit" | "out_for_delivery" | "delivered" | "cancelled" | "exception" | "action_required";
 
 export type ShipmentAddress = {
+  latitude?: number;
+  longitude?: number;
   label?: string;
   city: string;
   area?: string;

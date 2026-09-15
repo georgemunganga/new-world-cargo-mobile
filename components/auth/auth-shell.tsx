@@ -1,3 +1,4 @@
+import { MobileInput } from "@/components/ui/mobile-input";
 import { useRef, useState, type PropsWithChildren, type ReactNode } from "react";
 import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, type TextInputProps } from "react-native";
 import { router } from "expo-router";
@@ -6,28 +7,28 @@ import { IconButton, PrimaryButton, SecondaryButton, Screen } from "@/components
 import { nwcColors } from "@/lib/nwc-theme";
 
 type AuthScreenProps = PropsWithChildren<{
-  title: string;
-  detail: string;
+  title?: string;
+  detail?: string;
   primaryLabel: string;
-  onPrimary: () => void;
+  onPrimary: () => void | Promise<unknown>;
   primaryDisabled?: boolean;
   secondaryLabel?: string;
-  onSecondary?: () => void;
+  onSecondary?: () => void | Promise<unknown>;
   showBack?: boolean;
   afterActions?: ReactNode;
 }>;
 
 export function AuthScreen({ children, title, detail, primaryLabel, onPrimary, primaryDisabled, secondaryLabel, onSecondary, showBack = false, afterActions }: AuthScreenProps) {
-  return <Screen><KeyboardAvoidingView style={styles.flex} behavior={Platform.select({ ios: "padding", default: undefined })}><ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}><View style={styles.brandHeader}>{showBack ? <View style={styles.back}><IconButton label="Go back" icon="arrow-left" onPress={() => router.back()} /></View> : null}<Image accessibilityLabel="New WorldCargo" source={require("../../assets/images/new-world-cargo-logo.png")} resizeMode="contain" style={styles.logo} /></View><View style={styles.copy}><Text style={styles.title}>{title}</Text><Text style={styles.detail}>{detail}</Text></View><View style={styles.children}>{children}</View><View style={styles.actions}><PrimaryButton label={primaryLabel} onPress={onPrimary} disabled={primaryDisabled} />{secondaryLabel && onSecondary ? <SecondaryButton label={secondaryLabel} onPress={onSecondary} /> : null}{afterActions}</View></ScrollView></KeyboardAvoidingView></Screen>;
+  return <Screen><KeyboardAvoidingView style={styles.flex} behavior={Platform.select({ ios: "padding", default: undefined })}><ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}><View style={styles.brandHeader}>{showBack ? <View style={styles.back}><IconButton label="Go back" icon="arrow-left" onPress={() => router.back()} /></View> : null}<Image accessibilityLabel="New WorldCargo" source={require("../../assets/images/new-world-cargo-logo.png")} resizeMode="contain" style={styles.logo} /></View>{title || detail ? <View style={styles.copy}>{title ? <Text style={styles.title}>{title}</Text> : null}{detail ? <Text style={styles.detail}>{detail}</Text> : null}</View> : null}<View style={styles.children}>{children}</View><View style={styles.actions}><PrimaryButton label={primaryLabel} onPress={onPrimary} disabled={primaryDisabled} />{secondaryLabel && onSecondary ? <SecondaryButton label={secondaryLabel} onPress={onSecondary} /> : null}{afterActions}</View></ScrollView></KeyboardAvoidingView></Screen>;
 }
 
-export function AuthTextInput({ label, ...inputProps }: TextInputProps & { label: string }) {
-  return <View style={styles.inputGroup}><Text style={styles.inputLabel}>{label}</Text><TextInput accessibilityLabel={label} placeholderTextColor="#889AA8" style={styles.input} {...inputProps} /></View>;
+export function AuthTextInput({ label, error, ...inputProps }: TextInputProps & { label: string; error?: string }) {
+  return <MobileInput {...inputProps} label={label} error={error} />;
 }
 
-export function AuthPasswordInput({ label = "Password", ...inputProps }: TextInputProps & { label?: string }) {
+export function AuthPasswordInput({ label = "Password", error, ...inputProps }: TextInputProps & { label?: string; error?: string }) {
   const [visible, setVisible] = useState(false);
-  return <View style={styles.inputGroup}><Text style={styles.inputLabel}>{label}</Text><View style={styles.passwordFrame}><TextInput accessibilityLabel={label} placeholderTextColor="#889AA8" secureTextEntry={!visible} autoCapitalize="none" autoCorrect={false} style={styles.passwordInput} {...inputProps} /><TouchableOpacity accessibilityRole="button" accessibilityLabel={visible ? "Hide password" : "Show password"} onPress={() => setVisible((current) => !current)} style={styles.passwordToggle}><AppIcon name={visible ? "eye-off-outline" : "eye-outline"} size={21} color={nwcColors.muted} /></TouchableOpacity></View></View>;
+  return <MobileInput autoCapitalize="none" autoCorrect={false} {...inputProps} label={label === "Create password" ? "Create password (8+ characters)" : label} error={error} secureTextEntry={!visible} action={<TouchableOpacity accessibilityRole="button" accessibilityLabel={visible ? "Hide password" : "Show password"} onPress={() => setVisible((current) => !current)} style={styles.passwordToggle}><AppIcon name={visible ? "eye-off-outline" : "eye-outline"} size={21} color={nwcColors.muted} /></TouchableOpacity>} />;
 }
 
 export function OtpInput({ value, onChange }: { value: string; onChange: (value: string) => void }) {
@@ -52,6 +53,8 @@ const styles = StyleSheet.create({
   inputGroup: { gap: 7 },
   inputLabel: { color: nwcColors.foreground, fontSize: 13, lineHeight: 18, fontFamily: "Poppins_700Bold" },
   input: { minHeight: 56, borderWidth: 1, borderColor: nwcColors.border, borderRadius: 16, color: nwcColors.foreground, backgroundColor: nwcColors.white, fontSize: 17, lineHeight: 22, fontFamily: "Poppins_600SemiBold", paddingHorizontal: 16 },
+  inputError: { borderColor: nwcColors.error, borderWidth: 2 },
+  errorText: { color: nwcColors.error, fontSize: 12, lineHeight: 17, fontFamily: "Poppins_600SemiBold", paddingHorizontal: 2 },
   passwordFrame: { minHeight: 56, flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: nwcColors.border, borderRadius: 16, backgroundColor: nwcColors.white },
   passwordInput: { flex: 1, minHeight: 54, color: nwcColors.foreground, fontSize: 17, lineHeight: 22, fontFamily: "Poppins_600SemiBold", paddingLeft: 16 },
   passwordToggle: { width: 52, height: 54, alignItems: "center", justifyContent: "center" },

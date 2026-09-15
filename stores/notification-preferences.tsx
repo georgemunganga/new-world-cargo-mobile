@@ -3,6 +3,7 @@ import { customerSafeMessageFor } from "@/lib/api/errors";
 import { defaultNotificationPreferences } from "@/lib/domain/notifications";
 import type { NotificationPreferences } from "@/lib/domain/notifications";
 import { repositories } from "@/lib/repositories";
+import { useCustomerAuth } from "@/stores/customer-auth";
 
 export { defaultNotificationPreferences } from "@/lib/domain/notifications";
 
@@ -20,6 +21,7 @@ type NotificationContextValue = {
 const NotificationPreferenceContext = createContext<NotificationContextValue | null>(null);
 
 export function NotificationPreferenceProvider({ children }: PropsWithChildren) {
+  const { customer, isRestoring } = useCustomerAuth();
   const [preferences, setPreferences] = useState<NotificationPreferences>(defaultNotificationPreferences);
   const [lastSaved, setLastSaved] = useState<NotificationPreferences>(defaultNotificationPreferences);
   const [pushRegistered, setPushRegistered] = useState(false);
@@ -27,6 +29,15 @@ export function NotificationPreferenceProvider({ children }: PropsWithChildren) 
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
+    if (isRestoring) return;
+    if (!customer) {
+      setPreferences(defaultNotificationPreferences);
+      setLastSaved(defaultNotificationPreferences);
+      setPushRegistered(false);
+      setStatus("idle");
+      setErrorMessage("");
+      return;
+    }
     let active = true;
     setStatus("loading");
     void repositories.notificationPreferences.getPreferences()
@@ -50,7 +61,7 @@ export function NotificationPreferenceProvider({ children }: PropsWithChildren) 
     return () => {
       active = false;
     };
-  }, []);
+  }, [customer?.id, isRestoring]);
 
   const value = useMemo(() => ({
     preferences,

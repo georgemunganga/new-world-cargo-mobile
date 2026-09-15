@@ -1,6 +1,6 @@
 import type { BookingStep, LocalDeliveryDraft } from "@/types/cargo";
 
-export const bookingSteps: BookingStep[] = ["route", "parcel", "contacts", "schedule", "review"];
+export const bookingSteps: BookingStep[] = ["route", "parcel", "contacts", "review"];
 
 export function nextBookingStep(step: BookingStep): BookingStep | null {
   const index = bookingSteps.indexOf(step);

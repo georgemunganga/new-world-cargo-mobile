@@ -1,3 +1,4 @@
+import type { LocalCity } from "@/lib/maps/local-city";
 import type { RouteSearchScope, RouteSuggestion } from "@/lib/route-autocomplete";
 
 const apiKey = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY?.trim() ?? "";
@@ -18,7 +19,7 @@ type PlaceDetails = {
   displayName?: { text?: string };
   formattedAddress?: string;
   location?: { latitude?: number; longitude?: number };
-  addressComponents?: Array<{ longText?: string; shortText?: string; types?: string[] }>;
+  addressComponents?: { longText?: string; shortText?: string; types?: string[] }[];
   types?: string[];
 };
 
@@ -38,7 +39,7 @@ export function googlePlacesConfigured() {
   return apiKey !== "";
 }
 
-export async function autocompleteGooglePlaces(scope: RouteSearchScope, query: string, supportedCountryCodes: string[]): Promise<RouteSuggestion[]> {
+export async function autocompleteGooglePlaces(scope: RouteSearchScope, query: string, supportedCountryCodes: string[], localCity?: LocalCity): Promise<RouteSuggestion[]> {
   if (!googlePlacesConfigured() || query.trim().length < 3 || scope === "intercity") return [];
   if (scope !== "local" && supportedCountryCodes.length === 0) return [];
 
@@ -48,9 +49,10 @@ export async function autocompleteGooglePlaces(scope: RouteSearchScope, query: s
     regionCode: scope === "local" ? "zm" : undefined,
     includedRegionCodes: (scope === "local" ? ["zm"] : supportedCountryCodes).slice(0, 15).map((code) => code.toLowerCase()),
   };
-  if (scope === "local") {
+  if (scope === "local" && !localCity) return [];
+  if (scope === "local" && localCity) {
     body.locationRestriction = {
-      circle: { center: { latitude: -15.3875, longitude: 28.3228 }, radius: 50000 },
+      circle: { center: { latitude: localCity.latitude, longitude: localCity.longitude }, radius: 50000 },
     };
   }
 
@@ -64,7 +66,7 @@ export async function autocompleteGooglePlaces(scope: RouteSearchScope, query: s
     body: JSON.stringify(body),
   });
   if (!response.ok) throw new Error("Live location search is temporarily unavailable.");
-  const payload = await response.json() as { suggestions?: Array<{ placePrediction?: GooglePrediction }> };
+  const payload = await response.json() as { suggestions?: { placePrediction?: GooglePrediction }[] };
 
   return (payload.suggestions ?? []).flatMap(({ placePrediction }) => {
     if (!placePrediction?.placeId) return [];
@@ -101,6 +103,7 @@ export async function resolveGooglePlace(suggestion: RouteSuggestion): Promise<R
     label: details.displayName?.text || suggestion.label,
     detail: details.formattedAddress || suggestion.detail,
     city,
+    cityDistrict: component(details, "administrative_area_level_2"),
     area: component(details, "sublocality") || component(details, "administrative_area_level_1") || city,
     country,
     countryCode,

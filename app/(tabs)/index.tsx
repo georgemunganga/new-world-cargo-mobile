@@ -1,3 +1,4 @@
+import { ListSkeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import {
   ScrollView,
@@ -16,7 +17,7 @@ import { useCustomerContentInsets } from "@/components/layout/customer-screen-la
 import { AppIcon } from "@/components/ui/app-icon";
 import { Card, Screen } from "@/components/ui/nwc-ui";
 import { toUiShipments } from "@/lib/mappers/shipment-ui-mapper";
-import { shipmentDestination } from "@/lib/shipment-navigation";
+import { firstActiveShipment, shipmentDestination } from "@/lib/shipment-navigation";
 import { nwcColors } from "@/lib/nwc-theme";
 import { useCustomerShipments } from "@/lib/use-cases/use-customer-shipments";
 import { useCustomerAuth } from "@/stores/customer-auth";
@@ -27,9 +28,7 @@ export default function HomeScreen() {
   const [trackingOpen, setTrackingOpen] = useState(false);
   const contentInsets = useCustomerContentInsets();
   const shipments = toUiShipments(shipmentState.shipments);
-  const activeShipment =
-    shipments.find((shipment) => shipment.status !== "delivered") ??
-    shipments[0];
+  const activeShipment = firstActiveShipment(shipments);
   const orders = shipments.slice(0, 2);
   return (
     <Screen>
@@ -44,80 +43,35 @@ export default function HomeScreen() {
             onNotifications={() => router.push("/notifications" as Href)}
             onAccount={() => router.push("/account" as Href)}
           />
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityLabel="Start a new cargo booking"
-            accessibilityHint="Choose a delivery service and add your route"
-            onPress={() => router.push("/send" as Href)}
-            activeOpacity={0.78}
-            style={styles.sendCard}
-          >
-            <View style={styles.sendIcon}>
-              <AppIcon
-                name="arrow-top-right"
-                size={22}
-                color={nwcColors.primaryInk}
-              />
-            </View>
-            <View style={styles.sendCopy}>
-              <Text style={styles.sendTitle}>Send cargo</Text>
-              <Text style={styles.sendDetail}>
-                Choose a service and set your route.
-              </Text>
-            </View>
-            <View style={styles.sendArrow}>
-              <AppIcon
-                name="arrow-right"
-                size={20}
-                color={nwcColors.primaryInk}
-              />
-            </View>
-          </TouchableOpacity>
-          <View style={styles.activeSection}>
+          {activeShipment ? <View style={styles.activeSection}>
             <View style={styles.sectionHeader}>
-              <View>
-                <Text style={styles.sectionEyebrow}>In transit</Text>
-                <Text style={styles.sectionTitle}>Track your shipment</Text>
-              </View>
-              {activeShipment ? (
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  accessibilityLabel="View active shipment"
-                  onPress={() =>
-                    router.push(shipmentDestination(activeShipment) as Href)
-                  }
-                  style={styles.sectionAction}
-                >
-                  <Text style={styles.sectionActionText}>Open</Text>
-                  <AppIcon
-                    name="chevron-right"
-                    size={18}
-                    color={nwcColors.info}
-                  />
-                </TouchableOpacity>
-              ) : null}
-            </View>
-            {activeShipment ? (
-              <DeliverySnapshot
-                shipment={activeShipment}
+              <Text style={styles.sectionTitle}>Track your shipment</Text>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="View active shipment"
                 onPress={() =>
                   router.push(shipmentDestination(activeShipment) as Href)
                 }
-              />
-            ) : (
-              <HomeStateCard
-                status={shipmentState.status}
-                message={shipmentState.errorMessage}
-                onRetry={shipmentState.refresh}
-              />
-            )}
-          </View>
+                style={styles.sectionAction}
+              >
+                <Text style={styles.sectionActionText}>Open</Text>
+                <AppIcon
+                  name="chevron-right"
+                  size={18}
+                  color={nwcColors.info}
+                />
+              </TouchableOpacity>
+            </View>
+            <DeliverySnapshot
+              shipment={activeShipment}
+              onPress={() =>
+                router.push(shipmentDestination(activeShipment) as Href)
+              }
+            />
+          </View> : null}
           <View style={styles.servicesSection}>
             <View style={styles.sectionHeader}>
-              <View>
-                <Text style={styles.sectionEyebrow}>Book a service</Text>
-                <Text style={styles.sectionTitle}>Where are you sending?</Text>
-              </View>
+              <Text style={styles.sectionTitle}>Where are you sending?</Text>
             </View>
             <View style={styles.serviceGrid}>
               <HomeServiceTile
@@ -156,7 +110,7 @@ export default function HomeScreen() {
           <View style={styles.ordersSection}>
             <View style={styles.sectionHeader}>
               <View>
-                <Text style={styles.sectionEyebrow}>Recent</Text>
+              
                 <Text style={styles.sectionTitle}>Your shipments</Text>
               </View>
               <TouchableOpacity
@@ -216,16 +170,13 @@ function HomeStateCard({
   onRetry: () => void;
 }) {
   const isError = status === "error";
+  if (status === "idle" || status === "loading") return <ListSkeleton count={2} />;
   const title =
-    status === "loading" || status === "idle"
-      ? "Loading shipments"
-      : isError
+     isError
         ? "Shipments could not load"
         : "No shipments yet";
   const detail =
-    status === "loading" || status === "idle"
-      ? "Getting your cargo desk ready."
-      : isError
+     isError
         ? message || "Try again when your connection is stable."
         : "When you book or receive cargo, it will appear here.";
   return (
@@ -264,44 +215,6 @@ function HomeStateCard({
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: nwcColors.background },
   content: { gap: 24 },
-  sendCard: {
-    minHeight: 96,
-    borderRadius: 25,
-    padding: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 11,
-    backgroundColor: nwcColors.brandNavy,
-  },
-  sendIcon: {
-    width: 45,
-    height: 45,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: nwcColors.primary,
-  },
-  sendCopy: { flex: 1, gap: 2 },
-  sendTitle: {
-    color: nwcColors.white,
-    fontSize: 18,
-    lineHeight: 24,
-    fontFamily: "Poppins_800ExtraBold",
-  },
-  sendDetail: {
-    color: "#C7D8E0",
-    fontSize: 12,
-    lineHeight: 17,
-    fontFamily: "Poppins_500Medium",
-  },
-  sendArrow: {
-    width: 38,
-    height: 38,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#234156",
-  },
   activeSection: { gap: 10 },
   servicesSection: { gap: 10 },
   sectionHeader: {
@@ -319,7 +232,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.7,
     textTransform: "uppercase",
   },
-  sectionTitle: {
+  sectionTitle: { 
     color: nwcColors.foreground,
     fontSize: 20,
     lineHeight: 26,

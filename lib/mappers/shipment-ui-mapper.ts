@@ -21,6 +21,8 @@ const statusMap: Record<CustomerShipment["status"], ShipmentStatus> = {
 
 function toUiAddress(address: CustomerShipment["origin"]): Address {
   return {
+    latitude: address.latitude,
+    longitude: address.longitude,
     label: address.label,
     city: address.city,
     area: address.area || address.city,

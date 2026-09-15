@@ -32,16 +32,15 @@ describe("mobile release configuration", () => {
     expect(config.android?.config?.googleMaps?.apiKey).toBe(process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY);
   });
 
-  it("keeps build profiles separated by API mode", () => {
-    expect(eas.build.preview.env.EXPO_PUBLIC_API_MODE).toBe("mock");
-    expect(eas.build.staging.env.EXPO_PUBLIC_API_MODE).toBe("laravel");
-    expect(eas.build.production.env.EXPO_PUBLIC_API_MODE).toBe("laravel");
-    expect(eas.build.staging.env.EXPO_PUBLIC_API_BASE_URL).toBe("https://api.newworldcargo.com");
-    expect(eas.build.production.env.EXPO_PUBLIC_API_BASE_URL).toBe("https://api.newworldcargo.com");
-    expect(eas.build.staging.env.EXPO_PUBLIC_MAPS_PROVIDER).toBe("native");
-    expect(eas.build.staging.env.EXPO_PUBLIC_PAYMENTS_PROVIDER).toBe("laravel");
-    expect(eas.build.production.env.EXPO_PUBLIC_MAPS_PROVIDER).toBe("native");
-    expect(eas.build.production.env.EXPO_PUBLIC_PAYMENTS_PROVIDER).toBe("laravel");
+  it("keeps every build profile on live Laravel services", () => {
+    for (const profile of [eas.build.preview, eas.build.staging, eas.build.production]) {
+      expect(profile.env.EXPO_PUBLIC_API_MODE).toBe("laravel");
+      expect(profile.env.EXPO_PUBLIC_API_BASE_URL).toBe("https://api.newworldcargo.com/api/v1/");
+      expect(profile.env.EXPO_PUBLIC_PUBLIC_TRACKING_BASE_URL).toBe("https://api.newworldcargo.com/api/v1/");
+      expect(profile.env.EXPO_PUBLIC_ADMIN_API_BASE_URL).toBe("https://admin.newworldcargo.com/api/v1/");
+      expect(profile.env.EXPO_PUBLIC_MAPS_PROVIDER).toBe("native");
+      expect(profile.env.EXPO_PUBLIC_PAYMENTS_PROVIDER).toBe("laravel");
+    }
   });
 
   it("exposes standard build and audit scripts", () => {

@@ -19,13 +19,13 @@ export default function WelcomeScreen() {
 
       <View style={styles.message}>
         <Text style={styles.title}>Move your Katundu with confidence.</Text>
-        <Text style={styles.detail}>Simple local delivery and cargo tracking, all in one place.</Text>
+        <Text style={styles.detail}>International shipping, local deliveries and cargo tracking, all in one place.</Text>
       </View>
 
       <PrimaryButton
         label="Continue"
-        accessibilityHint="Open the sign in screen"
-        onPress={() => router.push("/auth/phone" as Href)}
+        accessibilityHint="Continue to app permissions"
+        onPress={() => router.push("/auth/permissions" as Href)}
         style={styles.continueButton}
       />
     </SafeAreaView>

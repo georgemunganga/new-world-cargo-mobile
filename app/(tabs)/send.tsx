@@ -26,7 +26,6 @@ export default function SendScreen() {
         >
           <View>
             <View style={styles.headingRow}>
-              <Text style={styles.eyebrow}>New booking</Text>
               <TouchableOpacity
                 accessibilityRole="button"
                 accessibilityLabel="Open saved booking drafts"
@@ -36,7 +35,7 @@ export default function SendScreen() {
                 <Text style={styles.draftsText}>Saved drafts</Text>
               </TouchableOpacity>
             </View>
-            <SectionHeader title="Choose a service" />
+            <SectionHeader title="Choose a servicess" />
             <Text style={styles.detail}>
               Start with the kind of cargo move you need. Add your route only
               after choosing.

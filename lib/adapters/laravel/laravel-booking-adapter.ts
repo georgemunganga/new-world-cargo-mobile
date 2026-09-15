@@ -87,7 +87,9 @@ function contactOrFallback(contact: PersonContact | undefined, fallbackName = "C
 export function portalSubmissionPayload(service: string, draft: unknown) {
   const raw = (draft && typeof draft === "object" ? draft : {}) as Record<string, any>;
   const receiver = contactOrFallback(raw.receiver ?? raw.consignee ?? raw.contact, "Customer", raw.sender?.phone ?? "");
-  const sender = contactOrFallback(raw.sender ?? raw.contact, "Customer", receiver.phone);
+  const sender = service === "import"
+    ? contactOrFallback(raw.supplier, "", "")
+    : contactOrFallback(raw.sender ?? raw.contact, "Customer", receiver.phone);
   const pickup = service === "local"
     ? addressText(raw.pickup)
     : service === "import"
@@ -102,7 +104,7 @@ export function portalSubmissionPayload(service: string, draft: unknown) {
       : service === "intercity"
         ? raw.destinationCity ?? ""
       : addressText(raw.destination);
-  const pickupBranchId = raw.pickup?.branchId ?? raw.originBranchId ?? raw.destinationBranchId;
+  const pickupBranchId = raw.pickup?.branchId ?? raw.originBranchId;
   const destinationBranchId = raw.destination?.branchId ?? raw.destinationBranchId;
   const quoteRequest = bookingQuoteRequestFromDraft(service as BookingService, raw);
   return {
@@ -129,8 +131,10 @@ export function portalSubmissionPayload(service: string, draft: unknown) {
       phone: receiver.phone,
       sender: sender.name,
       senderPhone: sender.phone,
+      ...(service === "import" && raw.supplier ? { supplierCompany: raw.supplier.company, supplierEmail: raw.supplier.email, supplierNotes: raw.supplier.notes } : {}),
       service,
       schedule: raw.schedule,
+      ...(raw.schedule === "scheduled" && raw.scheduledAt ? { scheduledAt: raw.scheduledAt } : {}),
       transportMode: raw.method,
       fulfilment: raw.fulfilment,
       instructions: raw.deliveryInstructions ?? raw.requestDetail,

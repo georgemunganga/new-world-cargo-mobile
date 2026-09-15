@@ -8,9 +8,12 @@
       "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_APP_ENV": "development",
-        "EXPO_PUBLIC_API_MODE": "mock",
-        "EXPO_PUBLIC_MAPS_PROVIDER": "mock",
-        "EXPO_PUBLIC_PAYMENTS_PROVIDER": "mock"
+        "EXPO_PUBLIC_API_MODE": "laravel",
+        "EXPO_PUBLIC_MAPS_PROVIDER": "native",
+        "EXPO_PUBLIC_PAYMENTS_PROVIDER": "laravel",
+        "EXPO_PUBLIC_API_BASE_URL": "https://api.newworldcargo.com/api/v1/",
+        "EXPO_PUBLIC_ADMIN_API_BASE_URL": "https://admin.newworldcargo.com/api/v1/",
+        "EXPO_PUBLIC_PUBLIC_TRACKING_BASE_URL": "https://api.newworldcargo.com/api/v1/"
       }
     },
     "staging": {
@@ -18,10 +21,11 @@
       "env": {
         "EXPO_PUBLIC_APP_ENV": "staging",
         "EXPO_PUBLIC_API_MODE": "laravel",
-        "EXPO_PUBLIC_API_BASE_URL": "https://api.newworldcargo.com",
-        "EXPO_PUBLIC_PUBLIC_TRACKING_BASE_URL": "https://api.newworldcargo.com",
+        "EXPO_PUBLIC_API_BASE_URL": "https://api.newworldcargo.com/api/v1/",
+        "EXPO_PUBLIC_PUBLIC_TRACKING_BASE_URL": "https://api.newworldcargo.com/api/v1/",
         "EXPO_PUBLIC_MAPS_PROVIDER": "native",
-        "EXPO_PUBLIC_PAYMENTS_PROVIDER": "laravel"
+        "EXPO_PUBLIC_PAYMENTS_PROVIDER": "laravel",
+        "EXPO_PUBLIC_ADMIN_API_BASE_URL": "https://admin.newworldcargo.com/api/v1/"
       }
     },
     "production": {
@@ -29,10 +33,11 @@
       "env": {
         "EXPO_PUBLIC_APP_ENV": "production",
         "EXPO_PUBLIC_API_MODE": "laravel",
-        "EXPO_PUBLIC_API_BASE_URL": "https://api.newworldcargo.com",
-        "EXPO_PUBLIC_PUBLIC_TRACKING_BASE_URL": "https://api.newworldcargo.com",
+        "EXPO_PUBLIC_API_BASE_URL": "https://api.newworldcargo.com/api/v1/",
+        "EXPO_PUBLIC_PUBLIC_TRACKING_BASE_URL": "https://api.newworldcargo.com/api/v1/",
         "EXPO_PUBLIC_MAPS_PROVIDER": "native",
-        "EXPO_PUBLIC_PAYMENTS_PROVIDER": "laravel"
+        "EXPO_PUBLIC_PAYMENTS_PROVIDER": "laravel",
+        "EXPO_PUBLIC_ADMIN_API_BASE_URL": "https://admin.newworldcargo.com/api/v1/"
       }
     }
   },

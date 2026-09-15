@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState, type PropsWithChildren } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
 import { permissionService, type DevicePermission } from "@/lib/services/device/permission-service";
 import type { CustomerPermission, CustomerPermissionStatus } from "@/lib/domain/permission";
 
@@ -15,7 +15,7 @@ const nativePermissionFor: Record<CustomerPermission, DevicePermission | null> =
   location: "location",
   camera: "camera",
   photos: "photos",
-  contacts: null,
+  contacts: "contacts",
   notifications: "notifications",
   biometrics: "biometrics",
 };
@@ -37,6 +37,23 @@ const CustomerPermissionContext = createContext<CustomerPermissionContextValue |
 
 export function CustomerPermissionProvider({ children }: PropsWithChildren) {
   const [statuses, setStatuses] = useState(defaultStatuses);
+
+  useEffect(() => {
+    let active = true;
+    void Promise.all(
+      (Object.keys(nativePermissionFor) as CustomerPermission[]).map(async (permission) => {
+        const nativePermission = nativePermissionFor[permission];
+        if (!nativePermission) return [permission, "not_requested"] as const;
+        const status = statusFromNative(await permissionService.getStatus(nativePermission));
+        return [permission, status] as const;
+      }),
+    ).then((entries) => {
+      if (active) setStatuses(Object.fromEntries(entries) as Record<CustomerPermission, CustomerPermissionStatus>);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const setStatus = useCallback((permission: CustomerPermission, status: CustomerPermissionStatus) => {
     setStatuses((current) => ({ ...current, [permission]: status }));

@@ -16,16 +16,21 @@ export type BookingQuoteRequest = {
   bookingType: "local_delivery" | "city_to_city" | "international_import" | "custom_request";
   pickup?: BookingQuotePoint;
   destination?: BookingQuotePoint;
+  receivingHub?: BookingQuotePoint;
   distanceKm?: number;
   vehicleType?: LocalDeliveryVehicle;
   transportMode?: string;
   fulfilment?: string;
+  onwardDelivery?: "collection" | "local" | "intercity";
+  onwardVehicleType?: LocalDeliveryVehicle;
   schedule?: string;
+  scheduledAt?: string;
   cargo: {
     items: Array<{ name: string; quantity: number; weight?: number; amount?: number }>;
     totalWeight?: number;
     declaredValue?: number;
     fragile: boolean;
+    packageType: "standard" | "container";
   };
 };
 
@@ -114,6 +119,7 @@ function cargoFrom(items?: BookingCargoItem[], fragile = false): BookingQuoteReq
     ...(totalWeight ? { totalWeight } : {}),
     ...(declaredValue ? { declaredValue } : {}),
     fragile,
+    packageType: "standard",
   };
 }
 
@@ -129,17 +135,31 @@ export function bookingQuoteRequestFromDraft(service: BookingService, draft: unk
     : service === "import"
       ? pointFromCity(raw.destinationCity, raw.destinationBranchId, raw.destinationLatitude, raw.destinationLongitude)
       : pointFromCity(raw.destinationCity, raw.destinationBranchId, raw.destinationLatitude, raw.destinationLongitude);
+  const receivingHub = service === "import"
+    ? pointFromCity(
+        raw.receivingHubCity ?? raw.destinationCity,
+        raw.receivingHubBranchId ?? raw.destinationBranchId,
+        raw.receivingHubLatitude ?? raw.destinationLatitude,
+        raw.receivingHubLongitude ?? raw.destinationLongitude,
+      )
+    : undefined;
+  const cargo = cargoFrom(raw.cargoItems, raw.handling === "fragile");
+  cargo.packageType = raw.packageType === "container" ? "container" : "standard";
   return {
     service,
     bookingType: bookingTypes[service],
     pickup,
     destination,
+    ...(receivingHub ? { receivingHub } : {}),
     distanceKm: distanceBetween(pickup, destination),
     vehicleType: raw.vehicle,
     transportMode: raw.method,
     fulfilment: raw.fulfilment,
+    ...(service === "import" ? { onwardDelivery: raw.onwardDelivery ?? "collection" } : {}),
+    ...(service === "import" && raw.onwardVehicle ? { onwardVehicleType: raw.onwardVehicle } : {}),
     schedule: raw.schedule,
-    cargo: cargoFrom(raw.cargoItems, raw.handling === "fragile"),
+    ...(raw.schedule === "scheduled" && raw.scheduledAt ? { scheduledAt: raw.scheduledAt } : {}),
+    cargo,
   };
 }
 

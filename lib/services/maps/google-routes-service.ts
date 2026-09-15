@@ -3,7 +3,7 @@ const apiKey = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY?.trim() ?? "";
 export type MapCoordinate = { latitude: number; longitude: number };
 
 export async function computeGoogleRoadRoute(origin: MapCoordinate, destination: MapCoordinate): Promise<MapCoordinate[]> {
-  if (!apiKey) return [origin, destination];
+  if (!apiKey) throw new Error("Road route unavailable");
   const response = await fetch("https://routes.googleapis.com/directions/v2:computeRoutes", {
     method: "POST",
     headers: {
@@ -12,8 +12,8 @@ export async function computeGoogleRoadRoute(origin: MapCoordinate, destination:
       "X-Goog-FieldMask": "routes.distanceMeters,routes.duration,routes.polyline.geoJsonLinestring",
     },
     body: JSON.stringify({
-      origin: { location: { latLng: origin } },
-      destination: { location: { latLng: destination } },
+      origin: { location: { latLng: { latitude: origin.latitude, longitude: origin.longitude } } },
+      destination: { location: { latLng: { latitude: destination.latitude, longitude: destination.longitude } } },
       travelMode: "DRIVE",
       routingPreference: "TRAFFIC_AWARE",
       polylineQuality: "OVERVIEW",
@@ -24,12 +24,13 @@ export async function computeGoogleRoadRoute(origin: MapCoordinate, destination:
   });
   if (!response.ok) throw new Error("Road route unavailable");
   const payload = await response.json() as {
-    routes?: Array<{ polyline?: { geoJsonLinestring?: { coordinates?: number[][] } } }>;
+    routes?: { polyline?: { geoJsonLinestring?: { coordinates?: number[][] } } }[];
   };
   const coordinates = payload.routes?.[0]?.polyline?.geoJsonLinestring?.coordinates ?? [];
   const route = coordinates.flatMap((coordinate) => {
     const [longitude, latitude] = coordinate;
     return Number.isFinite(latitude) && Number.isFinite(longitude) ? [{ latitude, longitude }] : [];
   });
-  return route.length > 1 ? route : [origin, destination];
+  if (route.length < 2) throw new Error("Road route unavailable");
+  return route;
 }

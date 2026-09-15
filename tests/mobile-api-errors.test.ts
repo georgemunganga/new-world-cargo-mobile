@@ -71,6 +71,37 @@ describe("mobile API errors", () => {
     }));
   });
 
+  it("sends JSON content type for serialized auth-free login requests", async () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ data: { ok: true } }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await createApiClient({ baseUrl: "https://api.example.test", mobileClient: true })
+      .post("/api/v1/auth/login", { identifier: "customer@example.com", password: "wrong" }, { auth: false });
+
+    expect(fetchMock).toHaveBeenCalledWith("https://api.example.test/api/v1/auth/login", expect.objectContaining({
+      body: JSON.stringify({ identifier: "customer@example.com", password: "wrong" }),
+      headers: expect.objectContaining({
+        "Content-Type": "application/json",
+        "X-NWC-Mobile-Client": "1",
+      }),
+    }));
+  });
+
+  it("does not duplicate the API version when the base URL already includes it", async () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ data: { ok: true } }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await createApiClient({ baseUrl: "https://api.newworldcargo.com/api/v1/" }).get("/api/v1/shipments");
+
+    expect(fetchMock).toHaveBeenCalledWith("https://api.newworldcargo.com/api/v1/shipments", expect.any(Object));
+  });
+
   it("preserves binary upload bodies while adding native credentials", async () => {
     const fetchMock = vi.fn(async () => new Response(null, { status: 204 }));
     vi.stubGlobal("fetch", fetchMock);

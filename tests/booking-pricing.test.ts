@@ -34,4 +34,25 @@ describe("booking pricing contract", () => {
     expect(quote.quoteSignature).toBeUndefined();
     expect(quote.total).toBeGreaterThan(0);
   });
+
+  it("maps an import receiving branch to the backend onward-delivery contract", () => {
+    const request = bookingQuoteRequestFromDraft("import", {
+      method: "air",
+      originCity: "Guangzhou",
+      originBranchId: "10",
+      destinationCity: "Lusaka",
+      destinationBranchId: "1",
+      cargoItems: [{ id: "item-1", name: "Shoes", quantity: 2, weight: 3 }],
+    });
+
+    expect(request).toMatchObject({
+      service: "import",
+      transportMode: "air",
+      pickup: { branchId: "10" },
+      destination: { branchId: "1" },
+      receivingHub: { branchId: "1" },
+      onwardDelivery: "collection",
+      cargo: { totalWeight: 6, packageType: "standard" },
+    });
+  });
 });

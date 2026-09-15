@@ -1,54 +1,37 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { customerSafeMessageFor } from "@/lib/api/errors";
+import { useQueryClient } from "@tanstack/react-query";
 import type { CustomerShipment } from "@/lib/domain/shipment";
 import { repositories } from "@/lib/repositories";
-
-export function useCustomerShipment(id?: string, options: { pollIntervalMs?: number } = {}) {
-  const [shipment, setShipment] = useState<CustomerShipment | null>(null);
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "not-found" | "error">("idle");
-  const [errorMessage, setErrorMessage] = useState("");
-  const [isStale, setIsStale] = useState(false);
-  const [lastUpdatedAt, setLastUpdatedAt] = useState<string>();
-  const shipmentRef = useRef<CustomerShipment | null>(null);
-
-  const refresh = useCallback(async () => {
-    if (!id) {
-      setStatus("not-found");
-      setShipment(null);
-      return null;
-    }
-    setStatus((current) => shipmentRef.current && current === "success" ? current : "loading");
-    setErrorMessage("");
-    try {
-      const nextShipment = await repositories.shipments.getShipment(id);
-      shipmentRef.current = nextShipment;
-      setShipment(nextShipment);
-      setStatus(nextShipment ? "success" : "not-found");
-      setIsStale(false);
-      setLastUpdatedAt(new Date().toISOString());
-      return nextShipment;
-    } catch (error) {
-      setErrorMessage(customerSafeMessageFor(error));
-      if (shipmentRef.current) {
-        setIsStale(true);
-        setStatus("success");
-      } else {
-        setStatus("error");
-        setShipment(null);
-      }
-      return null;
-    }
-  }, [id]);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
-
-  useEffect(() => {
-    if (!options.pollIntervalMs || options.pollIntervalMs < 1000) return;
-    const timer = setInterval(() => void refresh(), options.pollIntervalMs);
-    return () => clearInterval(timer);
-  }, [options.pollIntervalMs, refresh]);
-
-  return { shipment, status, errorMessage, isStale, lastUpdatedAt, refresh };
+import { useCustomerQuery } from "@/lib/data/use-customer-query";
+export function useCustomerShipment(
+  id?: string,
+  options: { pollIntervalMs?: number } = {},
+) {
+  const client = useQueryClient();
+  const query = useCustomerQuery({
+    queryKey: ["shipment", id],
+    initialData: () =>
+      client
+        .getQueryData<CustomerShipment[]>(["shipments"])
+        ?.find((item) => item.id === id),
+    initialDataUpdatedAt: () =>
+      client.getQueryState(["shipments"])?.dataUpdatedAt ?? 0,
+    queryFn: () =>
+      id ? repositories.shipments.getShipment(id) : Promise.resolve(null),
+    enabled: Boolean(id),
+    staleTime: 15_000,
+    refetchInterval: options.pollIntervalMs,
+    refetchIntervalInBackground: false,
+  });
+  return {
+    ...query,
+    shipment: query.data ?? null,
+    status:
+      !id || (query.status === "success" && !query.data)
+        ? ("not-found" as const)
+        : query.status,
+    lastUpdatedAt: query.dataUpdatedAt
+      ? new Date(query.dataUpdatedAt).toISOString()
+      : undefined,
+    refresh: async () => (await query.refetch()).data ?? null,
+  };
 }

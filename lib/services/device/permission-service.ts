@@ -1,6 +1,6 @@
-import { Platform } from "react-native";
+import { PermissionsAndroid, Platform } from "react-native";
 
-export type DevicePermission = "camera" | "location" | "notifications" | "photos" | "files" | "biometrics";
+export type DevicePermission = "camera" | "contacts" | "location" | "notifications" | "photos" | "files" | "biometrics";
 export type DevicePermissionStatus = "granted" | "denied" | "undetermined" | "unavailable";
 
 export type PermissionService = {
@@ -22,8 +22,25 @@ function moduleFor(permission: DevicePermission): { get?: () => Promise<{ status
       return { get: location.getForegroundPermissionsAsync, request: location.requestForegroundPermissionsAsync };
     }
     if (permission === "notifications") {
+      if (Platform.OS === "android") {
+        const notificationPermission = PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS;
+        return {
+          get: async () => ({
+            status: await PermissionsAndroid.check(notificationPermission) ? "granted" : "undetermined",
+          }),
+          request: async () => ({
+            status: await PermissionsAndroid.request(notificationPermission) === PermissionsAndroid.RESULTS.GRANTED
+              ? "granted"
+              : "denied",
+          }),
+        };
+      }
       const notifications = require("expo-notifications");
       return { get: notifications.getPermissionsAsync, request: notifications.requestPermissionsAsync };
+    }
+    if (permission === "contacts") {
+      const contacts = require("expo-contacts");
+      return { get: contacts.getPermissionsAsync, request: contacts.requestPermissionsAsync };
     }
     if (permission === "camera" || permission === "photos") {
       const imagePicker = require("expo-image-picker");

@@ -5,6 +5,23 @@ import { missingPortalContract } from "../lib/adapters/laravel/portal-contract-g
 import { portalSubmissionPayload } from "../lib/adapters/laravel/laravel-booking-adapter";
 
 describe("mobile Laravel feature contracts", () => {
+  it("includes the requested pickup instant in both pricing and submission", () => {
+    const scheduledAt = "2026-09-16T08:30:00.000Z";
+    const payload = portalSubmissionPayload("local", { schedule: "scheduled", scheduledAt });
+    expect(payload.form).toMatchObject({ schedule: "scheduled", scheduledAt });
+    expect(payload.pricing.request).toMatchObject({ schedule: "scheduled", scheduledAt });
+    expect(portalSubmissionPayload("local", { schedule: "as_soon_as_possible", scheduledAt }).form).not.toHaveProperty("scheduledAt");
+  });
+  it("leaves an unknown international supplier empty instead of copying receiver details", () => {
+    const payload = portalSubmissionPayload("import", { consignee: { name: "Receiver", phone: "+260971234567" } });
+    expect(payload.form).toMatchObject({ recipient: "Receiver", phone: "+260971234567", sender: "", senderPhone: "" });
+  });
+  it("keeps optional supplier contact data separate from the international receiver", () => {
+    const supplier = { name: "Supplier", phone: "+8613812345678", company: "Test supplier company", email: "supplier@example.com", notes: "Warehouse contact" };
+    const payload = portalSubmissionPayload("import", { consignee: { name: "Receiver", phone: "+260971234567" }, supplier });
+    expect(payload.form).toMatchObject({ recipient: "Receiver", sender: supplier.name, senderPhone: supplier.phone, supplierCompany: supplier.company, supplierEmail: supplier.email, supplierNotes: supplier.notes });
+    expect(payload.draft).toMatchObject({ supplier });
+  });
   it("maps CustomerPortalApi shipment DTOs without leaking Laravel field names to screens", () => {
     expect(mapPortalShipment({
       id: "37726",
@@ -61,7 +78,7 @@ describe("mobile Laravel feature contracts", () => {
       form: {
         pickup: "Guangzhou, China",
         destination: "Lusaka",
-        pickupBranchId: "1",
+        pickupBranchId: undefined,
         destinationBranchId: "1",
         pickupLatitude: 23.1291,
         pickupLongitude: 113.2644,
@@ -72,7 +89,9 @@ describe("mobile Laravel feature contracts", () => {
         request: {
           bookingType: "international_import",
           transportMode: undefined,
-          cargo: { totalWeight: 7, declaredValue: 85 },
+          receivingHub: { branchId: "1" },
+          onwardDelivery: "collection",
+          cargo: { totalWeight: 7, declaredValue: 85, packageType: "standard" },
         },
         quotePayload: { total: 2450 },
         quoteSignature: "signed-quote",

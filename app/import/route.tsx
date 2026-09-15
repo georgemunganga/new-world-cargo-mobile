@@ -1,10 +1,15 @@
+import { useEffect, useRef, useState } from "react";
 import { router } from "expo-router";
 import { BookingMapRouteShell } from "@/components/booking/booking-map-route-shell";
 import { BookingSection, ChoiceTile } from "@/components/booking/booking-ui";
 import { RouteEntryCard } from "@/components/booking/route-entry-card";
 import { importSteps } from "@/lib/service-booking";
+import { loadRouteReferenceData, routeSuggestionToAddress } from "@/lib/route-autocomplete";
 import { useBookingDraft } from "@/stores/booking-draft";
 import type { Address } from "@/types/cargo";
+import { locationService } from "@/lib/services/device/location-service";
+import { nearestReceivingBranch } from "@/lib/maps/international-route";
+import { useAppToast } from "@/components/ui/app-toast";
 
 function laneAddress(
   city?: string,
@@ -27,11 +32,41 @@ function laneAddress(
 
 export default function ImportRouteScreen() {
   const { importDraft, updateImportDraft } = useBookingDraft();
+  const [officeMapPoints, setOfficeMapPoints] = useState<Address[]>([]);
+  const toast = useAppToast();
+  const current = useRef({ importDraft, updateImportDraft, toast });
+  current.current = { importDraft, updateImportDraft, toast };
+  const manuallySelectedDestination = useRef(false);
+  useEffect(() => {
+    let active = true;
+    void loadRouteReferenceData().then(async (offices) => {
+      if (!active) return;
+      setOfficeMapPoints(offices.map(routeSuggestionToAddress));
+      if (current.current.importDraft.destinationCity || manuallySelectedDestination.current) return;
+      const location = await locationService.getCurrentLocation();
+      if (!active || manuallySelectedDestination.current || current.current.importDraft.destinationCity) return;
+      if (!location.ok) {
+        current.current.toast.info("Choose your receiving branch manually. Location is unavailable.");
+        return;
+      }
+      const branch = nearestReceivingBranch(offices.filter((office): office is typeof office & { latitude: number; longitude: number } => Number.isFinite(office.latitude) && Number.isFinite(office.longitude)), location.value);
+      if (!branch) return;
+      current.current.updateImportDraft({ destinationCity: branch.city, destinationBranchId: branch.branchId, destinationLatitude: branch.latitude, destinationLongitude: branch.longitude });
+      current.current.toast.info(`Nearest receiving branch selected: ${branch.label}. You can change it.`);
+    }).catch(() => {
+      if (active) current.current.toast.info("Could not detect your location. Choose a receiving branch.");
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
   const ready = Boolean(
     importDraft.method &&
     importDraft.originCountry &&
     importDraft.originCity &&
-    importDraft.destinationCity,
+    importDraft.originBranchId &&
+    importDraft.destinationCity &&
+    importDraft.destinationBranchId,
   );
   return (
     <BookingMapRouteShell
@@ -40,7 +75,7 @@ export default function ImportRouteScreen() {
       serviceLabel="International Imports"
       progressSteps={importSteps}
       title="Plan your international shipment"
-      detail="Choose the supported origin and Zambia receiving branch, then select Air or Sea Freight on this same page."
+      detail="Choose a New WorldCargo origin office and Zambia receiving branch, then select Air or Sea Freight."
       pickup={laneAddress(
         importDraft.originCity,
         importDraft.originCountry,
@@ -55,6 +90,7 @@ export default function ImportRouteScreen() {
         importDraft.destinationLatitude,
         importDraft.destinationLongitude,
       )}
+      overviewPoints={officeMapPoints}
       routeReady={ready}
       continueLabel="Continue to cargo"
       continueDisabled={!ready}
@@ -62,19 +98,22 @@ export default function ImportRouteScreen() {
     >
       <RouteEntryCard
         scope="import"
+        requireBranch
         from={{
           value: importDraft.originCity ?? "",
           detail:
             importDraft.originCountry ??
-            "Supplier city, port, airport, or branch",
+            "Select a New WorldCargo origin office",
         }}
         to={{
           value: importDraft.destinationCity ?? "",
           detail: importDraft.destinationBranchId
             ? "Selected receiving branch"
-            : "Receiving city or branch",
+            : "Select a Zambia receiving branch",
         }}
-        onSuggestionSelect={(target, suggestion) =>
+        onSuggestionSelect={(target, suggestion) => {
+          if (target === "to") manuallySelectedDestination.current = true;
+          return (
           target === "from"
             ? updateImportDraft({
                 originCountry: suggestion.country ?? importDraft.originCountry,
@@ -89,7 +128,8 @@ export default function ImportRouteScreen() {
                 destinationLatitude: suggestion.latitude,
                 destinationLongitude: suggestion.longitude,
               })
-        }
+          );
+        }}
         accessibilityHint="Set your import origin and receiving city"
       />
       <BookingSection label="Shipment type">

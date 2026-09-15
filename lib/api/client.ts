@@ -20,12 +20,16 @@ export type ApiRequestOptions = RequestInit & {
 const DEFAULT_TIMEOUT_MS = 15000;
 const CSRF_COOKIE_NAME = "nwc_csrf";
 const CSRF_HEADER_NAME = "X-CSRF-Token";
+const DEBUG_API = process.env.NODE_ENV !== "production" && process.env.EXPO_PUBLIC_DEBUG_API !== "0";
 
 function joinUrl(baseUrl: string, endpoint: string) {
   if (/^https?:\/\//i.test(endpoint)) return endpoint;
   if (!baseUrl) return endpoint;
-  const cleanBase = baseUrl.replace(/\/$/, "");
+  const cleanBase = baseUrl.replace(/\/+$/, "");
   const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+  if (/\/api\/v\d+$/i.test(cleanBase) && /^\/api\/v\d+(?:\/|$)/i.test(cleanEndpoint)) {
+    return `${cleanBase}${cleanEndpoint.replace(/^\/api\/v\d+/i, "") || "/"}`;
+  }
   return `${cleanBase}${cleanEndpoint}`;
 }
 
@@ -45,12 +49,44 @@ function isUnsafeMethod(method?: string) {
 function isRawRequestBody(body: unknown): body is BodyInit {
   return (typeof FormData !== "undefined" && body instanceof FormData)
     || (typeof Blob !== "undefined" && body instanceof Blob)
-    || (typeof ArrayBuffer !== "undefined" && body instanceof ArrayBuffer)
-    || typeof body === "string";
+    || (typeof ArrayBuffer !== "undefined" && body instanceof ArrayBuffer);
 }
 
 function serializeRequestBody(body: unknown): BodyInit {
   return isRawRequestBody(body) ? body : JSON.stringify(body ?? {});
+}
+
+function logApiActivity(
+  event: "request" | "response" | "error",
+  details: {
+    method: string;
+    url: string;
+    auth: boolean;
+    hasBearer?: boolean;
+    hasCsrf?: boolean;
+    status?: number;
+    durationMs?: number;
+    code?: string;
+    requestId?: string;
+    message?: string;
+  },
+) {
+  if (!DEBUG_API) return;
+  const prefix = event === "request" ? "→" : event === "response" ? "←" : "×";
+  const summary = [
+    `[NWC API] ${prefix}`,
+    details.method,
+    details.url,
+    details.status ? `status=${details.status}` : "",
+    `auth=${details.auth ? "yes" : "no"}`,
+    details.hasBearer === undefined ? "" : `bearer=${details.hasBearer ? "yes" : "no"}`,
+    details.hasCsrf === undefined ? "" : `csrf=${details.hasCsrf ? "yes" : "no"}`,
+    details.code ? `code=${details.code}` : "",
+    details.requestId ? `requestId=${details.requestId}` : "",
+    details.durationMs === undefined ? "" : `${details.durationMs}ms`,
+  ].filter(Boolean).join(" ");
+  if (event === "error") console.warn(summary, details.message ?? "");
+  else console.log(summary);
 }
 
 async function parseErrorResponse(response: Response) {
@@ -88,6 +124,10 @@ export function createApiClient(options: ApiClientOptions = {}) {
   async function request<T>(endpoint: string, requestOptions: ApiRequestOptions = {}): Promise<T> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), requestOptions.timeoutMs ?? timeoutMs);
+    const method = (requestOptions.method ?? "GET").toUpperCase();
+    const url = joinUrl(baseUrl, endpoint);
+    const requiresAuth = requestOptions.auth !== false;
+    const startedAt = Date.now();
     const headers: Record<string, string> = {
       Accept: "application/json",
       ...(mobileClient ? { "X-NWC-Mobile-Client": "1" } : {}),
@@ -105,13 +145,22 @@ export function createApiClient(options: ApiClientOptions = {}) {
       if (csrf) headers[CSRF_HEADER_NAME] = csrf;
     }
 
+    logApiActivity("request", {
+      method,
+      url,
+      auth: requiresAuth,
+      hasBearer: !!headers.Authorization,
+      hasCsrf: !!headers[CSRF_HEADER_NAME],
+    });
+
     try {
-      const response = await fetch(joinUrl(baseUrl, endpoint), {
+      const response = await fetch(url, {
         ...requestOptions,
         headers,
         credentials: requestOptions.credentials ?? "include",
         signal: requestOptions.signal ?? controller.signal,
       });
+      const durationMs = Date.now() - startedAt;
 
       if (!response.ok) {
         const details = await parseErrorResponse(response);
@@ -121,10 +170,28 @@ export function createApiClient(options: ApiClientOptions = {}) {
           requestId: details.requestId,
           retryable: details.retryable,
         });
+        logApiActivity("error", {
+          method,
+          url,
+          auth: requiresAuth,
+          status: response.status,
+          durationMs,
+          code: error.code,
+          requestId: details.requestId,
+          message: error.message,
+        });
         if (error.code === "UNAUTHENTICATED" && requestOptions.auth !== false) notifySessionExpired(error);
         throw error;
       }
 
+      logApiActivity("response", {
+        method,
+        url,
+        auth: requiresAuth,
+        status: response.status,
+        durationMs,
+        requestId: response.headers.get("x-request-id") ?? response.headers.get("x-correlation-id") ?? undefined,
+      });
       if (response.status === 204) return undefined as T;
       const contentType = response.headers.get("content-type") ?? "";
       if (contentType.includes("application/json")) return (await response.json()) as T;
@@ -132,8 +199,10 @@ export function createApiClient(options: ApiClientOptions = {}) {
     } catch (error) {
       if (error instanceof MobileApiError) throw error;
       if (error instanceof DOMException && error.name === "AbortError") {
+        logApiActivity("error", { method, url, auth: requiresAuth, durationMs: Date.now() - startedAt, code: "TIMEOUT", message: "Request timed out." });
         throw new MobileApiError("TIMEOUT", "The request took too long. Please try again.", { retryable: true });
       }
+      logApiActivity("error", { method, url, auth: requiresAuth, durationMs: Date.now() - startedAt, code: "NETWORK_UNAVAILABLE", message: error instanceof Error ? error.message : "Network request failed." });
       throw new MobileApiError("NETWORK_UNAVAILABLE", "We could not reach New WorldCargo. Check your connection and try again.", { retryable: true });
     } finally {
       clearTimeout(timeout);

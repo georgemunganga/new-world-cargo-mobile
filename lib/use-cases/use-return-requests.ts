@@ -1,30 +1,19 @@
-import { useCallback, useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCustomerQuery } from "@/lib/data/use-customer-query";
+import { useCallback, useState } from "react";
 import { customerSafeMessageFor } from "@/lib/api/errors";
 import type { ReturnRequest, SubmitReturnRequestInput } from "@/lib/domain/return-request";
 import { repositories } from "@/lib/repositories";
 
 export function useReturnRequests() {
-  const [requests, setRequests] = useState<ReturnRequest[]>([]);
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "empty" | "error" | "submitting">("idle");
-  const [errorMessage, setErrorMessage] = useState("");
-
-  const refresh = useCallback(async () => {
-    setStatus("loading");
-    setErrorMessage("");
-    try {
-      const nextRequests = await repositories.returns.listRequests();
-      setRequests(nextRequests);
-      setStatus(nextRequests.length ? "success" : "empty");
-    } catch (error) {
-      setErrorMessage(customerSafeMessageFor(error));
-      setStatus("error");
-    }
-  }, []);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
-
+  const client = useQueryClient();
+  const query = useCustomerQuery({queryKey:["returns"],queryFn:() => repositories.returns.listRequests(),staleTime:30_000});
+  const requests = query.data ?? [];
+  const setRequests = useCallback((update: (current: ReturnRequest[]) => ReturnRequest[]) => {client.setQueryData<ReturnRequest[]>(["returns"], current => update(current ?? []));}, [client]);
+  const [mutationStatus,setStatus] = useState<"idle"|"submitting"|"success"|"error">("idle");
+  const [errorMessage,setErrorMessage] = useState("");
+  const status = mutationStatus === "submitting" ? mutationStatus : query.status;
+  const refresh = query.refresh;
   const submitReturn = useCallback(async (input: SubmitReturnRequestInput) => {
     setStatus("submitting");
     setErrorMessage("");
@@ -38,7 +27,7 @@ export function useReturnRequests() {
       setStatus("error");
       return null;
     }
-  }, []);
+  }, [setRequests]);
 
-  return { requests, status, errorMessage, refresh, submitReturn };
+  return { requests, status, errorMessage: errorMessage || query.errorMessage, refresh, submitReturn };
 }

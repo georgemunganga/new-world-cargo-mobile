@@ -1,4 +1,5 @@
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { TrackingSkeleton } from "@/components/ui/skeleton";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useState } from "react";
 import { Redirect, router, useLocalSearchParams } from "expo-router";
 import { LiveTrackingMap } from "@/components/tracking/live-tracking-map";
@@ -10,9 +11,11 @@ import { isActiveShipment } from "@/lib/shipment-navigation";
 import { getLiveTrackingHistory } from "@/lib/live-tracking-history";
 import { nwcColors } from "@/lib/nwc-theme";
 import { useCustomerShipment } from "@/lib/use-cases/use-customer-shipment";
+import { useAppToast } from "@/components/ui/app-toast";
 
 export default function LiveTrackingScreen() {
   const { shipmentId } = useLocalSearchParams<{ shipmentId: string }>();
+  const toast = useAppToast();
   const shipmentState = useCustomerShipment(shipmentId, { pollIntervalMs: 15000 });
   const shipment = shipmentState.shipment ? toUiShipment(shipmentState.shipment) : null;
   const [instructions, setInstructions] = useState("");
@@ -20,7 +23,7 @@ export default function LiveTrackingScreen() {
   if (!shipment) return <TrackingStateScreen status={shipmentState.status} message={shipmentState.errorMessage} onRetry={shipmentState.refresh} />;
   if (!isActiveShipment(shipment)) return <Redirect href={`/shipments/${shipment.id}` as never} />;
   const contact = shipment.trackingContact ?? { name: "New WorldCargo", role: "Shipment support", phone: "+260 970 020 190", verified: true };
-  const showUnavailable = (label: string) => Alert.alert(label, "Live delivery communication is not available for this shipment yet. Please use support if the cargo needs attention.");
+  const showUnavailable = (label: string) => toast.info(`${label} is not available for this shipment yet. Please use support if the cargo needs attention.`);
   const history = getLiveTrackingHistory(shipment);
   const updateLabel = shipmentState.isStale
     ? "Connection lost · showing the last server update"
@@ -35,9 +38,10 @@ function formatUpdateTime(value?: string) {
 }
 
 function TrackingStateScreen({ status, message, onRetry }: { status: "idle" | "loading" | "success" | "not-found" | "error"; message?: string; onRetry: () => void }) {
+  if (status === "loading" || status === "idle") return <Screen><ScrollView><View style={{padding:16}}><RoundControl label="Go back" icon="arrow-left" onPress={() => router.back()} /></View><TrackingSkeleton /></ScrollView></Screen>;
   const isError = status === "error";
-  const title = status === "loading" || status === "idle" ? "Loading tracking" : isError ? "Tracking could not load" : "Shipment not found";
-  const detail = status === "loading" || status === "idle" ? "Getting the latest shipment view." : isError ? message || "Try again when your connection is stable." : "Check the shipment reference and try again.";
+  const title = isError ? "Tracking could not load" : "Shipment not found";
+  const detail = isError ? message || "Try again when your connection is stable." : "Check the shipment reference and try again.";
   return <Screen><View style={styles.statePage}><View style={styles.stateIcon}><AppIcon name={isError ? "alert-circle-outline" : "package-variant"} size={30} color={nwcColors.primaryInk} /></View><Text style={styles.stateTitle}>{title}</Text><Text style={styles.stateDetail}>{detail}</Text>{isError ? <PrimaryButton label="Try again" onPress={onRetry} /> : null}</View></Screen>;
 }
 

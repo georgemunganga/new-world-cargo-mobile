@@ -78,7 +78,12 @@ const config: ExpoConfig = {
     eas: env.expoProjectId ? { projectId: env.expoProjectId } : undefined,
   },
   plugins: [
+    "@react-native-community/datetimepicker",
     "expo-router",
+    "expo-font",
+    "expo-video",
+    "expo-web-browser",
+    "expo-audio",
     [
       "expo-secure-store",
       {

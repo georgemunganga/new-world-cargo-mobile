@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { mockBookingRepository } from "../lib/adapters/mock/mock-booking-adapter";
+import { mockShipmentRepository } from "../lib/adapters/mock/mock-shipment-adapter";
 
 describe("mobile booking repository", () => {
   it("submits a local booking through the repository boundary", async () => {
@@ -11,6 +12,13 @@ describe("mobile booking repository", () => {
       message: "Delivery request received.",
     });
     expect(result.reference).toMatch(/^NWC-/);
+
+    await expect(mockShipmentRepository.getShipment(result.id)).resolves.toMatchObject({
+      id: result.id,
+      code: result.reference,
+      service: "local",
+      status: "pending",
+    });
   });
 
   it("submits quote-based booking services without requiring backend-specific fields", async () => {

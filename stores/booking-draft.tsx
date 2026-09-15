@@ -3,6 +3,7 @@ import type { BookingStep, CustomRequestDraft, ImportBookingDraft, IntercityBook
 import { type MockBookingDraftRecord } from "@/lib/mock-booking-drafts";
 import { repositories } from "@/lib/repositories";
 import { readStoredDraftSummaries, writeStoredDraftSummaries } from "@/lib/storage/draft-storage";
+import { useCustomerAuth } from "@/stores/customer-auth";
 
 const freshDraft = (): LocalDeliveryDraft => ({ service: "local", step: "route", quantity: 1, handling: "standard", schedule: "as_soon_as_possible", vehicle: "scooter" });
 const freshImportDraft = (): ImportBookingDraft => ({ service: "import", quantity: 1 });
@@ -70,12 +71,24 @@ type BookingDraftContextValue = {
 const BookingDraftContext = createContext<BookingDraftContextValue | null>(null);
 
 export function BookingDraftProvider({ children }: PropsWithChildren) {
+  const { customer, isRestoring } = useCustomerAuth();
   const [localDraft, setLocalDraft] = useState<LocalDeliveryDraft>(freshDraft);
   const [importDraft, setImportDraft] = useState<ImportBookingDraft>(freshImportDraft);
   const [intercityDraft, setIntercityDraft] = useState<IntercityBookingDraft>(freshIntercityDraft);
+  useEffect(() => {
+    if (isRestoring || !customer) return;
+    const contact = { name: customer.name ?? "", phone: customer.phone ?? "" };
+    setIntercityDraft((draft) => draft.sender === undefined ? { ...draft, sender: contact } : draft);
+    setImportDraft((draft) => draft.consignee === undefined ? { ...draft, consignee: contact } : draft);
+  }, [customer, isRestoring, intercityDraft.sender, importDraft.consignee]);
   const [customDraft, setCustomDraft] = useState<CustomRequestDraft>(freshCustomDraft);
   const [savedDrafts, setSavedDrafts] = useState<MockBookingDraftRecord[]>([]);
   useEffect(() => {
+    if (isRestoring) return;
+    if (!customer) {
+      setSavedDrafts([]);
+      return;
+    }
     let active = true;
     void repositories.bookings.listDrafts()
       .catch(() => readStoredDraftSummaries())
@@ -102,7 +115,7 @@ export function BookingDraftProvider({ children }: PropsWithChildren) {
     return () => {
       active = false;
     };
-  }, []);
+  }, [customer?.id, isRestoring]);
   useEffect(() => {
     void writeStoredDraftSummaries(savedDrafts.map((draft) => ({
       id: draft.id,

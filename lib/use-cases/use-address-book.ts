@@ -1,78 +1,65 @@
-import { useCallback, useEffect, useState } from "react";
-import { customerSafeMessageFor } from "@/lib/api/errors";
-import type { AddressBookItem, AddressBookKind } from "@/lib/domain/address-book";
+import { useQueryClient } from "@tanstack/react-query";
+import { customerQueries } from "@/lib/data/customer-queries";
+import { useCustomerQuery } from "@/lib/data/use-customer-query";
 import { repositories } from "@/lib/repositories";
-import { readStoredAddressBook, writeStoredAddressBook } from "@/lib/storage/address-book-storage";
-
+import type {
+  AddressBookItem,
+  AddressBookKind,
+} from "@/lib/domain/address-book";
 export function useAddressBook() {
-  const [recipients, setRecipients] = useState<AddressBookItem[]>([]);
-  const [savedPlaces, setSavedPlaces] = useState<AddressBookItem[]>([]);
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "empty" | "error">("idle");
-  const [errorMessage, setErrorMessage] = useState("");
-  const [isStale, setIsStale] = useState(false);
-
-  const refresh = useCallback(async () => {
-    setStatus("loading");
-    setErrorMessage("");
-    setIsStale(false);
-    try {
-      const [nextRecipients, nextSavedPlaces] = await Promise.all([
-        repositories.addressBook.listRecipients(),
-        repositories.addressBook.listSavedPlaces(),
-      ]);
-      await writeStoredAddressBook({ recipients: nextRecipients, savedPlaces: nextSavedPlaces });
-      setRecipients(nextRecipients);
-      setSavedPlaces(nextSavedPlaces);
-      setStatus(nextRecipients.length || nextSavedPlaces.length ? "success" : "empty");
-    } catch (error) {
-      const stored = await readStoredAddressBook();
-      if (stored && (stored.recipients.length || stored.savedPlaces.length)) {
-        setRecipients(stored.recipients);
-        setSavedPlaces(stored.savedPlaces);
-        setIsStale(true);
-        setErrorMessage("Showing your last saved recipients and places. Try again when your connection is back.");
-        setStatus("success");
-        return;
-      }
-      setErrorMessage(customerSafeMessageFor(error));
-      setStatus("error");
-    }
-  }, []);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
-
-  const saveDirectoryItem = useCallback(async (kind: AddressBookKind, item: Omit<AddressBookItem, "id"> & { id?: string }) => {
+  const client = useQueryClient();
+  const places = useCustomerQuery(customerQueries.places);
+  const people = useCustomerQuery(customerQueries.recipients);
+  const savedPlaces = places.data ?? [],
+    recipients = people.data ?? [];
+  const refresh = async () => {
+    await Promise.all([places.refetch(), people.refetch()]);
+  };
+  const saveDirectoryItem = async (
+    kind: AddressBookKind,
+    item: Omit<AddressBookItem, "id"> & { id?: string },
+  ) => {
     const saved = await repositories.addressBook.saveDirectoryItem(kind, item);
-    const update = (current: AddressBookItem[]) => current.some((entry) => entry.id === saved.id) ? current.map((entry) => entry.id === saved.id ? saved : entry) : [...current, saved];
-    if (kind === "places") {
-      const nextSavedPlaces = update(savedPlaces);
-      setSavedPlaces(nextSavedPlaces);
-      await writeStoredAddressBook({ recipients, savedPlaces: nextSavedPlaces });
-    } else {
-      const nextRecipients = update(recipients);
-      setRecipients(nextRecipients);
-      await writeStoredAddressBook({ recipients: nextRecipients, savedPlaces });
-    }
-    setStatus("success");
-    setIsStale(false);
+    const key =
+      kind === "places"
+        ? customerQueries.places.queryKey
+        : customerQueries.recipients.queryKey;
+    await client.cancelQueries({ queryKey: key });
+    client.setQueryData<AddressBookItem[]>(key, (current) => [
+      ...(current ?? []).filter((entry) => entry.id !== saved.id),
+      saved,
+    ]);
     return saved;
-  }, [recipients, savedPlaces]);
-
-  const removeDirectoryItem = useCallback(async (kind: AddressBookKind, id: string) => {
+  };
+  const removeDirectoryItem = async (kind: AddressBookKind, id: string) => {
     await repositories.addressBook.removeDirectoryItem(kind, id);
-    if (kind === "places") {
-      const nextSavedPlaces = savedPlaces.filter((item) => item.id !== id);
-      setSavedPlaces(nextSavedPlaces);
-      await writeStoredAddressBook({ recipients, savedPlaces: nextSavedPlaces });
-    } else {
-      const nextRecipients = recipients.filter((item) => item.id !== id);
-      setRecipients(nextRecipients);
-      await writeStoredAddressBook({ recipients: nextRecipients, savedPlaces });
-    }
-    setIsStale(false);
-  }, [recipients, savedPlaces]);
-
-  return { recipients, savedPlaces, status, errorMessage, isStale, refresh, saveDirectoryItem, removeDirectoryItem };
+    const key =
+      kind === "places"
+        ? customerQueries.places.queryKey
+        : customerQueries.recipients.queryKey;
+    await client.cancelQueries({ queryKey: key });
+    client.setQueryData<AddressBookItem[]>(key, (current) =>
+      (current ?? []).filter((entry) => entry.id !== id),
+    );
+  };
+  const status =
+    places.status === "loading" || people.status === "loading"
+      ? "loading"
+      : places.status === "error" || people.status === "error"
+        ? "error"
+        : savedPlaces.length || recipients.length
+          ? "success"
+          : "empty";
+  return {
+    placesState: {status: places.status, errorMessage: places.errorMessage, refresh: places.refresh},
+    recipientsState: {status: people.status, errorMessage: people.errorMessage, refresh: people.refresh},
+    savedPlaces,
+    recipients,
+    status,
+    errorMessage: places.errorMessage || people.errorMessage,
+    isStale: places.isStale || people.isStale,
+    refresh,
+    saveDirectoryItem,
+    removeDirectoryItem,
+  };
 }

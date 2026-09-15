@@ -1,3 +1,5 @@
+import { ListSkeleton } from "@/components/ui/skeleton";
+import { MobileInput } from "@/components/ui/mobile-input";
 import { useState } from "react";
 import {
   Image,
@@ -5,7 +7,6 @@ import {
   StyleSheet,
   Switch,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -162,7 +163,7 @@ export default function AccountSettingsScreen() {
             <SettingsRow
               icon="shield-check-outline"
               title="Sign-in activity"
-              detail={`${devices.length} recognized devices`}
+              detail={settingsStatus === "loading" ? "Checking devices" : `${devices.length} recognized devices`}
               onPress={() => setSheet("devices")}
             />
           </SettingsGroup>
@@ -331,6 +332,7 @@ export default function AccountSettingsScreen() {
           onApprove={close}
         >
           <View style={styles.drawerList}>
+            {settingsStatus === "loading" ? <ListSkeleton count={2} /> : null}
             {devices.map((device) => (
               <Card key={device.id} style={styles.deviceRow}>
                 <View style={styles.deviceIcon}>
@@ -563,18 +565,7 @@ function SettingsInput({
   secureTextEntry?: boolean;
   keyboardType?: "default" | "phone-pad";
 }) {
-  return (
-    <View style={styles.inputGroup}>
-      <Text style={styles.inputLabel}>{label}</Text>
-      <TextInput
-        accessibilityLabel={label}
-        returnKeyType="done"
-        style={styles.input}
-        placeholderTextColor="#91A0AE"
-        {...props}
-      />
-    </View>
-  );
+  return <MobileInput {...props} label={label} returnKeyType="done" />;
 }
 
 const styles = StyleSheet.create({

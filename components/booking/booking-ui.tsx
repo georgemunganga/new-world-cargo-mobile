@@ -1,8 +1,11 @@
-import { useState, type PropsWithChildren } from "react";
+import { MobileInput } from "@/components/ui/mobile-input";
+import { useEffect, useState, type PropsWithChildren } from "react";
+import { ContactPickerAction } from "@/components/ui/contact-picker-action";
+import { contactService, type DeviceContact } from "@/lib/services/device/contact-service";
 import {
   StyleSheet,
+  Keyboard,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
   type TextInputProps,
@@ -19,7 +22,6 @@ const steps: { id: BookingStep; label: string }[] = [
   { id: "route", label: "Route" },
   { id: "parcel", label: "Parcel" },
   { id: "contacts", label: "Contacts" },
-  { id: "schedule", label: "Schedule" },
   { id: "review", label: "Review" },
 ];
 
@@ -43,10 +45,10 @@ export function BookingScreen({
   title: string;
   detail: string;
   continueLabel: string;
-  onContinue: () => void;
+  onContinue: () => void | Promise<unknown>;
   continueDisabled?: boolean;
   secondaryLabel?: string;
-  onSecondary?: () => void;
+  onSecondary?: () => void | Promise<unknown>;
   serviceLabel?: string;
   progressSteps?: BookingProgressStep[];
   service?: DeliveryMapService;
@@ -117,7 +119,7 @@ function useBookingMapRoute(service: DeliveryMapService) {
         importDraft.destinationLatitude,
         importDraft.destinationLongitude,
       ),
-      ready: Boolean(importDraft.originCity && importDraft.destinationCity),
+      ready: Boolean(importDraft.originCity && importDraft.originBranchId && importDraft.destinationCity && importDraft.destinationBranchId),
     };
   }
   if (service === "intercity") {
@@ -137,7 +139,7 @@ function useBookingMapRoute(service: DeliveryMapService) {
         intercityDraft.destinationLongitude,
       ),
       ready: Boolean(
-        intercityDraft.originCity && intercityDraft.destinationCity,
+        intercityDraft.originCity && intercityDraft.originBranchId && intercityDraft.destinationCity && intercityDraft.destinationBranchId,
       ),
     };
   }
@@ -220,22 +222,33 @@ export function ProgressSteps({
 export function FormField({
   label,
   icon,
+  onContactPicked,
   ...props
-}: TextInputProps & { label: string; icon?: AppIconName }) {
+}: TextInputProps & { label: string; icon?: AppIconName; onContactPicked?: (contact: DeviceContact) => void }) {
+  const [focused, setFocused] = useState(false);
+  const [suggestions, setSuggestions] = useState<DeviceContact[]>([]);
+  const query = props.value ?? "";
+  const searchable = Boolean(onContactPicked);
+  useEffect(() => {
+    let cancelled = false;
+    setSuggestions([]);
+    if (!focused || !searchable || query.trim().length < 2) return;
+    const timer = setTimeout(() => {
+      void contactService.searchContacts(query, () => cancelled).then((items) => { if (!cancelled) setSuggestions(items); }).catch(() => { if (!cancelled) setSuggestions([]); });
+    }, 250);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [focused, query, searchable]);
+  const selectContact = (contact: DeviceContact) => {
+    setSuggestions([]); setFocused(false); Keyboard.dismiss(); onContactPicked?.(contact);
+  };
   return (
-    <View style={styles.fieldWrap}>
-      <Text style={styles.fieldLabel}>{label}</Text>
-      <View style={styles.inputFrame}>
-        {icon ? (
-          <AppIcon name={icon} size={20} color={nwcColors.muted} />
-        ) : null}
-        <TextInput
-          accessibilityLabel={label}
-          placeholderTextColor="#91A0AE"
-          style={styles.input}
-          {...props}
-        />
-      </View>
+    <View style={[styles.fieldWrap, { position: "relative", zIndex: focused ? 30 : 0 }]}>
+      <MobileInput {...props} label={label === "Name" ? "Full name" : label === "Phone" ? "Phone number" : label} icon={icon} keepLabel={false}
+        onFocus={(event) => { setFocused(true); props.onFocus?.(event); }} onBlur={(event) => { setFocused(false); props.onBlur?.(event); }}
+        action={props.keyboardType === "phone-pad" ? <ContactPickerAction label={label} disabled={props.editable === false} onContact={(contact) => { if (onContactPicked) onContactPicked(contact); else props.onChangeText?.(contact.phone); }} /> : undefined} />
+      {focused && suggestions.length > 0 ? <View style={contactSuggestionStyles.dropdown}>
+        {suggestions.map((contact) => <TouchableOpacity key={`${contact.name}:${contact.phone}`} accessibilityRole="button" accessibilityLabel={`Use ${contact.name || contact.phone}`} onPress={() => selectContact(contact)} style={contactSuggestionStyles.row}><AppIcon name="account-outline" size={22} color={nwcColors.brandNavy} /><View style={{ flex: 1 }}><Text numberOfLines={1} style={contactSuggestionStyles.name}>{contact.name || "Contact"}</Text><Text style={contactSuggestionStyles.phone}>{contact.phone}</Text></View></TouchableOpacity>)}
+      </View> : null}
     </View>
   );
 }
@@ -563,3 +576,5 @@ const styles = StyleSheet.create({
   },
   optionalContent: { gap: 12 },
 });
+
+const contactSuggestionStyles = StyleSheet.create({ dropdown: { marginTop: 4, borderRadius: 16, backgroundColor: nwcColors.white, borderWidth: 1, borderColor: nwcColors.border, shadowColor: nwcColors.brandNavy, shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 5 }, elevation: 12, zIndex: 50 }, row: { minHeight: 58, paddingHorizontal: 14, paddingVertical: 8, flexDirection: "row", alignItems: "center", gap: 12 }, name: { fontFamily: "Poppins_600SemiBold", fontSize: 14, color: nwcColors.foreground }, phone: { fontFamily: "Poppins_500Medium", fontSize: 12, color: nwcColors.muted } });

@@ -1,0 +1,48 @@
+import { readFileSync, writeFileSync } from "node:fs";
+const file="components/map/native-map-surface.native.tsx";
+let s=readFileSync(file,"utf8");
+s=s.replace('type MapStyleElement, ', '');
+const a=s.indexOf('const internationalOverviewStyle:');
+const b=s.indexOf('export function NativeMapSurface',a);
+s=s.slice(0,a)+s.slice(b);
+const c=s.indexOf('  const [worldDetailScale');
+const d=s.indexOf('\n  useEffect',c);
+s=s.slice(0,c)+`  const [viewport, setViewport] = useState({ width: 0, height: 0 });
+  const [worldRegion, setWorldRegion] = useState<Region>(internationalOverviewRegion);
+  const overviewOpacity = useRef(new Animated.Value(international ? 1 : 0)).current;
+  const worldZoom = Math.log2(Math.max(256, viewport.width) / 256);
+`+s.slice(d);
+const e=s.indexOf('  const handleOverviewRegionChange');
+const f=s.indexOf('  const zoomBy',e);
+s=s.slice(0,e)+`  const handleOverviewRegionChange = (nextRegion: Region) => {
+    if (!international || !viewport.width) return;
+    setWorldRegion(nextRegion);
+    const zoom = Math.log2(viewport.width * 360 / (256 * Math.max(0.001, nextRegion.longitudeDelta)));
+    const blend = Math.max(0, Math.min(1, (zoom - googleFadeStartZoom) / (googleFadeEndZoom - googleFadeStartZoom)));
+    overviewOpacity.setValue(1 - blend);
+    setShowDetailedMap(zoom >= googleFadeStartZoom);
+  };
+
+`+s.slice(f);
+s=s.replace('Math.max(2, Math.min(20,', 'Math.max(international ? worldZoom : 2, Math.min(20,');
+s=s.replace('      if (international) updateMapDetail(nextZoom);','');
+const g=s.indexOf('    overviewBaseRegion.current = null;');
+const h=s.indexOf('\n  const fitMap',g);
+s=s.slice(0,g)+`    map.current?.animateCamera({ ...internationalWorldCamera, zoom: worldZoom }, { duration: 280 });
+  };
+`+s.slice(h);
+s=s.replace('onLayout={(event) => { viewportWidth.current = event.nativeEvent.layout.width; }}','onLayout={(event) => setViewport(event.nativeEvent.layout)}');
+s=s.replace('fill ? styles.fill : { height }','fill ? [styles.fill, international && { bottom: "57%" }] : { height }');
+s=s.replace('initialCamera={international ? internationalWorldCamera : undefined}', 'initialCamera={international ? { ...internationalWorldCamera, zoom: worldZoom } : undefined}');
+s=s.replace('minZoomLevel={international ? 1 : undefined}', 'minZoomLevel={international ? worldZoom : undefined} rotateEnabled={!international} pitchEnabled={!international}');
+s=s.replace('customMapStyle={international && !showDetailedMap ? internationalOverviewStyle : []}', '');
+s=s.replace('onRegionChangeComplete={(_, details) => { if (details?.isGesture) handleZoomChange(); }}','onRegionChangeComplete={(nextRegion) => { handleOverviewRegionChange(nextRegion); handleZoomChange(); }}');
+const i=s.indexOf('      <Animated.View style={[styles.worldCanvas');
+const j=s.indexOf('    </Animated.View> : null}',i);
+s=s.slice(0,i)+`      {viewport.width > 0 ? <InternationalWorldOverview origin={origin} destination={destination} offices={overviewPoints} region={worldRegion} width={viewport.width} height={viewport.height} /> : null}
+`+s.slice(j);
+s=s.replace('backgroundColor: "#EAF2F5"','backgroundColor: "#FAFAF7"');
+s=s.replace(/  worldCanvas:.*\n/,'');
+s=s.replace(/function normalizeLongitude[\s\S]*?\n}\n\n/,'');
+s=s.replace('    <MapView ref=', '    {viewport.width > 0 ? <MapView ref=').replace('    </MapView>','    </MapView> : null}');
+writeFileSync(file,s);

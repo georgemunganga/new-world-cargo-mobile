@@ -1,46 +1,41 @@
-import { useCallback, useEffect, useState } from "react";
-import { customerSafeMessageFor } from "@/lib/api/errors";
-import type { CustomerProfile } from "@/lib/domain/customer";
+import { useQueryClient } from "@tanstack/react-query";
+import { customerQueries } from "@/lib/data/customer-queries";
+import { useCustomerQuery } from "@/lib/data/use-customer-query";
 import { repositories } from "@/lib/repositories";
-
+import { useState } from "react";
+import type { CustomerProfile } from "@/lib/domain/customer";
+import { customerSafeMessageFor } from "@/lib/api/errors";
 export function useCustomerProfile() {
-  const [profile, setProfile] = useState<CustomerProfile | null>(null);
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-  const [errorMessage, setErrorMessage] = useState("");
-
-  const refresh = useCallback(async () => {
-    setStatus("loading");
-    setErrorMessage("");
+  const client = useQueryClient();
+  const query = useCustomerQuery(customerQueries.profile);
+  const [saving, setSaving] = useState(false),
+    [error, setError] = useState("");
+  const updateProfile = async (
+    input: Partial<
+      Pick<CustomerProfile, "name" | "phone" | "city" | "avatarUrl">
+    >,
+  ) => {
+    setSaving(true);
+    setError("");
     try {
-      const nextProfile = await repositories.customer.getProfile();
-      setProfile(nextProfile);
-      setStatus("success");
-      return nextProfile;
-    } catch (error) {
-      setErrorMessage(customerSafeMessageFor(error));
-      setStatus("error");
+      const profile = await repositories.customer.updateProfile(input);
+      await client.cancelQueries({
+        queryKey: customerQueries.profile.queryKey,
+      });
+      client.setQueryData(customerQueries.profile.queryKey, profile);
+      return profile;
+    } catch (e) {
+      setError(customerSafeMessageFor(e));
       return null;
+    } finally {
+      setSaving(false);
     }
-  }, []);
-
-  const updateProfile = useCallback(async (input: Partial<Pick<CustomerProfile, "name" | "phone" | "city" | "avatarUrl">>) => {
-    setStatus("loading");
-    setErrorMessage("");
-    try {
-      const nextProfile = await repositories.customer.updateProfile(input);
-      setProfile(nextProfile);
-      setStatus("success");
-      return nextProfile;
-    } catch (error) {
-      setErrorMessage(customerSafeMessageFor(error));
-      setStatus("error");
-      return null;
-    }
-  }, []);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
-
-  return { profile, status, errorMessage, refresh, updateProfile };
+  };
+  return {
+    profile: query.data ?? null,
+    status: saving ? ("loading" as const) : query.status,
+    errorMessage: error || query.errorMessage,
+    refresh: async () => (await query.refetch()).data ?? null,
+    updateProfile,
+  };
 }

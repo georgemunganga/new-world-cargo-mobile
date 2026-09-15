@@ -8,14 +8,12 @@ import { nwcColors } from "@/lib/nwc-theme";
 const navigationItems: Record<string, { label: string; icon: AppIconName }> = {
   index: { label: "Home", icon: "home-variant-outline" },
   shipments: { label: "Shipments", icon: "package-variant-closed" },
-  send: { label: "Send", icon: "map-marker-outline" },
   bills: { label: "Bills", icon: "receipt-text-outline" },
   account: { label: "Account", icon: "account-circle-outline" },
 };
 
 export function FloatingCapsuleTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  if (state.routes[state.index]?.name === "index") return null;
   return <View pointerEvents="box-none" style={styles.wrapper}><View style={[styles.dock, { marginBottom: Math.max(insets.bottom + floatingNavigationSafeGap, floatingNavigationMinimumOffset) }]}>{state.routes.map((route, index) => {
     const focused = state.index === index;
     const item = navigationItems[route.name];

@@ -1,44 +1,43 @@
-import { useCallback, useEffect, useState } from "react";
-import { customerSafeMessageFor } from "@/lib/api/errors";
-import type { CreateSupportCaseInput, SupportCase } from "@/lib/domain/support";
+import { useQueryClient } from "@tanstack/react-query";
+import { customerQueries } from "@/lib/data/customer-queries";
+import { useCustomerQuery } from "@/lib/data/use-customer-query";
 import { repositories } from "@/lib/repositories";
-
+import { useState } from "react";
+import type { CreateSupportCaseInput, SupportCase } from "@/lib/domain/support";
+import { customerSafeMessageFor } from "@/lib/api/errors";
 export function useSupportCases() {
-  const [cases, setCases] = useState<SupportCase[]>([]);
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "empty" | "error" | "submitting">("idle");
-  const [errorMessage, setErrorMessage] = useState("");
-
-  const refresh = useCallback(async () => {
-    setStatus("loading");
-    setErrorMessage("");
-    try {
-      const nextCases = await repositories.support.listCases();
-      setCases(nextCases);
-      setStatus(nextCases.length ? "success" : "empty");
-    } catch (error) {
-      setErrorMessage(customerSafeMessageFor(error));
-      setStatus("error");
-    }
-  }, []);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
-
-  const createCase = useCallback(async (input: CreateSupportCaseInput) => {
-    setStatus("submitting");
-    setErrorMessage("");
+  const client = useQueryClient();
+  const query = useCustomerQuery(customerQueries.support);
+  const [submitting, setSubmitting] = useState(false),
+    [error, setError] = useState("");
+  const createCase = async (input: CreateSupportCaseInput) => {
+    setSubmitting(true);
+    setError("");
     try {
       const created = await repositories.support.createCase(input);
-      setCases((current) => [created, ...current.filter((item) => item.id !== created.id)]);
-      setStatus("success");
+      await client.cancelQueries({
+        queryKey: customerQueries.support.queryKey,
+      });
+      client.setQueryData<SupportCase[]>(
+        customerQueries.support.queryKey,
+        (current) => [
+          created,
+          ...(current ?? []).filter((x) => x.id !== created.id),
+        ],
+      );
       return created;
-    } catch (error) {
-      setErrorMessage(customerSafeMessageFor(error));
-      setStatus("error");
+    } catch (e) {
+      setError(customerSafeMessageFor(e));
       return null;
+    } finally {
+      setSubmitting(false);
     }
-  }, []);
-
-  return { cases, status, errorMessage, refresh, createCase };
+  };
+  return {
+    ...query,
+    cases: query.data ?? [],
+    status: submitting ? ("submitting" as const) : query.status,
+    errorMessage: error || query.errorMessage,
+    createCase,
+  };
 }

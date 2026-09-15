@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   mapPortalCustomer,
+  mapPortalLoginSession,
   mapPortalSession,
   portalPasswordResetPayload,
   portalRegisterPayload,
@@ -44,6 +45,17 @@ describe("mobile Laravel auth contract", () => {
         portalEnabled: true,
       },
     });
+  });
+
+  it("rejects login responses that do not contain a mobile bearer token", () => {
+    expect(() => mapPortalLoginSession({
+      data: {
+        id: "1",
+        firstName: "George",
+        email: "george@example.com",
+        verified: true,
+      },
+    })).toThrow("The server did not create a mobile session");
   });
 
   it("builds Laravel register payloads from the mobile domain input", () => {

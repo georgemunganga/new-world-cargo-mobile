@@ -1,3 +1,4 @@
+import { ListSkeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import {
   ScrollView,
@@ -24,6 +25,7 @@ import { useCustomerBillingAccount } from "@/stores/customer-billing-account";
 
 export default function PaymentMethodsScreen() {
   const {
+    methodsLoading, methodsError, refreshMethods,
     paymentMethods,
     selectedPaymentMethodId,
     selectSavedPaymentMethod,
@@ -68,6 +70,8 @@ export default function PaymentMethodsScreen() {
             <Text style={styles.title}>Pay your way</Text>
             <Text accessibilityRole={actionError ? "alert" : undefined} style={styles.detail}>{actionError || "Choose a default method for cargo bills."}</Text>
           </View>
+          {methodsLoading && !paymentMethods.length ? <ListSkeleton /> : null}
+          {methodsError ? <PrimaryButton label="Retry payment methods" onPress={refreshMethods} /> : null}
           <View style={styles.methods}>
             {paymentMethods.map((item) => (
               <TouchableOpacity

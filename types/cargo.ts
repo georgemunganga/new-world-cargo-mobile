@@ -24,6 +24,7 @@ export type BookingQuote = {
 };
 
 export type Address = {
+  cityDistrict?: string;
   label?: string;
   branchId?: string;
   city: string;
@@ -116,11 +117,13 @@ export type LocalDeliveryDraft = {
   receiver?: PersonContact;
   deliveryInstructions?: string;
   schedule?: "as_soon_as_possible" | "later_today" | "scheduled";
+  scheduledAt?: string;
   vehicle?: LocalDeliveryVehicle;
   quote?: BookingQuote;
 };
 
 export type ImportBookingDraft = {
+  supplier?: PersonContact & { company?: string; email?: string; notes?: string };
   service: "import";
   method?: ShippingMethod;
   originCountry?: string;

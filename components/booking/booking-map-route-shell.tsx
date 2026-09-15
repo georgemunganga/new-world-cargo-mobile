@@ -13,6 +13,7 @@ type BookingMapRouteShellProps = {
   detail: string;
   pickup?: Address;
   destination?: Address;
+  overviewPoints?: Address[];
   routeReady: boolean;
   continueLabel: string;
   continueDisabled?: boolean;
@@ -29,6 +30,7 @@ export function BookingMapRouteShell({
   detail,
   pickup,
   destination,
+  overviewPoints,
   routeReady,
   continueLabel,
   continueDisabled,
@@ -49,6 +51,7 @@ export function BookingMapRouteShell({
       detail={detail}
       pickup={pickup}
       destination={destination}
+      overviewPoints={overviewPoints}
       routeReady={routeReady}
       footer={
         <PrimaryButton

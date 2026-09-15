@@ -112,7 +112,7 @@ export default function AccountRecoveryScreen() {
             <Text style={styles.cardTitle}>Recover with an OTP</Text>
             <Text style={styles.cardDetail}>
               {resetSent
-                ? "Enter the six-digit code on the reset screen. It expires after 10 minutes."
+                ? "Enter the six-digit code on the OTP recovery screen. It expires after 10 minutes."
                 : "Send a one-time password code to your verified contact."}
             </Text>
             <SecondaryButton
@@ -126,7 +126,7 @@ export default function AccountRecoveryScreen() {
               onPress={sendRecoveryOtp}
             />
             <SecondaryButton
-              label="Open reset screen"
+              label="Open OTP screen"
               onPress={() => router.push("/auth/forgot-password" as Href)}
             />
           </Card>
@@ -290,3 +290,4 @@ const styles = StyleSheet.create({
   },
   actions: { gap: 10 },
 });
+

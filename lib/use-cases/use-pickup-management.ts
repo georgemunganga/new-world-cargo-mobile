@@ -1,30 +1,19 @@
-import { useCallback, useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCustomerQuery } from "@/lib/data/use-customer-query";
+import { useCallback, useState } from "react";
 import { customerSafeMessageFor } from "@/lib/api/errors";
 import type { Pickup } from "@/lib/domain/pickup";
 import { repositories } from "@/lib/repositories";
 
 export function usePickupManagement() {
-  const [pickups, setPickups] = useState<Pickup[]>([]);
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "empty" | "error" | "updating">("idle");
-  const [errorMessage, setErrorMessage] = useState("");
-
-  const refresh = useCallback(async () => {
-    setStatus("loading");
-    setErrorMessage("");
-    try {
-      const nextPickups = await repositories.pickups.listPickups();
-      setPickups(nextPickups);
-      setStatus(nextPickups.length ? "success" : "empty");
-    } catch (error) {
-      setErrorMessage(customerSafeMessageFor(error));
-      setStatus("error");
-    }
-  }, []);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
-
+  const client = useQueryClient();
+  const query = useCustomerQuery({queryKey:["pickups"],queryFn:() => repositories.pickups.listPickups(),staleTime:30_000});
+  const pickups = query.data ?? [];
+  const setPickups = useCallback((update: (current: Pickup[]) => Pickup[]) => {client.setQueryData<Pickup[]>(["pickups"], current => update(current ?? []));}, [client]);
+  const [mutationStatus,setStatus] = useState<"idle"|"updating"|"success"|"error">("idle");
+  const [errorMessage,setErrorMessage] = useState("");
+  const status = mutationStatus === "updating" ? mutationStatus : query.status;
+  const refresh = query.refresh;
   const applyUpdate = useCallback(async (action: () => Promise<Pickup | null>) => {
     setStatus("updating");
     setErrorMessage("");
@@ -38,12 +27,12 @@ export function usePickupManagement() {
       setStatus("error");
       return null;
     }
-  }, []);
+  }, [setPickups]);
 
   return {
     pickups,
     status,
-    errorMessage,
+    errorMessage: errorMessage || query.errorMessage,
     refresh,
     reschedulePickup: (shipmentId: string, slotId: string) => applyUpdate(() => repositories.pickups.reschedulePickup(shipmentId, slotId)),
     cancelPickup: (shipmentId: string) => applyUpdate(() => repositories.pickups.cancelPickup(shipmentId)),

@@ -1,3 +1,4 @@
+import { InvoiceSkeleton } from "@/components/ui/skeleton";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { router, type Href } from "expo-router";
 import { AppIcon } from "@/components/ui/app-icon";
@@ -7,11 +8,11 @@ import { nwcColors } from "@/lib/nwc-theme";
 import { useCustomerBillingAccount } from "@/stores/customer-billing-account";
 
 export default function PaymentScreen() {
-  const { selectedInvoice, setPaymentState, selectedPaymentMethod, setSelectedPaymentMethod, walletBalance } = useCustomerBillingAccount();
+  const { billingLoading, billingError, refreshBilling, selectedInvoice, setPaymentState, selectedPaymentMethod, setSelectedPaymentMethod, walletBalance } = useCustomerBillingAccount();
   const invoice = selectedInvoice;
   const method = selectedPaymentMethod;
   const beginPayment = () => { setPaymentState("pending"); router.push("/bills/payment-status" as Href); };
-  if (!invoice) return null;
+  if (!invoice) return <Screen><View style={{padding:20,gap:16}}><IconButton label="Go back" icon="arrow-left" onPress={() => router.back()} />{billingLoading ? <InvoiceSkeleton /> : <><Text>{billingError || "Select an invoice to continue."}</Text><PrimaryButton label="View bills" onPress={() => {refreshBilling(); router.replace("/bills" as Href);}} /></>}</View></Screen>;
   const walletAvailable = canPayWithMockWallet(walletBalance, invoice);
   return <Screen><View style={styles.page}><View style={styles.header}><IconButton label="Go back" icon="arrow-left" onPress={() => router.back()} /><Text style={styles.headerTitle}>Payment</Text><View style={styles.headerSpacer} /></View><View style={styles.content}><View style={styles.titleBlock}><Text style={styles.title}>Pay {invoice.amount}</Text><Text style={styles.detail}>{invoice.description}</Text></View><Card style={styles.invoice}><View style={styles.invoiceTop}><Text style={styles.invoiceReference}>{invoice.reference}</Text><StatusBadge label="Due" tone="warning" /></View><Text style={styles.shipment}>{`For shipment ${invoice.shipmentReference}`}</Text></Card><View style={styles.methods}><View style={styles.methodsHeader}><Text style={styles.methodsTitle}>Pay with</Text><TouchableOpacity accessibilityRole="button" accessibilityLabel="Manage saved payment methods" onPress={() => router.push("/account/payment-methods" as Href)} style={styles.manageMethods}><Text style={styles.manageMethodsText}>Manage</Text></TouchableOpacity></View><PaymentMethod icon="cellphone" title="Mobile money" selected={method === "mobile"} onPress={() => setSelectedPaymentMethod("mobile")} /><PaymentMethod icon="bank-outline" title="Bank card" selected={method === "card"} onPress={() => setSelectedPaymentMethod("card")} /><PaymentMethod icon="wallet-outline" title="Cargo wallet" subtitle={`Available ${formatMockKwacha(walletBalance)}${walletAvailable ? "" : " · Add balance first"}`} selected={method === "wallet"} onPress={() => setSelectedPaymentMethod("wallet")} /></View>{method === "wallet" && !walletAvailable ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add wallet balance" onPress={() => router.push("/bills/wallet" as Href)} style={styles.walletWarning}><AppIcon name="alert-circle-outline" size={18} color={nwcColors.warning} /><Text style={styles.walletWarningText}>This wallet needs {formatMockKwacha(invoice.amountValue - walletBalance)} more. Add balance first.</Text></TouchableOpacity> : null}<View style={styles.actions}><PrimaryButton label={`Pay with ${paymentMethodLabel(method)}`} icon="arrow-right" onPress={beginPayment} /><SecondaryButton label="Cancel" onPress={() => router.back()} /></View></View></View></Screen>;
 }

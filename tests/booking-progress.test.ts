@@ -16,6 +16,7 @@ const baseDraft: LocalDeliveryDraft = {
 describe("Local Delivery booking flow", () => {
   it("uses a predictable booking-step order", () => {
     expect(nextBookingStep("route")).toBe("parcel");
+    expect(nextBookingStep("contacts")).toBe("review");
     expect(nextBookingStep("review")).toBeNull();
   });
 

@@ -4,6 +4,7 @@ import type {
   RegisterCustomerInput,
 } from "@/lib/domain/auth";
 import type { CustomerProfile } from "@/lib/domain/customer";
+import { MobileApiError } from "@/lib/api/errors";
 
 export type PortalEnvelope<T> = {
   data: T;
@@ -83,4 +84,16 @@ export function mapPortalSession(
     ...(mobileSession?.expiresAt ? { expiresAt: mobileSession.expiresAt } : {}),
     customer: mapPortalCustomer(response.data),
   };
+}
+
+export function mapPortalLoginSession(
+  response: PortalEnvelope<PortalAuthUser>,
+): AuthSession {
+  if (!response.meta?.mobileSession?.token) {
+    throw new MobileApiError(
+      "SERVER_ERROR",
+      "The server did not create a mobile session. Please try again.",
+    );
+  }
+  return mapPortalSession(response);
 }

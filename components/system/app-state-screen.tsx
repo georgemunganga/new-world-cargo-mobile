@@ -1,4 +1,5 @@
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { Skeleton, SkeletonGroup } from "@/components/ui/skeleton";
+import { StyleSheet, Text, View } from "react-native";
 import { AppIcon, type AppIconName } from "@/components/ui/app-icon";
 import { PrimaryButton, SecondaryButton, Screen } from "@/components/ui/nwc-ui";
 import { nwcColors } from "@/lib/nwc-theme";
@@ -16,9 +17,9 @@ type AppStateScreenProps = {
   onSecondary?: () => void;
 };
 
-export function AppStateScreen({ eyebrow, title, detail, icon, tone, loading, primaryLabel, onPrimary, secondaryLabel, onSecondary }: AppStateScreenProps) {
+export function AppStateScreen({ title, detail, icon, tone, loading, primaryLabel, onPrimary, secondaryLabel, onSecondary }: AppStateScreenProps) {
   const color = { primary: nwcColors.primary, info: nwcColors.info, warning: nwcColors.warning, error: nwcColors.error }[tone];
-  return <Screen><View style={styles.page}><View style={[styles.iconWrap, { backgroundColor: color }]}>{loading ? <ActivityIndicator color={nwcColors.primaryInk} /> : <AppIcon name={icon} size={34} color={tone === "primary" || tone === "warning" ? nwcColors.primaryInk : nwcColors.white} />}</View><View style={styles.copy}><Text style={[styles.eyebrow, { color }]}>{eyebrow}</Text><Text style={styles.title}>{title}</Text><Text style={styles.detail}>{detail}</Text></View><View style={styles.actions}><PrimaryButton label={primaryLabel} onPress={onPrimary} />{secondaryLabel && onSecondary ? <SecondaryButton label={secondaryLabel} onPress={onSecondary} /> : null}</View></View></Screen>;
+  return <Screen><View style={styles.page}><View style={[styles.iconWrap, { backgroundColor: color }]}>{loading ? <SkeletonGroup><Skeleton style={{width:52,height:52,borderRadius:18}} /></SkeletonGroup> : <AppIcon name={icon} size={34} color={tone === "primary" || tone === "warning" ? nwcColors.primaryInk : nwcColors.white} />}</View><View style={styles.copy}><Text style={styles.title}>{title}</Text><Text style={styles.detail}>{detail}</Text></View><View style={styles.actions}><PrimaryButton label={primaryLabel} onPress={onPrimary} />{secondaryLabel && onSecondary ? <SecondaryButton label={secondaryLabel} onPress={onSecondary} /> : null}</View></View></Screen>;
 }
 
 const styles = StyleSheet.create({

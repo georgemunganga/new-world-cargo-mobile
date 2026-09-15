@@ -32,15 +32,21 @@ function fileExists(relativePath) {
 
 function run(command, args) {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, { stdio: "inherit", shell: process.platform === "win32" });
+    const child = spawn(command, args, { stdio: "inherit" });
     child.on("error", reject);
     child.on("exit", (code) => code === 0 ? resolve() : reject(new Error(`${command} ${args.join(" ")} failed with exit code ${code}`)));
   });
 }
 
 function packageManagerCommand(scriptName) {
-  if (process.env.npm_execpath) return [process.execPath, [process.env.npm_execpath, "run", scriptName]];
-  return ["corepack", ["pnpm", scriptName]];
+  if (process.env.npm_execpath) {
+    if (/\.(?:cjs|mjs|js)$/i.test(process.env.npm_execpath)) {
+      return [process.execPath, [process.env.npm_execpath, "run", scriptName]];
+    }
+    return [process.env.npm_execpath, ["run", scriptName]];
+  }
+  if (process.platform === "win32") return ["cmd.exe", ["/d", "/s", "/c", "pnpm", "run", scriptName]];
+  return ["corepack", ["pnpm", "run", scriptName]];
 }
 
 for (const file of requiredFiles) assert(fileExists(file), `Missing required release file: ${file}`);
@@ -54,17 +60,18 @@ assert(pkg.scripts?.["build:production:android"] === "eas build --profile produc
 assert(pkg.scripts?.["build:production:ios"] === "eas build --profile production --platform ios", "Missing production iOS build script.");
 
 const eas = JSON.parse(fs.readFileSync(path.join(root, "eas.json"), "utf8"));
-assert(eas.build?.preview?.env?.EXPO_PUBLIC_API_MODE === "mock", "Preview build must use mock API mode.");
-assert(eas.build?.staging?.env?.EXPO_PUBLIC_API_MODE === "laravel", "Staging build must use Laravel API mode.");
-assert(eas.build?.production?.env?.EXPO_PUBLIC_API_MODE === "laravel", "Production build must use Laravel API mode.");
-assert(eas.build?.staging?.env?.EXPO_PUBLIC_API_BASE_URL === "https://api.newworldcargo.com", "Staging must use the public API hostname.");
-assert(eas.build?.production?.env?.EXPO_PUBLIC_API_BASE_URL === "https://api.newworldcargo.com", "Production must use the public API hostname.");
-assert(eas.build?.staging?.env?.EXPO_PUBLIC_MAPS_PROVIDER === "native", "Staging build must use native maps.");
-assert(eas.build?.staging?.env?.EXPO_PUBLIC_PAYMENTS_PROVIDER === "laravel", "Staging build must use Laravel payments.");
-assert(eas.build?.production?.env?.EXPO_PUBLIC_MAPS_PROVIDER === "native", "Production build must use native maps.");
-assert(eas.build?.production?.env?.EXPO_PUBLIC_PAYMENTS_PROVIDER === "laravel", "Production build must use Laravel payments.");
+for (const profileName of ["preview", "staging", "production"]) {
+  const env = eas.build?.[profileName]?.env;
+  assert(env?.EXPO_PUBLIC_API_MODE === "laravel", `${profileName} build must use Laravel API mode.`);
+  assert(env?.EXPO_PUBLIC_API_BASE_URL === "https://api.newworldcargo.com/api/v1/", `${profileName} must use the public API v1 base URL.`);
+  assert(env?.EXPO_PUBLIC_PUBLIC_TRACKING_BASE_URL === "https://api.newworldcargo.com/api/v1/", `${profileName} must use the public tracking API v1 base URL.`);
+  assert(env?.EXPO_PUBLIC_ADMIN_API_BASE_URL === "https://admin.newworldcargo.com/api/v1/", `${profileName} must use the admin API v1 base URL.`);
+  assert(env?.EXPO_PUBLIC_MAPS_PROVIDER === "native", `${profileName} build must use native maps.`);
+  assert(env?.EXPO_PUBLIC_PAYMENTS_PROVIDER === "laravel", `${profileName} build must use Laravel payments.`);
+}
 
 const [qualityCommand, qualityArgs] = packageManagerCommand("quality");
 await run(qualityCommand, qualityArgs);
 
 console.log("Mobile release audit passed.");
+

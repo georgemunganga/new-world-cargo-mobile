@@ -1,4 +1,7 @@
-import { useEffect, useState } from "react";
+import { LocalLocationPicker } from "@/components/map/local-location-picker";
+import { isInLocalCity, type LocalCity } from "@/lib/maps/local-city";
+import { locationService } from "@/lib/services/device/location-service";
+import { useEffect, useRef, useState } from "react";
 import {
   KeyboardAvoidingView,
   LayoutAnimation,
@@ -13,14 +16,15 @@ import {
 } from "react-native";
 import { router, type Href } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { BookingSection, FormField } from "@/components/booking/booking-ui";
+
 import { RouteEntryCard } from "@/components/booking/route-entry-card";
 import {
   LocalDeliveryMapBackdrop,
-  type PickupPinPosition,
+
 } from "@/components/map/local-delivery-map-backdrop";
 import { AppIcon } from "@/components/ui/app-icon";
 import { IconButton, PrimaryButton, Screen } from "@/components/ui/nwc-ui";
+import { useAppToast } from "@/components/ui/app-toast";
 import { isRouteReady } from "@/lib/booking-progress";
 import { estimateBookingQuote } from "@/lib/booking-pricing";
 import {
@@ -39,19 +43,47 @@ export default function LocalDeliveryRouteScreen() {
   const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const { localDraft, updateLocalDraft, setBookingStep } = useBookingDraft();
+  const toast = useAppToast();
+  const currentDraft = useRef({ localDraft, updateLocalDraft });
+  currentDraft.current = { localDraft, updateLocalDraft };
   const { savedPlaces } = useAddressBook();
   const [activeTarget, setActiveTarget] =
     useState<LocalDeliveryRouteTarget | null>(null);
-  const [showManualEntry, setShowManualEntry] = useState(false);
+
   const [adjustingTarget, setAdjustingTarget] = useState<
     "pickup" | "destination" | null
   >(null);
-  const [pickupPinPosition, setPickupPinPosition] =
-    useState<PickupPinPosition>("initial");
-  const [destinationPinPosition, setDestinationPinPosition] =
-    useState<PickupPinPosition>("initial");
+
   const [quoteError, setQuoteError] = useState("");
-  const routeReady = isRouteReady(localDraft);
+  const [quoteLoading, setQuoteLoading] = useState(false);
+  const [quoteRequestVersion, setQuoteRequestVersion] = useState(0);
+  const [localCity, setLocalCity] = useState<LocalCity>();
+  const [locationVersion, setLocationVersion] = useState(0);
+  const [locating, setLocating] = useState(true);
+  const [locationError, setLocationError] = useState("");
+  useEffect(() => {
+    let active = true;
+    setLocating(true);
+    setLocationError("");
+    const timeout = setTimeout(() => {
+      active = false;
+      setLocating(false);
+      setLocationError("Location is taking too long. Check GPS and try again.");
+    }, 20000);
+    void locationService.getCurrentAddress().then((address) => {
+      if (!active) return;
+      setLocalCity({ city: address.city, cityDistrict: address.cityDistrict, latitude: address.latitude, longitude: address.longitude });
+      const { localDraft: draft, updateLocalDraft: update } = currentDraft.current;
+      if (!draft.pickup) update({ pickup: address, quote: undefined });
+    }).catch((error) => {
+      if (active) setLocationError(error instanceof Error ? error.message : "Unable to find your location. Please try again.");
+    }).finally(() => {
+      clearTimeout(timeout);
+      if (active) setLocating(false);
+    });
+    return () => { active = false; clearTimeout(timeout); };
+  }, [locationVersion]);
+  const routeReady = !locating && !locationError && isRouteReady(localDraft) && [localDraft.pickup, localDraft.destination].every((point) => isInLocalCity(point, localCity));
   const vehicle = localDraft.vehicle ?? "scooter";
   const quote = localDraft.quote ?? null;
   const sheetState = getLocalDeliveryRouteSheetState(
@@ -77,14 +109,18 @@ export default function LocalDeliveryRouteScreen() {
   }, [sheetHeight]);
   useEffect(() => {
     let active = true;
+    const { localDraft, updateLocalDraft } = currentDraft.current;
     if (!routeReady) {
       setQuoteError("");
+      setQuoteLoading(false);
       if (localDraft.quote) updateLocalDraft({ quote: undefined });
       return () => {
         active = false;
       };
     }
     setQuoteError("");
+    setQuoteLoading(true);
+    updateLocalDraft({ quote: undefined });
     void estimateBookingQuote("local", localDraft)
       .then((nextQuote) => {
         if (active && nextQuote) updateLocalDraft({ quote: nextQuote });
@@ -92,11 +128,14 @@ export default function LocalDeliveryRouteScreen() {
       .catch((error) => {
         if (!active) return;
         updateLocalDraft({ quote: undefined });
-        setQuoteError(
-          error instanceof Error
-            ? error.message
-            : "We could not load a server quote. Check your connection and try again.",
-        );
+        const message = error instanceof Error
+          ? error.message
+          : "We could not load a server quote. Check your connection and try again.";
+        setQuoteError(message);
+        toast.error(message);
+      })
+      .finally(() => {
+        if (active) setQuoteLoading(false);
       });
     return () => {
       active = false;
@@ -110,28 +149,28 @@ export default function LocalDeliveryRouteScreen() {
     localDraft.destination?.latitude,
     localDraft.destination?.longitude,
     localDraft.destination?.area,
+    quoteRequestVersion,
+    toast,
   ]);
-  const updateAddress = (key: "pickup" | "destination", detail: string) => {
-    const current = localDraft[key] ?? { city: "Lusaka", area: "" };
-    updateLocalDraft({ [key]: { ...current, detail } });
-  };
   const applySaved = (
     place: (typeof savedPlaces)[number],
     key: "pickup" | "destination",
-  ) => updateLocalDraft({ [key]: savedPlaceToAddress(place) });
+  ) => {
+    const address = savedPlaceToAddress(place);
+    if (!isInLocalCity(address, localCity)) { toast.error(localCity ? `Choose a saved place within ${localCity.city}.` : "Enable location to identify your city first."); return; }
+    updateLocalDraft({ [key]: address, quote: undefined });
+  };
   const continueBooking = () => {
+    if (quote?.expiresAt && Date.parse(quote.expiresAt) <= Date.now()) { setQuoteRequestVersion((version) => version + 1); toast.info("Refreshing your expired price. Review the updated amount before continuing."); return; }
     setBookingStep("parcel");
     router.push("/local-delivery/parcel" as Href);
   };
   const openPinAdjustment = (target: "pickup" | "destination") => {
     setActiveTarget(null);
-    setShowManualEntry(false);
+
+    if (!localCity) { toast.error("Enable location to identify your city first."); return; }
     setAdjustingTarget(target);
-    setExpanded(true);
-  };
-  const selectPinPosition = (position: PickupPinPosition) => {
-    if (adjustingTarget === "pickup") setPickupPinPosition(position);
-    else setDestinationPinPosition(position);
+    setExpanded(false);
   };
   const isEditing = Boolean(activeTarget);
   const sheetTitle = isEditing
@@ -140,15 +179,17 @@ export default function LocalDeliveryRouteScreen() {
       ? `Adjust ${adjustingTarget} pin`
       : "Set your route";
   const sheetDetail =
-    quoteError ||
+    locationError || (locating ? "Finding your location..." : "") ||
+    (localCity && [localDraft.pickup, localDraft.destination].some((point) => point && !isInLocalCity(point, localCity)) ? `Select map locations within ${localCity.city} for pickup and delivery.` : "") || quoteError ||
     (isEditing
-      ? "Suggestions appear directly beneath the field you are typing in."
+      ? "Search in your city or choose a location on the map."
       : adjustingTarget
         ? "Use the controls to nudge the map pin, then confirm its position."
-        : "Choose pickup and destination. We will handle the rest.");
+        : localCity ? `Pickup and delivery within ${localCity.city}.` : "Enable location to start your local delivery.");
 
   return (
     <Screen>
+      {adjustingTarget && localCity ? <LocalLocationPicker city={localCity} target={adjustingTarget} initial={localDraft[adjustingTarget]} onClose={() => setAdjustingTarget(null)} onConfirm={(address) => { updateLocalDraft({ [adjustingTarget]: address, quote: undefined }); setAdjustingTarget(null); }} /> : null}
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.page}
@@ -156,8 +197,7 @@ export default function LocalDeliveryRouteScreen() {
         <LocalDeliveryMapBackdrop
           pickup={localDraft.pickup}
           destination={localDraft.destination}
-          pickupPinPosition={pickupPinPosition}
-          destinationPinPosition={destinationPinPosition}
+
           adjustingTarget={adjustingTarget}
           routeReady={routeReady}
         />
@@ -171,11 +211,7 @@ export default function LocalDeliveryRouteScreen() {
             <View style={styles.topPillDot} />
             <Text style={styles.topPillText}>Local Delivery</Text>
           </View>
-          <IconButton
-            label="Open notifications"
-            icon="bell-outline"
-            onPress={() => router.push("/notifications" as Href)}
-          />
+          <View style={{ width: 44 }} />
         </View>
         <View style={[styles.sheet, { height: sheetHeight }, drawerTransform]}>
           <TouchableOpacity
@@ -198,31 +234,14 @@ export default function LocalDeliveryRouteScreen() {
             ]}
           >
             <View>
-              <Text style={styles.overline}>
-                {sheetState.mode === "editing"
-                  ? `Search ${activeTarget === "from" ? "pickup" : "destination"}`
-                  : sheetState.mode === "adjusting-pin"
-                    ? `${adjustingTarget === "pickup" ? "Pickup" : "Destination"} location`
-                    : "Local Delivery"}
-              </Text>
               <Text style={styles.title}>{sheetTitle}</Text>
               <Text style={styles.detail}>{sheetDetail}</Text>
             </View>
-            {adjustingTarget ? (
-              <PinAdjustmentPanel
-                target={adjustingTarget}
-                position={
-                  adjustingTarget === "pickup"
-                    ? pickupPinPosition
-                    : destinationPinPosition
-                }
-                onNudge={selectPinPosition}
-                onConfirm={() => setAdjustingTarget(null)}
-              />
-            ) : (
-              <>
+            {<>
+                {locationError ? <PrimaryButton label="Retry current location" icon="crosshairs-gps" loading={locating} onPress={() => setLocationVersion((v) => v + 1)} /> : null}
                 <RouteEntryCard
                   scope="local"
+                  localCity={localCity}
                   from={{
                     value: localDraft.pickup?.detail ?? "",
                     detail: localDraft.pickup?.area ?? "",
@@ -239,12 +258,11 @@ export default function LocalDeliveryRouteScreen() {
                   }
                   onActiveTargetChange={(target) => {
                     setActiveTarget(target);
-                    if (target) setExpanded(true);
+                    setExpanded(Boolean(target));
                     if (target) setAdjustingTarget(null);
                   }}
-                  onManualEntryPress={() => {
-                    setShowManualEntry((current) => !current);
-                  }}
+                  onManualEntryPress={(target) => openPinAdjustment(target === "from" ? "pickup" : "destination")}
+                  manualEntryLabel="Use map"
                   accessibilityHint="Search nearby local pickup and destination locations"
                 />
                 {isEditing ? null : (
@@ -260,90 +278,7 @@ export default function LocalDeliveryRouteScreen() {
                         openPinAdjustment("destination")
                       }
                     />
-                    <TouchableOpacity
-                      accessibilityRole="button"
-                      accessibilityState={{ expanded: showManualEntry }}
-                      accessibilityLabel={
-                        showManualEntry
-                          ? "Hide manual address entry"
-                          : "Enter an address manually"
-                      }
-                      onPress={() => setShowManualEntry((current) => !current)}
-                      style={styles.manualToggle}
-                    >
-                      <AppIcon
-                        name="pencil-outline"
-                        size={18}
-                        color={nwcColors.info}
-                      />
-                      <Text style={styles.manualToggleText}>
-                        {showManualEntry
-                          ? "Hide manual address entry"
-                          : "Enter address manually"}
-                      </Text>
-                      <AppIcon
-                        name={showManualEntry ? "chevron-up" : "chevron-down"}
-                        size={19}
-                        color={nwcColors.info}
-                      />
-                    </TouchableOpacity>
-                    {showManualEntry ? (
-                      <View style={styles.manualArea}>
-                        <BookingSection label="Pickup details">
-                          <FormField
-                            label="From where?"
-                            icon="circle-outline"
-                            placeholder="Building, street, area, or landmark"
-                            value={localDraft.pickup?.detail ?? ""}
-                            onChangeText={(detail) =>
-                              updateAddress("pickup", detail)
-                            }
-                          />
-                          <FormField
-                            label="Pickup area"
-                            icon="map-marker-outline"
-                            placeholder="e.g. Longacres, Lusaka"
-                            value={localDraft.pickup?.area ?? ""}
-                            onChangeText={(area) =>
-                              updateLocalDraft({
-                                pickup: {
-                                  city: "Lusaka",
-                                  detail: localDraft.pickup?.detail ?? "",
-                                  area,
-                                },
-                              })
-                            }
-                          />
-                        </BookingSection>
-                        <BookingSection label="Delivery details">
-                          <FormField
-                            label="To where?"
-                            icon="map-marker"
-                            placeholder="Building, street, area, or landmark"
-                            value={localDraft.destination?.detail ?? ""}
-                            onChangeText={(detail) =>
-                              updateAddress("destination", detail)
-                            }
-                          />
-                          <FormField
-                            label="Delivery area"
-                            icon="map-marker-outline"
-                            placeholder="e.g. Roma, Lusaka"
-                            value={localDraft.destination?.area ?? ""}
-                            onChangeText={(area) =>
-                              updateLocalDraft({
-                                destination: {
-                                  city: "Lusaka",
-                                  detail: localDraft.destination?.detail ?? "",
-                                  area,
-                                },
-                              })
-                            }
-                          />
-                        </BookingSection>
-                      </View>
-                    ) : null}
-                    <View style={styles.savedLine}>
+                    {savedPlaces.length > 0 ? <View style={styles.savedLine}>
                       <Text style={styles.savedTitle}>Saved places</Text>
                       <View style={styles.savedChips}>
                         {savedPlaces.slice(0, 3).map((place) => (
@@ -365,23 +300,25 @@ export default function LocalDeliveryRouteScreen() {
                           </TouchableOpacity>
                         ))}
                       </View>
-                    </View>
+                    </View> : null}
                     <PrimaryButton
                       label={
                         routeReady
                           ? quote
                             ? "Continue to parcel"
-                            : "Waiting for server quote"
+                            : quoteError
+                              ? "Retry price"
+                              : "Get price"
                           : "Add pickup and destination"
                       }
                       icon="arrow-right"
-                      disabled={!routeReady || !quote}
-                      onPress={continueBooking}
+                      loading={quoteLoading}
+                      disabled={!routeReady || quoteLoading || (!quote && !quoteError)}
+                      onPress={quote ? continueBooking : () => setQuoteRequestVersion((version) => version + 1)}
                     />
                   </>
                 )}
-              </>
-            )}
+              </>}
           </ScrollView>
         </View>
       </KeyboardAvoidingView>
@@ -465,13 +402,12 @@ function RoutePreview({
         )}
       </View>
       <Text style={styles.capacityText}>
-        {vehicleCapacity[vehicle]} ·{" "}
-        {quote.source === "server" ? "Laravel price" : "Development fallback"}
+        {vehicleCapacity[vehicle]}
       </Text>
       <View style={styles.routePreviewFooter}>
         <Text style={styles.quoteArrival}>
           {quote.expiresAt
-            ? `Quote expires ${quote.expiresAt}`
+            ? `Valid until ${new Date(quote.expiresAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
             : "Final price is confirmed by New WorldCargo before payment."}
         </Text>
         <View style={styles.pinLinks}>
@@ -499,102 +435,6 @@ function RoutePreview({
           </TouchableOpacity>
         </View>
       </View>
-    </View>
-  );
-}
-
-function PinAdjustmentPanel({
-  target,
-  position,
-  onNudge,
-  onConfirm,
-}: {
-  target: "pickup" | "destination";
-  position: PickupPinPosition;
-  onNudge: (position: PickupPinPosition) => void;
-  onConfirm: () => void;
-}) {
-  const targetLabel = target === "pickup" ? "pickup" : "destination";
-  return (
-    <View style={styles.pinPanel}>
-      <View style={styles.pinHint}>
-        <AppIcon
-          name="map-marker-radius-outline"
-          size={19}
-          color={nwcColors.info}
-        />
-        <Text style={styles.pinHintText}>
-          Choose a nearby {targetLabel} point.
-        </Text>
-      </View>
-      <View style={styles.nudgeGrid}>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityLabel={`Move ${targetLabel} pin north`}
-          onPress={() => onNudge("north")}
-          style={[
-            styles.nudgeButton,
-            position === "north" && styles.nudgeButtonActive,
-          ]}
-        >
-          <AppIcon name="arrow-up" size={21} color={nwcColors.brandNavy} />
-        </TouchableOpacity>
-        <View style={styles.nudgeMiddle}>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityLabel={`Move ${targetLabel} pin west`}
-            onPress={() => onNudge("west")}
-            style={[
-              styles.nudgeButton,
-              position === "west" && styles.nudgeButtonActive,
-            ]}
-          >
-            <AppIcon name="arrow-left" size={21} color={nwcColors.brandNavy} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityLabel={`Reset ${targetLabel} pin`}
-            onPress={() => onNudge("initial")}
-            style={[
-              styles.nudgeButton,
-              position === "initial" && styles.nudgeButtonActive,
-            ]}
-          >
-            <AppIcon
-              name="crosshairs-gps"
-              size={20}
-              color={nwcColors.brandNavy}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityLabel={`Move ${targetLabel} pin east`}
-            onPress={() => onNudge("east")}
-            style={[
-              styles.nudgeButton,
-              position === "east" && styles.nudgeButtonActive,
-            ]}
-          >
-            <AppIcon name="arrow-right" size={21} color={nwcColors.brandNavy} />
-          </TouchableOpacity>
-        </View>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityLabel={`Move ${targetLabel} pin south`}
-          onPress={() => onNudge("south")}
-          style={[
-            styles.nudgeButton,
-            position === "south" && styles.nudgeButtonActive,
-          ]}
-        >
-          <AppIcon name="arrow-down" size={21} color={nwcColors.brandNavy} />
-        </TouchableOpacity>
-      </View>
-      <PrimaryButton
-        label={`Confirm ${targetLabel} pin`}
-        icon="check"
-        onPress={onConfirm}
-      />
     </View>
   );
 }
@@ -867,3 +707,7 @@ const vehicleCapacity: Record<LocalDeliveryVehicle, string> = {
   small_van: "Up to 50 kg",
   cargo_van: "Up to 300 kg",
 };
+
+
+
+

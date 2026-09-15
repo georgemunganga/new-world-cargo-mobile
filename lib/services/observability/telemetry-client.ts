@@ -5,7 +5,7 @@ import { mobileEnv } from "@/lib/config/env";
 import type { RedactableProperties } from "./redaction";
 
 export function sendTelemetry(event: string, properties: RedactableProperties) {
-  if (!mobileEnv.apiBaseUrl || mobileEnv.apiMode === "mock") return;
+  if (!mobileEnv.apiBaseUrl) return;
   const safeProperties = Object.fromEntries(Object.entries(properties).filter(([key]) => !/token|password|secret|authorization|cookie|phone|email|address/i.test(key)));
   void fetch(`${mobileEnv.apiBaseUrl}/api/v1/telemetry/events`, {
     method: "POST",

@@ -9,7 +9,7 @@ export default function CustomerTabLayout() {
   return <Tabs tabBar={(props) => <FloatingCapsuleTabBar {...props} />} screenOptions={{ headerShown: false }}>
     <Tabs.Screen name="index" options={{ title: "Home" }} />
     <Tabs.Screen name="shipments" options={{ title: "Shipments" }} />
-    <Tabs.Screen name="send" options={{ title: "Send" }} />
+    <Tabs.Screen name="send" options={{ title: "Send", href: null }} />
     <Tabs.Screen name="bills" options={{ title: "Bills" }} />
     <Tabs.Screen name="account" options={{ title: "Account" }} />
   </Tabs>;

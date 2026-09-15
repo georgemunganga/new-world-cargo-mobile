@@ -1,50 +1,45 @@
-import { describe, expect, it } from "vitest";
-import { routeGuardForSearch, routeSuggestionToAddress, searchRouteSuggestions } from "../lib/route-autocomplete";
-
-describe("service-aware inline route autocomplete", () => {
-  it("keeps Local Delivery suggestions scoped to nearby local places", () => {
-    const matches = searchRouteSuggestions("local", "roma");
-    expect(matches).toHaveLength(1);
-    expect(matches[0]?.city).toBe("Lusaka");
+import { beforeEach, describe, expect, it, vi } from "vitest";
+const { get } = vi.hoisted(() => ({ get: vi.fn() }));
+vi.mock("../lib/api/client", () => ({ apiClient: { get } }));
+const offices = [
+  { id: 1, name: "Lusaka office", city: "Lusaka", country: "Zambia", countryCode: "ZM", latitude: -15.4, longitude: 28.3 },
+  { id: 2, name: "Kitwe office", city: "Kitwe", country: "Zambia", countryCode: "ZM", latitude: -12.8, longitude: 28.2 },
+  { id: 3, name: "China office", city: "Guangzhou", country: "China", countryCode: "CN", latitude: 23.3, longitude: 113.7 },
+];
+beforeEach(() => { vi.resetModules(); get.mockReset(); get.mockResolvedValue({ data: { offices } }); });
+describe("configured route suggestions", () => {
+  it("does not invent sample locations before reference data loads", async () => {
+    const routes = await import("../lib/route-autocomplete");
+    expect(routes.searchRouteSuggestions("local", "roma")).toEqual([]);
   });
-
-  it("returns city and branch suggestions for City-to-City routes", () => {
-    const matches = searchRouteSuggestions("intercity", "kitwe");
-    expect(matches[0]?.kind).toBe("city");
-    expect(matches[0]?.label).toBe("Kitwe");
+  it("restricts local offices to the configured local service city", async () => {
+    const routes = await import("../lib/route-autocomplete");
+    await routes.loadRouteReferenceData();
+    expect(routes.searchRouteSuggestions("local", "", { city: "Lusaka", latitude: -15.4, longitude: 28.3 }).map((p) => p.branchId)).toEqual(["1"]);
+    expect(routes.searchRouteSuggestions("local", "", { city: "Kitwe", latitude: -12.8, longitude: 28.2 }).map((p) => p.branchId)).toEqual(["2"]);
+    expect(routes.searchRouteSuggestions("local", "")).toEqual([]);
   });
-
-  it("returns supplier cities, ports, or airports only within International Imports scope", () => {
-    const matches = searchRouteSuggestions("import", "dar");
-    expect(matches.map((item) => item.kind)).toEqual(expect.arrayContaining(["airport", "port"]));
-    expect(searchRouteSuggestions("local", "dar")).toHaveLength(0);
+  it("offers configured domestic branches for intercity routes", async () => {
+    const routes = await import("../lib/route-autocomplete");
+    await routes.loadRouteReferenceData();
+    expect(routes.searchRouteSuggestions("intercity", "kitwe")[0].branchId).toBe("2");
+    expect(routes.searchRouteSuggestions("intercity", "china")).toEqual([]);
   });
-
-  it("converts a selected suggestion into the structured route model", () => {
-    const suggestion = searchRouteSuggestions("import", "guangzhou")[0]!;
-    expect(routeSuggestionToAddress(suggestion)).toEqual({ label: "Guangzhou, China", branchId: undefined, city: "Guangzhou", area: "Baiyun", detail: "Guangzhou, China", latitude: 23.1291, longitude: 113.2644 });
+  it("preserves exact backend branch coordinates when selected", async () => {
+    const routes = await import("../lib/route-autocomplete");
+    await routes.loadRouteReferenceData();
+    expect(routes.routeSuggestionToAddress(routes.searchRouteSuggestions("import", "china")[0])).toMatchObject({ branchId: "3", latitude: 23.3, longitude: 113.7 });
   });
-
-  it("keeps International Import lane pins on selected cities instead of user location", () => {
-    const origin = searchRouteSuggestions("import", "guangzhou")[0]!;
-    const destination = searchRouteSuggestions("import", "lusaka")[0]!;
-    expect(origin).toMatchObject({ city: "Guangzhou", country: "China", latitude: 23.1291, longitude: 113.2644 });
-    expect(destination).toMatchObject({ city: "Lusaka", country: "Zambia", latitude: -15.3875, longitude: 28.3228 });
+  it("does not substitute sample branches after network failure", async () => {
+    get.mockRejectedValue(new Error("offline"));
+    const routes = await import("../lib/route-autocomplete");
+    await routes.loadRouteReferenceData();
+    expect(routes.searchRouteSuggestions("import", "")).toEqual([]);
   });
-
-  it("blocks unsupported countries unless they are returned as supported backend branches", () => {
-    expect(searchRouteSuggestions("import", "usa")).toHaveLength(0);
-    expect(routeGuardForSearch("import", "usa")).toMatchObject({
-      supported: false,
-      reason: expect.stringContaining("International Imports only supports selected"),
-    });
-    expect(routeGuardForSearch("import", "guangzhou").supported).toBe(true);
-  });
-
-  it("reports the supported network for map/search guardrails", () => {
-    const guard = routeGuardForSearch("intercity", "");
-    expect(guard).toMatchObject({ supported: true, dynamicBranches: 0 });
-    expect(guard.supportedCountries).toContain("Zambia");
-    expect(guard.supportedCities).toEqual(expect.arrayContaining(["Lusaka", "Kitwe"]));
+  it("reports supported countries from configured offices", async () => {
+    const routes = await import("../lib/route-autocomplete");
+    await routes.loadRouteReferenceData();
+    expect(routes.routeGuardForSearch("import", "").supportedCountries).toEqual(["China", "Zambia"]);
+    expect(routes.routeGuardForSearch("import", "Canada").supported).toBe(false);
   });
 });

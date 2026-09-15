@@ -1,8 +1,10 @@
 import { apiClient } from "@/lib/api/client";
+import { getSessionToken } from "@/lib/_core/auth";
 import { MobileApiError } from "@/lib/api/errors";
 import type { OtpChallenge } from "@/lib/domain/auth";
 import type { AuthRepository } from "@/lib/repositories/types";
 import {
+  mapPortalLoginSession,
   mapPortalSession,
   portalPasswordResetPayload,
   portalRegisterPayload,
@@ -36,7 +38,7 @@ export const laravelAuthRepository: AuthRepository = {
       { identifier: input.identifier, password: input.password },
       { auth: false },
     );
-    return mapPortalSession(response);
+    return mapPortalLoginSession(response);
   },
   async register(input) {
     const response = await apiClient.post<PortalEnvelope<PortalAuthUser>>(
@@ -96,6 +98,10 @@ export const laravelAuthRepository: AuthRepository = {
     };
   },
   async restoreSession() {
+    // Native app startup must be authenticated by the token stored by the
+    // mobile client. Do not let a persisted browser/Expo cookie restore a
+    // customer before the login screen is shown.
+    if (!(await getSessionToken())) return null;
     try {
       const response =
         await apiClient.get<PortalEnvelope<PortalAuthUser>>("/api/v1/session");
