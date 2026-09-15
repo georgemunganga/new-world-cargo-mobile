@@ -27,6 +27,7 @@ import { IconButton, PrimaryButton, Screen } from "@/components/ui/nwc-ui";
 import { useAppToast } from "@/components/ui/app-toast";
 import { isRouteReady } from "@/lib/booking-progress";
 import { estimateBookingQuote } from "@/lib/booking-pricing";
+import { errorReporter } from "@/lib/services/observability/error-reporter";
 import {
   getLocalDeliveryRouteSheetState,
   type LocalDeliveryRouteTarget,
@@ -120,7 +121,7 @@ export default function LocalDeliveryRouteScreen() {
     }
     setQuoteError("");
     setQuoteLoading(true);
-    updateLocalDraft({ quote: undefined });
+    if (localDraft.quote) updateLocalDraft({ quote: undefined });
     void estimateBookingQuote("local", localDraft)
       .then((nextQuote) => {
         if (active && nextQuote) updateLocalDraft({ quote: nextQuote });
@@ -133,6 +134,11 @@ export default function LocalDeliveryRouteScreen() {
           : "We could not load a server quote. Check your connection and try again.";
         setQuoteError(message);
         toast.error(message);
+        errorReporter.capture(error, {
+          workflow: "local_booking_quote",
+          service: "local",
+          endpoint: "/api/v1/bookings/quote",
+        });
       })
       .finally(() => {
         if (active) setQuoteLoading(false);
@@ -313,7 +319,7 @@ export default function LocalDeliveryRouteScreen() {
                       }
                       icon="arrow-right"
                       loading={quoteLoading}
-                      disabled={!routeReady || quoteLoading || (!quote && !quoteError)}
+                      disabled={!routeReady || quoteLoading}
                       onPress={quote ? continueBooking : () => setQuoteRequestVersion((version) => version + 1)}
                     />
                   </>
