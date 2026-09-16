@@ -70,6 +70,7 @@ export function mapPortalCustomer(user: PortalAuthUser): CustomerProfile {
     ...(user.email ? { email: user.email } : {}),
     city: "Lusaka",
     ...(user.avatar ? { avatarUrl: user.avatar } : {}),
+    ...(typeof user.verified === "boolean" ? { verified: user.verified } : {}),
     portalEnabled: true,
   };
 }

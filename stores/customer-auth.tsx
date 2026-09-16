@@ -63,6 +63,7 @@ function customerFromSession(session: AuthSession): CustomerProfile {
     ...(session.customer.email ? { email: session.customer.email } : {}),
     city: session.customer.city,
     ...(session.customer.avatarUrl ? { avatarUrl: session.customer.avatarUrl } : {}),
+    ...(typeof session.customer.verified === "boolean" ? { verified: session.customer.verified } : {}),
     ...(session.customer.branchId ? { branchId: session.customer.branchId } : {}),
     portalEnabled: session.customer.portalEnabled,
   };
@@ -76,6 +77,7 @@ function domainCustomerFromStored(customer: CustomerProfile): DomainCustomerProf
     city: customer.city,
     ...(customer.email ? { email: customer.email } : {}),
     ...(customer.avatarUrl ? { avatarUrl: customer.avatarUrl } : {}),
+    ...(typeof customer.verified === "boolean" ? { verified: customer.verified } : {}),
     ...(customer.branchId ? { branchId: customer.branchId } : {}),
     portalEnabled: customer.portalEnabled ?? true,
   };

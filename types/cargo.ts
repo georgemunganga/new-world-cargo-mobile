@@ -1,12 +1,8 @@
 export type ServiceType = "import" | "intercity" | "local";
 export type ShippingMethod = "air" | "sea";
-export type ShipmentStatus =
-  | "action_required"
-  | "booking_confirmed"
-  | "in_transit"
-  | "out_for_delivery"
-  | "delivered"
-  | "pending";
+// Imported and re-exported so the UI and the domain can never diverge again.
+import type { ShipmentStatus } from "@/lib/domain/shipment";
+export type { ShipmentStatus };
 export type BookingStep = "route" | "parcel" | "contacts" | "schedule" | "review";
 export type LocalDeliveryVehicle = "scooter" | "small_van" | "cargo_van";
 
@@ -87,6 +83,7 @@ export type Shipment = {
   reference: string;
   service: ServiceType;
   status: ShipmentStatus;
+  statusLabel?: string;
   title: string;
   pickup: Address;
   destination: Address;

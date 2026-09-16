@@ -3,6 +3,7 @@ import type { CustomerShipment } from "@/lib/domain/shipment";
 export type PortalShipment = {
   id: number | string;
   trackingNumber?: string;
+  confirmationCode?: string | null;
   code?: string;
   reference?: string;
   packageName?: string;
@@ -12,6 +13,7 @@ export type PortalShipment = {
   service?: CustomerShipment["service"];
   status?: CustomerShipment["status"];
   statusLabel?: string;
+  allowedActions?: string[];
   origin?: CustomerShipment["origin"] | string | null;
   destination?: CustomerShipment["destination"] | string | null;
   etaLabel?: string;
@@ -55,9 +57,12 @@ export function mapPortalShipment(item: PortalShipment): CustomerShipment {
   return {
     id: String(item.id),
     code,
+    ...(item.confirmationCode ? { confirmationCode: item.confirmationCode } : {}),
     title,
     service,
     status,
+    ...(item.statusLabel ? { statusLabel: item.statusLabel } : {}),
+    ...(item.allowedActions?.length ? { allowedActions: item.allowedActions as CustomerShipment["allowedActions"] } : {}),
     origin: addressFrom(item.origin, "Origin"),
     destination: addressFrom(item.destination, "Destination"),
     etaLabel: item.etaLabel ?? item.eta_label,
@@ -77,9 +82,25 @@ export function mapPortalShipment(item: PortalShipment): CustomerShipment {
   };
 }
 
+const portalStatuses: CustomerShipment["status"][] = [
+  "pending",
+  "pickup_scheduled",
+  "picked_up",
+  "in_transit",
+  "at_destination",
+  "out_for_delivery",
+  "delivered",
+  "delayed",
+  "failed",
+  "cancelled",
+];
+
+/**
+ * Passes the portal status through untouched. Collapsing unknown values to
+ * "pending" is deliberate only as a last resort: a cancelled or failed
+ * shipment must never be reported as still pending.
+ */
 function normalizeStatus(status?: string): CustomerShipment["status"] {
-  if (status === "booking_confirmed" || status === "in_transit" || status === "out_for_delivery" || status === "delivered" || status === "cancelled" || status === "exception" || status === "action_required" || status === "pending") return status;
-  if (status === "at_destination") return "in_transit";
-  if (status === "failed") return "exception";
-  return "pending";
+  const candidate = (status ?? "").trim() as CustomerShipment["status"];
+  return portalStatuses.includes(candidate) ? candidate : "pending";
 }

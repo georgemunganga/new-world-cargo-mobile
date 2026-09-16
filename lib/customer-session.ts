@@ -5,6 +5,7 @@ export type StoredCustomer = {
   email?: string;
   city: string;
   avatarUrl?: string;
+  verified?: boolean;
   branchId?: string;
   portalEnabled?: boolean;
 };
@@ -23,6 +24,7 @@ export function decodeStoredCustomer(value: string | null): StoredCustomer | nul
       ...(typeof data.email === "string" && data.email.trim() ? { email: data.email } : {}),
       ...(typeof data.avatarUrl === "string" && data.avatarUrl.trim() ? { avatarUrl: data.avatarUrl } : {}),
       ...(typeof data.branchId === "string" && data.branchId.trim() ? { branchId: data.branchId } : {}),
+      ...(typeof data.verified === "boolean" ? { verified: data.verified } : {}),
       ...(typeof data.portalEnabled === "boolean" ? { portalEnabled: data.portalEnabled } : {}),
     };
   } catch {

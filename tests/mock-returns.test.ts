@@ -9,8 +9,8 @@ describe("mock return requests", () => {
     expect(isReturnEligible(shipments[0])).toBe(false);
   });
 
-  it("creates a submitted request connected to the delivered shipment", () => {
+  it("creates a requested return connected to the delivered shipment", () => {
     const request = createMockReturnRequest(shipments[1], "damaged", "courier-pickup");
-    expect(request).toMatchObject({ shipmentId: shipments[1].id, shipmentReference: shipments[1].reference, status: "submitted" });
+    expect(request).toMatchObject({ shipmentId: shipments[1].id, shipmentReference: shipments[1].reference, status: "requested" });
   });
 });

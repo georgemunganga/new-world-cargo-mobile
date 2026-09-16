@@ -17,7 +17,10 @@ export function usePublicTracking() {
   const [isStale, setIsStale] = useState(false);
   const track = async (code: string) => {
     const request = ++version.current;
-    const queryKey = ["public-tracking", normaliseTrackingCode(code)];
+    // The portal matches `code` exactly, so send the normalised form --
+    // a lowercase or spaced entry would otherwise 404 on a real shipment.
+    const lookupCode = normaliseTrackingCode(code);
+    const queryKey = ["public-tracking", lookupCode];
     const cached = client.getQueryData<TrackingResult>(queryKey);
     setResult(cached ?? null);
     setStatus(cached ? "success" : "loading");
@@ -26,7 +29,7 @@ export function usePublicTracking() {
     try {
       const next = await client.fetchQuery({
         queryKey,
-        queryFn: () => repositories.tracking.trackByCode(code),
+        queryFn: () => repositories.tracking.trackByCode(lookupCode),
         staleTime: 15_000,
         networkMode: "always",
       });

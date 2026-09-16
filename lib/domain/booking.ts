@@ -15,6 +15,7 @@ export type BookingSubmissionInput = {
 };
 
 export type BookingSubmissionResult = {
+  confirmationCode?: string;
   id: string;
   reference: string;
   service: BookingService;

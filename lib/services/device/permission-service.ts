@@ -22,7 +22,12 @@ function moduleFor(permission: DevicePermission): { get?: () => Promise<{ status
       return { get: location.getForegroundPermissionsAsync, request: location.requestForegroundPermissionsAsync };
     }
     if (permission === "notifications") {
-      if (Platform.OS === "android") {
+      // POST_NOTIFICATIONS is an API 33+ runtime permission. On older Android the
+      // system finishes the grant activity without ever calling back, so
+      // PermissionsAndroid.request() never settles and callers hang forever.
+      // Below 33 fall through to expo-notifications, which reports the real
+      // notifications-enabled state instead.
+      if (Platform.OS === "android" && Number(Platform.Version) >= 33) {
         const notificationPermission = PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS;
         return {
           get: async () => ({

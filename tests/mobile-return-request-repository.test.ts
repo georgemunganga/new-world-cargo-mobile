@@ -11,10 +11,10 @@ describe("mobile return request repository", () => {
     expect(isReturnEligible(activeShipment)).toBe(false);
   });
 
-  it("creates a submitted return request from a shipment summary", () => {
+  it("creates a requested return request from a shipment summary", () => {
     const request = createReturnRequest({ shipment: deliveredShipment, reason: "damaged", handover: "courier-pickup" });
 
-    expect(request).toMatchObject({ shipmentId: "shipment-1", shipmentReference: "EXP-LUN10001", status: "submitted" });
+    expect(request).toMatchObject({ shipmentId: "shipment-1", shipmentReference: "EXP-LUN10001", status: "requested" });
   });
 
   it("submits and replaces one return request per shipment", async () => {

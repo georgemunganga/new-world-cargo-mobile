@@ -5,7 +5,7 @@ import type { BookingDraftSummary, BookingSubmissionInput, BookingSubmissionResu
 import type { AccountSettingsSnapshot } from "@/lib/domain/account-settings";
 import type { Pickup } from "@/lib/domain/pickup";
 import type { ReturnRequest, SubmitReturnRequestInput } from "@/lib/domain/return-request";
-import type { CustomerShipment } from "@/lib/domain/shipment";
+import type { CustomerShipment, ShipmentAction } from "@/lib/domain/shipment";
 import type { CreateSupportCaseInput, SupportCase } from "@/lib/domain/support";
 import type { TrackingResult } from "@/lib/domain/tracking";
 import type { UploadedDocument, UploadFile } from "@/lib/domain/upload";
@@ -32,6 +32,8 @@ export type CustomerRepository = {
 export type ShipmentRepository = {
   listShipments(): Promise<CustomerShipment[]>;
   getShipment(id: string): Promise<CustomerShipment | null>;
+  /** Server validates against allowedActions and 409s if not permitted. */
+  performAction(id: string, action: ShipmentAction): Promise<CustomerShipment>;
 };
 
 export type TrackingRepository = {
@@ -57,6 +59,8 @@ export type BillingActionsRepository = {
 
 export type BookingRepository = {
   listDrafts(): Promise<BookingDraftSummary[]>;
+  /** Persists an unfinished booking so it survives leaving the flow. */
+  saveDraft(input: BookingSubmissionInput): Promise<BookingDraftSummary>;
   deleteDraft?(id: string): Promise<void>;
   submitBooking(input: BookingSubmissionInput): Promise<BookingSubmissionResult>;
 };

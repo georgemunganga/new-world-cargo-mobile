@@ -22,10 +22,12 @@ function mapHandover(value?: LaravelReturnRequestResponse["handover"]): ReturnHa
   return value === "pickup" || value === "courier-pickup" ? "courier-pickup" : "collection-point";
 }
 
+const returnStatuses: ReturnRequestStatus[] = ["draft", "requested", "approved", "in_transit", "completed", "rejected", "cancelled"];
+
+/** Passes the portal status through; collapsing hid rejected and completed returns. */
 function mapStatus(value?: LaravelReturnRequestResponse["status"]): ReturnRequestStatus {
-  if (value === "approved" || value === "in_transit") return "approved";
-  if (value === "reviewing") return "reviewing";
-  return "submitted";
+  const candidate = (value ?? "") as ReturnRequestStatus;
+  return returnStatuses.includes(candidate) ? candidate : "requested";
 }
 
 function mapReturnRequest(raw: LaravelReturnRequestResponse): ReturnRequest {

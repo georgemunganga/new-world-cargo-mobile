@@ -148,6 +148,11 @@ export const laravelBookingRepository: BookingRepository = {
     const response = await apiClient.get<{ data: LaravelDraftResponse[] }>("/api/v1/shipment-drafts");
     return response.data.map(mapDraft);
   },
+  async saveDraft(input) {
+    const payload = portalSubmissionPayload(input.service, input.draft);
+    const response = await apiClient.post<{ data: LaravelDraftResponse }>("/api/v1/shipment-drafts", { payload });
+    return mapDraft(response.data);
+  },
   async deleteDraft(id) {
     await apiClient.delete(`/api/v1/shipment-drafts/${encodeURIComponent(id)}`);
   },
@@ -164,6 +169,7 @@ export const laravelBookingRepository: BookingRepository = {
     return {
       id: shipment.id,
       reference: shipment.code,
+      ...(shipment.confirmationCode ? { confirmationCode: shipment.confirmationCode } : {}),
       service: input.service,
       status: "received",
       message: "Your shipment request has been received by New WorldCargo.",

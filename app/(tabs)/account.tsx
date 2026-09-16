@@ -21,7 +21,14 @@ export default function AccountScreen() {
       <View style={styles.page}>
         <ScrollView contentContainerStyle={[styles.content, { paddingBottom: floatingNavigationClearance }]} showsVerticalScrollIndicator={false}>
           <Text style={styles.title}>Account</Text>
-          <View style={styles.profile}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Open account settings"
+            accessibilityHint="Edit your profile, password, privacy, and devices"
+            activeOpacity={0.74}
+            onPress={() => router.push("/account/settings" as Href)}
+            style={styles.profile}
+          >
             <View style={styles.avatar}>
               {customer?.avatarUrl ? <Image source={{ uri: customer.avatarUrl }} resizeMode="cover" style={styles.avatarImage} /> : <Text style={styles.avatarText}>{initials}</Text>}
             </View>
@@ -29,8 +36,9 @@ export default function AccountScreen() {
               <Text numberOfLines={1} style={styles.profileName}>{customer?.name || "New WorldCargo customer"}</Text>
               <Text style={styles.profileDetail}>{customer?.city || "Lusaka"}</Text>
             </View>
-            <StatusBadge label="Verified" tone="success" icon="check" />
-          </View>
+            {customer?.verified ? <StatusBadge label="Verified" tone="success" icon="check" /> : null}
+            <AppIcon name="chevron-right" size={20} color={nwcColors.muted} />
+          </TouchableOpacity>
 
           <AccountGroup title="Account settings">
             <AccountRow icon="shield-check-outline" title="Profile and security" detail="Profile, password, privacy, and devices" onPress={() => router.push("/account/settings" as Href)} />
@@ -54,6 +62,8 @@ export default function AccountScreen() {
 
           <AccountGroup title="Records">
             <AccountRow icon="receipt-text-outline" title="Receipts" detail="Your paid cargo records" onPress={() => router.push("/bills/receipts" as Href)} />
+            <View style={styles.divider} />
+            <AccountRow icon="undo-variant" title="Returns" detail="Returns you have requested" onPress={() => router.push("/returns" as Href)} />
           </AccountGroup>
 
           <AccountGroup title="About">
@@ -91,7 +101,7 @@ const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: nwcColors.background },
   content: { paddingHorizontal: 20, paddingTop: 24, gap: 24 },
   title: { color: nwcColors.foreground, fontSize: 30, lineHeight: 38, fontFamily: "Poppins_800ExtraBold", letterSpacing: -0.5 },
-  profile: { flexDirection: "row", alignItems: "center", gap: 12 },
+  profile: { minHeight: 64, flexDirection: "row", alignItems: "center", gap: 12, paddingRight: 4 },
   avatar: { height: 56, width: 56, borderRadius: 20, overflow: "hidden", backgroundColor: nwcColors.primary, alignItems: "center", justifyContent: "center" },
   avatarImage: { width: "100%", height: "100%" },
   avatarText: { color: nwcColors.primaryInk, fontSize: 17, lineHeight: 22, fontFamily: "Poppins_800ExtraBold" },

@@ -7,12 +7,11 @@ import type { Address, ImportBookingDraft, IntercityBookingDraft, LocalDeliveryD
 const submittedShipments: CustomerShipment[] = [];
 
 const statusMap: Record<string, ShipmentStatus> = {
-  action_required: "action_required",
-  booking_confirmed: "booking_confirmed",
+  pending: "pending",
+  pickup_scheduled: "pickup_scheduled",
   in_transit: "in_transit",
   out_for_delivery: "out_for_delivery",
   delivered: "delivered",
-  pending: "pending",
 };
 
 function toCustomerShipment(shipment: (typeof shipments)[number]): CustomerShipment {
@@ -74,7 +73,7 @@ export function recordMockSubmittedBooking(result: BookingSubmissionResult, draf
     code: result.reference,
     title: titleFor(service, draft),
     service,
-    status: result.status === "confirmed" ? "booking_confirmed" : "pending",
+    status: result.status === "confirmed" ? "pickup_scheduled" : "pending",
     origin,
     destination,
     etaLabel: result.service === "local" ? "Pending confirmation" : "Quote pending",
@@ -94,6 +93,14 @@ export function recordMockSubmittedBooking(result: BookingSubmissionResult, draf
 export const mockShipmentRepository: ShipmentRepository = {
   async listShipments() {
     return [...submittedShipments, ...shipments.map(toCustomerShipment)];
+  },
+  async performAction(id, action) {
+    const shipment = shipments.find((item) => item.id === id);
+    if (!shipment) throw new Error("Shipment not found.");
+    if (action === "cancel") shipment.status = "cancelled" as typeof shipment.status;
+    const mapped = await mockShipmentRepository.getShipment(id);
+    if (!mapped) throw new Error("Shipment not found.");
+    return mapped;
   },
   async getShipment(id) {
     const submitted = submittedShipments.find((item) => item.id === id || item.code === id);

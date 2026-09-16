@@ -7,6 +7,8 @@ export type CustomerProfile = {
   email?: string;
   city: string;
   avatarUrl?: string;
+  /** Server-confirmed contact verification. Never assume true. */
+  verified?: boolean;
   portalEnabled: boolean;
   branchId?: string;
 };

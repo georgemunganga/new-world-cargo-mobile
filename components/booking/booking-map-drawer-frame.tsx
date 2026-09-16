@@ -1,5 +1,6 @@
-import { type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -61,6 +62,25 @@ export function BookingMapDrawerFrame({
     toggleExpanded,
   } = useBookingDrawerSnap(viewportHeight, insets.top);
 
+  // Android edge-to-edge windows do not resize for the keyboard, so
+  // KeyboardAvoidingView cannot help here and the fixed-height sheet would sit
+  // underneath it. Track the keyboard and lift the sheet above it instead.
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  useEffect(() => {
+    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const onShow = Keyboard.addListener(showEvent, (event) =>
+      setKeyboardHeight(event.endCoordinates?.height ?? 0),
+    );
+    const onHide = Keyboard.addListener(hideEvent, () => setKeyboardHeight(0));
+    return () => {
+      onShow.remove();
+      onHide.remove();
+    };
+  }, []);
+  const keyboardLift = keyboardHeight > 0 ? Math.max(0, keyboardHeight - insets.bottom) : 0;
+  const availableHeight = Math.max(240, viewportHeight - insets.top - keyboardLift);
+
   return (
     <Screen>
       <KeyboardAvoidingView
@@ -88,7 +108,7 @@ export function BookingMapDrawerFrame({
           </View>
           <View style={styles.topSpacer} />
         </View>
-        <View style={[styles.sheet, { height: sheetHeight }, drawerTransform]}>
+        <View style={[styles.sheet, { height: Math.min(sheetHeight, availableHeight), bottom: keyboardLift }, drawerTransform]}>
           <TouchableOpacity
             accessibilityRole="button"
             accessibilityLabel={`${expanded ? "Collapse" : "Expand"} ${stepLabel} drawer`}

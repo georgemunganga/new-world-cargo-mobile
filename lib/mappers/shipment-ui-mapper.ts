@@ -8,16 +8,6 @@ const serviceMap: Record<CustomerShipment["service"], ServiceType> = {
   custom: "local",
 };
 
-const statusMap: Record<CustomerShipment["status"], ShipmentStatus> = {
-  action_required: "action_required",
-  booking_confirmed: "booking_confirmed",
-  in_transit: "in_transit",
-  out_for_delivery: "out_for_delivery",
-  delivered: "delivered",
-  pending: "pending",
-  cancelled: "pending",
-  exception: "action_required",
-};
 
 function toUiAddress(address: CustomerShipment["origin"]): Address {
   return {
@@ -35,7 +25,8 @@ export function toUiShipment(shipment: CustomerShipment): Shipment {
     id: shipment.id,
     reference: shipment.code,
     service: serviceMap[shipment.service],
-    status: statusMap[shipment.status],
+    status: shipment.status,
+    ...(shipment.statusLabel ? { statusLabel: shipment.statusLabel } : {}),
     title: shipment.title,
     pickup: toUiAddress(shipment.origin),
     destination: toUiAddress(shipment.destination),

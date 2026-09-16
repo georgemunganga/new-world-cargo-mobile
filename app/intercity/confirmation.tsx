@@ -1,9 +1,14 @@
-import { router, useLocalSearchParams } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
-import { AppIcon } from "@/components/ui/app-icon";
-import { PrimaryButton, Screen, SecondaryButton } from "@/components/ui/nwc-ui";
-import { nwcColors } from "@/lib/nwc-theme";
+import { BookingConfirmation } from "@/components/booking/booking-confirmation";
 import { useBookingDraft } from "@/stores/booking-draft";
 
-export default function IntercityConfirmationScreen() { const { resetIntercityDraft } = useBookingDraft(); const { shipmentId, reference } = useLocalSearchParams<{ shipmentId?: string; reference?: string }>(); const home = () => { resetIntercityDraft(); router.replace("/" as never); }; const openShipment = () => { resetIntercityDraft(); router.replace((shipmentId ? `/shipments/${shipmentId}` : "/shipments") as never); }; return <Screen><View style={styles.page}><View style={styles.hero}><View style={styles.icon}><AppIcon name="truck-check-outline" size={33} color={nwcColors.primaryInk} /></View>{reference ? <Text style={styles.reference}>Booking reference {reference}</Text> : null}<Text style={styles.title}>Quote request received</Text><Text style={styles.detail}>We will confirm the next available City-to-City movement and your shipment quote.</Text></View><View style={styles.actions}><PrimaryButton label={shipmentId ? "Open shipment" : "View shipments"} onPress={openShipment} /><SecondaryButton label="Back to Home" onPress={home} /></View></View></Screen>; }
-const styles = StyleSheet.create({ page: { flex: 1, justifyContent: "space-between", padding: 28, backgroundColor: nwcColors.background }, hero: { alignItems: "center", gap: 12, paddingTop: 96 }, icon: { height: 76, width: 76, borderRadius: 26, backgroundColor: nwcColors.primary, alignItems: "center", justifyContent: "center" }, reference: { color: nwcColors.info, fontSize: 12, lineHeight: 16, fontFamily: "Poppins_800ExtraBold", letterSpacing: 0.6, textTransform: "uppercase", textAlign: "center" }, title: { color: nwcColors.foreground, fontSize: 26, lineHeight: 33, fontFamily: "Poppins_800ExtraBold", textAlign: "center" }, detail: { color: nwcColors.muted, fontSize: 14, lineHeight: 21, fontFamily: "Poppins_500Medium", textAlign: "center" }, actions: { gap: 10 } });
+export default function IntercityConfirmationScreen() {
+  const { resetIntercityDraft } = useBookingDraft();
+  return (
+    <BookingConfirmation
+      icon="truck-check-outline"
+      title="Quote request received"
+      detail="We will confirm the next available City-to-City movement and your shipment quote."
+      onReset={resetIntercityDraft}
+    />
+  );
+}

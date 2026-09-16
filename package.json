@@ -15,7 +15,7 @@
     "test": "vitest run",
     "db:push": "drizzle-kit generate && drizzle-kit migrate",
     "android": "node scripts/start-expo-android.mjs --api --port 8082 --clear",
-    "ios": "expo start --ios",
+    "ios": "expo run:ios",
     "qr": "node scripts/generate_qr.mjs",
     "quality": "node scripts/mobile-quality.mjs",
     "release:audit": "node scripts/mobile-release-audit.mjs",

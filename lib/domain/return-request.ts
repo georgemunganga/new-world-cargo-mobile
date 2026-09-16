@@ -2,7 +2,25 @@ import type { ShipmentStatus } from "@/types/cargo";
 
 export type ReturnReason = "damaged" | "incorrect" | "changed-mind" | "other";
 export type ReturnHandover = "courier-pickup" | "collection-point";
-export type ReturnRequestStatus = "submitted" | "reviewing" | "approved";
+/** Matches the portal contract. The server emits requested, approved, in_transit and cancelled. */
+export type ReturnRequestStatus =
+  | "draft"
+  | "requested"
+  | "approved"
+  | "in_transit"
+  | "completed"
+  | "rejected"
+  | "cancelled";
+
+export const returnStatusPresentation: Record<ReturnRequestStatus, { label: string; tone: "info" | "success" | "warning" | "neutral" }> = {
+  draft: { label: "Draft", tone: "neutral" },
+  requested: { label: "Requested", tone: "info" },
+  approved: { label: "Approved", tone: "info" },
+  in_transit: { label: "On its way back", tone: "info" },
+  completed: { label: "Completed", tone: "success" },
+  rejected: { label: "Not approved", tone: "warning" },
+  cancelled: { label: "Cancelled", tone: "neutral" },
+};
 
 export type ReturnRequest = {
   id: string;
@@ -49,7 +67,7 @@ export function createReturnRequest(input: SubmitReturnRequestInput): ReturnRequ
     shipmentReference: input.shipment.reference,
     reason: input.reason,
     handover: input.handover,
-    status: "submitted",
+    status: "requested",
     createdLabel: "Just now",
   };
 }

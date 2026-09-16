@@ -40,7 +40,7 @@ export function googlePlacesConfigured() {
 }
 
 export async function autocompleteGooglePlaces(scope: RouteSearchScope, query: string, supportedCountryCodes: string[], localCity?: LocalCity): Promise<RouteSuggestion[]> {
-  if (!googlePlacesConfigured() || query.trim().length < 3 || scope === "intercity") return [];
+  if (!googlePlacesConfigured() || query.trim().length < 3) return [];
   if (scope !== "local" && supportedCountryCodes.length === 0) return [];
 
   const body: Record<string, unknown> = {
