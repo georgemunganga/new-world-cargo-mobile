@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/api/client";
-import { bookingQuoteRequestFromDraft, estimateBookingQuote } from "@/lib/booking-pricing";
+import { bookingQuoteRequestFromDraft, estimateBookingQuote, requireReviewedQuote } from "@/lib/booking-pricing";
 import type { BookingDraftSummary, BookingService, BookingSubmissionResult } from "@/lib/domain/booking";
 import type { BookingRepository } from "@/lib/repositories/types";
 import type { Address, BookingCargoAttachment, BookingCargoItem, PersonContact } from "@/types/cargo";
@@ -157,9 +157,13 @@ export const laravelBookingRepository: BookingRepository = {
     await apiClient.delete(`/api/v1/shipment-drafts/${encodeURIComponent(id)}`);
   },
   async submitBooking(input) {
+    // Custom requests remain manually priced. Paid services must use the price reviewed by the customer.
+    const quote = input.service === "custom"
+      ? await estimateBookingQuote(input.service, input.draft)
+      : requireReviewedQuote(input.service, input.draft);
     const uploadedDraft = await uploadDraftAttachments(input.draft);
-    const freshQuote = await estimateBookingQuote(input.service, uploadedDraft);
-    const quotedDraft = freshQuote && uploadedDraft && typeof uploadedDraft === "object" ? { ...uploadedDraft, quote: freshQuote } : uploadedDraft;
+    const quotedDraft = quote && uploadedDraft && typeof uploadedDraft === "object" ? { ...uploadedDraft, quote } : uploadedDraft;
+    if (input.service !== "custom") requireReviewedQuote(input.service, quotedDraft);
     const payload = portalSubmissionPayload(input.service, quotedDraft);
     const draft = await apiClient.post<{ data: LaravelDraftResponse }>("/api/v1/shipment-drafts", {
       payload,

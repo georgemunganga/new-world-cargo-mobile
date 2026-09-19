@@ -19,7 +19,7 @@ describe("mobile release configuration", () => {
 
   it("declares native permission copy for production app review", () => {
     expect(config.ios?.infoPlist).toMatchObject({
-      NSCameraUsageDescription: expect.stringContaining("scan shipment labels"),
+      NSCameraUsageDescription: expect.stringContaining("cargo evidence"),
       NSPhotoLibraryUsageDescription: expect.stringContaining("profile photos"),
       NSLocationWhenInUseUsageDescription: expect.stringContaining("pickup and delivery"),
     });

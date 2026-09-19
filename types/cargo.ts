@@ -7,6 +7,7 @@ export type BookingStep = "route" | "parcel" | "contacts" | "schedule" | "review
 export type LocalDeliveryVehicle = "scooter" | "small_van" | "cargo_van";
 
 export type BookingQuote = {
+  requestKey?: string;
   source: "server" | "fallback";
   currency: string;
   total: number;

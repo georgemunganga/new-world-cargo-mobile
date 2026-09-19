@@ -1,4 +1,6 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+# EAS Build upload ignore list.
+# NOTE: when this file exists, EAS uses it INSTEAD of .gitignore, so it must
+# repeat everything .gitignore excludes as well as the EAS-only entries.
 
 # dependencies
 node_modules/
@@ -66,6 +68,11 @@ Thumbs.db
 .webdev/
 .project-config.json
 
-# Android signing credentials (local EAS credentialsSource)
+# Android signing credentials (uploaded separately, not via the tarball)
 credentials.json
 credentials/
+
+# EAS-only: local device tooling committed to the repo. Contains a 90MB Expo Go
+# APK plus adb/platform-tools that the build servers never use. Excluding this
+# cuts the upload tarball from ~146MB to ~33MB.
+.tools/

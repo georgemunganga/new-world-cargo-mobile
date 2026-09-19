@@ -20,7 +20,7 @@ const env = {
   androidVersionCode: Number(process.env.EXPO_PUBLIC_ANDROID_VERSION_CODE ?? "1"),
   iosBundleId: bundleId,
   androidPackage: bundleId,
-  expoProjectId: process.env.EXPO_PUBLIC_EXPO_PROJECT_ID,
+  expoProjectId: process.env.EXPO_PUBLIC_EXPO_PROJECT_ID ?? "702dd433-05f9-4c44-b178-eaccf2e43403",
 };
 
 const config: ExpoConfig = {
@@ -40,7 +40,7 @@ const config: ExpoConfig = {
     config: googleMapsApiKey ? { googleMapsApiKey } : undefined,
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
-      NSCameraUsageDescription: "Allow New WorldCargo to scan shipment labels and attach cargo evidence.",
+      NSCameraUsageDescription: "Allow New WorldCargo to attach cargo evidence photos.",
       NSPhotoLibraryUsageDescription: "Allow New WorldCargo to select profile photos and support evidence.",
       NSLocationWhenInUseUsageDescription: "Allow New WorldCargo to help choose pickup and delivery locations.",
       NSContactsUsageDescription: "Allow New WorldCargo to fill delivery contact details from your phone contacts.",
@@ -78,6 +78,7 @@ const config: ExpoConfig = {
     eas: env.expoProjectId ? { projectId: env.expoProjectId } : undefined,
   },
   plugins: [
+    ["expo-image-picker", { cameraPermission: "Allow New WorldCargo to scan shipment labels and attach cargo evidence.", microphonePermission: false }],
     "@react-native-community/datetimepicker",
     "expo-router",
     "expo-font",

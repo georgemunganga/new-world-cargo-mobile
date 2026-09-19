@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/api/client";
 import { featureFlags } from "@/lib/config/feature-flags";
+import { MobileApiError } from "@/lib/api/errors";
 import type { BookingService } from "@/lib/domain/booking";
 import type { Address, BookingCargoItem, BookingQuote, LocalDeliveryVehicle } from "@/types/cargo";
 
@@ -164,8 +165,10 @@ export function bookingQuoteRequestFromDraft(service: BookingService, draft: unk
 }
 
 function normalizeQuote(raw: LaravelQuoteResponse["data"], request: BookingQuoteRequest): BookingQuote {
-  const total = numeric(raw?.total ?? raw?.amount ?? raw?.quotePayload?.total ?? raw?.quote_payload?.total ?? raw?.calc_payload?.total) ?? 0;
-  const currency = raw?.currency ?? String(raw?.quotePayload?.currency ?? raw?.quote_payload?.currency ?? raw?.calc_payload?.currency ?? "ZMW");
+  const total = numeric(raw?.total ?? raw?.amount ?? raw?.quotePayload?.total ?? raw?.quote_payload?.total ?? raw?.calc_payload?.total);
+  if (total === undefined || total < 0) throw new MobileApiError("QUOTE_REQUIRED", "The server returned an incomplete price. Please retry.");
+  const currency = String(raw?.currency ?? raw?.quotePayload?.currency ?? raw?.quote_payload?.currency ?? raw?.calc_payload?.currency ?? "").toUpperCase();
+  if (currency !== "USD") throw new MobileApiError("PRICING_NOT_CONFIGURED", "USD pricing is not available for this route yet. Please contact support.");
   const distanceKm = numeric(raw?.distanceKm ?? raw?.distance_km ?? raw?.quotePayload?.distanceKm ?? raw?.quote_payload?.distanceKm ?? raw?.calc_payload?.distance_km) ?? request.distanceKm;
   const estimatedDurationMinutes = numeric(raw?.estimatedDurationMinutes ?? raw?.estimated_duration_minutes ?? raw?.calc_payload?.estimated_duration_minutes);
   const quotePayload = raw?.quotePayload ?? raw?.quote_payload ?? raw?.calc_payload;
@@ -176,11 +179,24 @@ function normalizeQuote(raw: LaravelQuoteResponse["data"], request: BookingQuote
     formattedTotal: raw?.formattedTotal ?? raw?.formatted_total ?? formatKwacha(total, currency),
     distanceKm,
     estimatedDurationMinutes,
-    expiresAt: raw?.expiresAt ?? raw?.expires_at ?? String(quotePayload?.expires_at ?? ""),
+    expiresAt: raw?.expiresAt ?? raw?.expires_at ?? String(quotePayload?.expiresAt ?? quotePayload?.expires_at ?? ""),
     quotePayload,
     quoteSignature: raw?.quoteSignature ?? raw?.quote_signature ?? raw?.calc_sig,
     breakdown: raw?.breakdown,
+    requestKey: JSON.stringify(request),
   };
+}
+
+/** Client-side freshness guard; Laravel still verifies the signed amount and request hash. */
+export function requireReviewedQuote(service: BookingService, draft: unknown): BookingQuote {
+  const quote = (draft as { quote?: BookingQuote } | null)?.quote;
+  if (!quote || quote.source !== "server" || !quote.quotePayload || !quote.quoteSignature ||
+      quote.currency !== "USD" || !Number.isFinite(quote.total) || quote.total < 0 ||
+      !quote.expiresAt || !Number.isFinite(Date.parse(quote.expiresAt)) || Date.parse(quote.expiresAt) <= Date.now() ||
+      quote.requestKey !== JSON.stringify(bookingQuoteRequestFromDraft(service, draft))) {
+    throw new MobileApiError("QUOTE_REQUIRED", "Refresh and review the current USD price before confirming your booking.");
+  }
+  return quote;
 }
 
 export function fallbackBookingQuote(request: BookingQuoteRequest): BookingQuote {

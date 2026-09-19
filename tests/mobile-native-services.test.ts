@@ -9,7 +9,7 @@ import { shareService } from "../lib/services/device/share-service";
 
 describe("mobile native-service adapter contracts", () => {
   it("returns structured unavailable results for device features not installed in the browser-safe build", async () => {
-    await expect(cameraService.scanQrCode()).resolves.toMatchObject({ ok: false, reason: "missing-native-module" });
+    await expect(cameraService.capturePhoto()).resolves.toMatchObject({ ok: false, reason: "browser-preview" });
     await expect(cameraService.pickImage()).resolves.toMatchObject({ ok: false, reason: "browser-preview" });
     await expect(fileService.pickDocument()).resolves.toMatchObject({ ok: false, reason: "browser-preview" });
     await expect(locationService.getCurrentLocation()).resolves.toMatchObject({ ok: false, reason: "browser-preview" });
